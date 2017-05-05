@@ -8,68 +8,158 @@
         base.$el = $(el);
         base.el = el;
 
-        base.cells = [];
+        base._internal = {
+            constants: {
+                DATA_HIDDEN_CELL : 'hidden-cell',
+                DATA_CELL_POSITION_AND_SIZE : 'position-size'
+            },
+            cells: [],
+            draggedCellSelector: null, // initialised in init()
+            setVisibleCellPositionAndSize : function($cell, positionNSize){                 
+                // relied upon when drag-stop.
+                $cell.data(base._internal.constants.DATA_CELL_POSITION_AND_SIZE, positionNSize);
+
+                $cell.css('top', positionNSize.y);
+                $cell.css('left', positionNSize.x);
+                $cell.css('width', positionNSize.w);
+                $cell.css('height', positionNSize.h); 
+            }
+        };
         
         // Add a reverse reference to the DOM object
-        base.$el.data("Gridstrap", base);
+        base.$el.data('Gridstrap', base);
         
         base.init = function(){
             base.options = $.extend({},$.Gridstrap.defaultOptions, options);
+             
+            base._internal.draggedCellSelector = base.options.draggedCellClass.replace(/(^ *| +)/g, '$1.');
             
             // Put your initialization code here
             //console.log('this is');
            // console.log(base);
 
-            var initAbsoluteCopies = function(){
+            var initHiddenCopiesAndSetAbsolutePositions = function(){
                 var cells = base.$el.find(base.options.gridItemSelector);
                 cells.each(function(e) {
                     var $this = $(this);
+                    base._internal.cells.push($this);
 
                     var htmlToClone = base.options.getHtmlOfSourceCell($this);
                     var positionNSize = base.options.getAbsolutePositionAndSizeOfCell($this); 
 
-                    $this.after(htmlToClone);
-                    var $cloned = $this.next();
-                    $this.data('overlay', $cloned);
-                    //cloned.css('color', 'purple');
-                    $cloned.addClass(base.options.gridOverlayClass);
-                    
-                    $cloned.css('top', positionNSize.y);
-                    $cloned.css('left', positionNSize.x);
-                    $cloned.css('width', positionNSize.w);
-                    $cloned.css('height', positionNSize.h); 
-                    //debugger;
+                    $this.before(htmlToClone);
+                    var $hiddenClone = $this.prev();
 
-                    base.cells.push($this);
+                    $hiddenClone.addClass(base.options.hiddenCellClass);                    
+                    $this.addClass(base.options.visibleCellClass);
+
+                    $this.data(base._internal.constants.DATA_HIDDEN_CELL, $hiddenClone); 
+
+                    base._internal.setVisibleCellPositionAndSize($this, positionNSize); 
                 });
             };
 
-             
+            var dragstart = function(e){
+                e.preventDefault();
 
-            initAbsoluteCopies();
+                $(this).addClass(base.options.draggedCellClass);
+            };
+            var dragenter = function(e){
+                $(this).addClass('over'); 
+            };
+            var dragover = function(e){
+                if (e.preventDefault) {
+                    e.preventDefault(); // Necessary. Allows us to drop.
+                }
+
+                var dt = e.dataTransfer || e.originalEvent.dataTransfer;
+
+                dt.dropEffect = 'move';  // See the section on the DataTransfer object.
+
+                return false;
+            };
+            var dragleave = function(e){
+                $(this).removeClass('over'); 
+            };
+
+            var drop = function(e) {
+                // this / e.target is current target element.
+
+                if (e.stopPropagation) {
+                    e.stopPropagation(); // stops the browser from redirecting.
+                }
+
+                // See the section on the DataTransfer object.
+
+                return false;
+            }
+
+            var dragEnd = function (e) {
+                // this/e.target is the source node.
+
+                $(e.target).each(function(e){
+                    $(this).removeClass('over');
+                });
+                // [].forEach.call(cols, function (col) {
+                //     col.classList.remove('over');
+                // });
+            }; 
+
+            // only call event if occured on one of managed cells that has been initialised.
+            var onCellEvent = function(eventName, callback){
+                base.$el.on(eventName, base.options.gridItemSelector, function(e){
+                    var $cell = $(e.target);
+                    var managedCell = false;
+                    for(var i = 0; i < base._internal.cells.length && !managedCell; i++){
+                        if (base._internal.cells[i].is($cell)){
+                            managedCell = true;
+                        }
+                    }
+                    if (managedCell) {
+                        callback.call(this, e);
+                    }
+                });
+            };
+            
+            onCellEvent('dragstart', dragstart);
+            //base.$el.on('dragstart', base.options.gridItemSelector, dragstart);
+            //$('.column').on('dragenter', dragenter);
+            // base.$el.on('dragenter', cellSelectorAndChildren, dragenter);
+            // base.$el.on('dragover', cellSelector, dragover);
+            // base.$el.on('dragleave', cellSelectorAndChildren, dragleave);
+            // base.$el.on('drop', cellSelector, drop);
+            // base.$el.on('dragend', cellSelector, dragEnd);
+
+            initHiddenCopiesAndSetAbsolutePositions();
+
+            $(base.options.mouseMoveSelector).on('mousemove', function(mouseEvent){
+                var $draggedCell = $(base._internal.draggedCellSelector);
+                if ($draggedCell.length > 0){
+                    $draggedCell.each(function(e){
+                        base.options.setPositionOfDraggedCell($(this), mouseEvent);
+                    })
+                }
+            });
         };
         
         // Sample Function, Uncomment to use
         // base.functionName = function(paramaters){
         // 
         // }; 
-        base.updateOverlay = function(){
-            for (var i = 0; i < base.cells.length; i++) {
-                var $this = base.cells[i]; 
+        base.updateVisibleCellCoordinates = function(){
+            for (var i = 0; i < base._internal.cells.length; i++) {
+                var $this = base._internal.cells[i]; 
 
-                var $overlay = $this.data('overlay');
+                var $hiddenClone = $this.data(base._internal.constants.DATA_HIDDEN_CELL);
                 
-                var positionNSize = base.options.getAbsolutePositionAndSizeOfCell($this);  
+                var positionNSizeOfHiddenClone = base.options.getAbsolutePositionAndSizeOfCell($hiddenClone);  
                 
-                $overlay.css('top', positionNSize.y);
-                $overlay.css('left', positionNSize.x);
-                $overlay.css('width', positionNSize.w);
-                $overlay.css('height', positionNSize.h); 
+                base._internal.setVisibleCellPositionAndSize($this, positionNSizeOfHiddenClone);
             } 
         };
 
         base.insertCell = function(index, html){
-
+            // todo
         };
         
         
@@ -79,7 +169,11 @@
     
     $.Gridstrap.defaultOptions = {
         gridItemSelector: '*',
-        gridOverlayClass: 'grid-overlay',
+        hiddenCellClass: 'gridstrap-cell-hidden',
+        visibleCellClass: 'gridstrap-cell-visible',
+        draggedCellClass: 'gridstrap-cell-drag',
+        mouseMoveSelector: 'body',
+        //gridOverlayClass: 'grid-overlay',
         getAbsolutePositionAndSizeOfCell: function($cell){
             var position = $cell.offset();
             var w = $cell.outerWidth();
@@ -93,6 +187,10 @@
         },
         getHtmlOfSourceCell: function($cell){
             return $cell[0].outerHTML;
+        },
+        setPositionOfDraggedCell: function($cell, mouseEvent) {
+            $cell.css('left', mouseEvent.pageX);
+            $cell.css('top', mouseEvent.pageY);
         },
         contiguous: true
     };

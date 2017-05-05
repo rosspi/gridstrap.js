@@ -15,7 +15,7 @@
   text-align: center;
   cursor: move;
   border: 1px solid #000;
-    transition:width 2s, height 2s, background-color 2s, transform 2s;
+   /* transition:width 2s, height 2s, background-color 2s, transform 2s;*/
 }
 .over {
   background-color: greenyellow !important;
@@ -28,9 +28,15 @@
   background-color:orange;
   
 } 
-.grid-overlay{
+.gridstrap-cell-visible{
   position: absolute !important;
-  opacity: 0.5;
+  opacity: 0.6;
   background-color: red !important;
-    transition:width 2s, height 2s, background-color 2s, left 2s, top 2s, transform 2s;
+    transition:width 0.1s, height 0.1s,  left 0.1s, top 0.1s ;
+}
+.gridstrap-cell-hidden{ 
+  opacity: 0.1; 
+}
+.gridstrap-cell-drag{
+  background-color: blue !important;
 }
