@@ -39,28 +39,39 @@
 
                 _internal.setVisibleCellPositionAndSize($cell, positionNSize); 
             },
-            getManagedCellAndIndexThatElementIsWithin : function(element) {
-                if (!element){
-                    return {
-                        index: -1,
-                        $cell: null
-                    };
-                } 
-                var $potential = $(element);
-                for (var i = 0; i < _internal.cellsArray.length; i++){
-                    if ($potential.closest(_internal.cellsArray[i]).length > 0){
-                        return {
+            getManagedCellAndIndexThatElementIsWithin : function(visibleCellElement) {
+                var noCell = {
+                    index: -1,
+                    $cell: null
+                };
+                if (!visibleCellElement){
+                    return noCell;
+                }  
+                var $visibleCellElement = $(visibleCellElement);
+
+                var visibleCellAndIndex = null;
+                // visibleCellAndIndex.$cell might be a child element/control perhaps of $visibleCell (found in the managed array).
+                for (var i = 0; i < _internal.cellsArray.length && !visibleCellAndIndex; i++){
+                    if ($visibleCellElement.closest(_internal.cellsArray[i]).length > 0){
+                        visibleCellAndIndex = {
                             index: i,
                             $cell: _internal.cellsArray[i]
                         };
                     }
                 }
-                return {
-                    index: -1,
-                    $cell: null
-                };
-            }, 
-            hiddenCellsSelector: null, //initialised in init()
+
+                if (!visibleCellAndIndex){
+                    return noCell;
+                }
+
+                // check if linked hidden element is NOT in parent element.
+                var $linkedHiddenCell = visibleCellAndIndex.$cell.data(_internal.constants.DATA_HIDDEN_CELL);
+                if (!$linkedHiddenCell.closest(base.$el).is(base.$el)){
+                    return noCell;
+                }
+
+                return visibleCellAndIndex;
+            },  
             visibleCellWrapperSelector: null, //initialised in init()
             draggedCellSelector: null, // initialised in init()
             setVisibleCellPositionAndSize : function($cell, positionNSize){ 
@@ -137,27 +148,25 @@
 
             init: function() {
                 base.options = $.extend({},$.Gridstrap.defaultOptions, options);
-             
-                // turn class name/list into selector.
-                _internal.hiddenCellsSelector = base.options.hiddenCellClass.replace(/(^ *| +)/g, '.');
-                _internal.draggedCellSelector = base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
-                
-                // Put your initialization code here
-                //console.log('this is');
-            // console.log(base);
 
                 var genId = function(){
                     return 'gridstrap-' + Math.random().toString(36).substr(2,5) + Math.round(Math.random() * 1000).toString();
                 };
 
-                var initHiddenCopiesAndSetAbsolutePositions = function(){
-                    var $cells = base.$el.find(base.options.gridCellSelector);
+                var wrapperGeneratedId = genId();
+                _internal.visibleCellWrapperSelector = '#' + wrapperGeneratedId; 
+                // drag selector must be within wrapper div. Turn class name/list into selector.
+                _internal.draggedCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
 
-                    var wrapperGenId = genId();
-                    _internal.visibleCellWrapperSelector = '#' + wrapperGenId;
-                    $(base.options.visibleCellContainerSelector).append('<div id="' + wrapperGenId + '"></div>');
+                $(base.options.visibleCellContainerSelector).append('<div id="' + wrapperGeneratedId + '"></div>');
+                
+                // Put your initialization code here
+                //console.log('this is'); 
+
+                var initHiddenCopiesAndSetAbsolutePositions = function(){
+                    var $originalCells = base.$el.find(base.options.gridCellSelector);
                     
-                    $cells.each(function(e) { 
+                    $originalCells.each(function(e) { 
                         _internal.initCellsHiddenCopyAndSetAbsolutePosition($(this)); 
                     });
                 };
@@ -230,6 +239,20 @@
                     }
                 };
 
+                var mousemove = function(e){          
+                    // These coordinates are needed for when we move dragged objects around in grid.
+                    // Other mouse events do not have pageX, pageY values.
+                    _internal.lastMouseMovePageCoordinates = {
+                        pageX: e.pageX,
+                        pageY: e.pageY
+                    };
+
+                    var $draggedCell = $(_internal.draggedCellSelector);
+                    if ($draggedCell.length > 0){ // should just be one.
+                        moveDraggedCell($draggedCell, e);
+                    } 
+                };
+
                 var mouseup = function (e) {
                     var $draggedCell = $(_internal.draggedCellSelector);
                     if ($draggedCell.length > 0){ 
@@ -276,19 +299,18 @@
                 };
 
                 // only call event if occured on one of managed cells that has been initialised.
-                var onCellMouseEvent = function(eventName, callback){
-
+                var onCellMouseEvent = function(eventName, callback){ 
                     // the cell itself OR any dragCellHandleSelector within the cell.
                     var draggableSelector = base.options.gridCellSelector + ',' + base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
-
-                    $(_internal.visibleCellWrapperSelector).on(eventName, draggableSelector, function(e){
+                    
+                    $(_internal.visibleCellWrapperSelector).on(eventName, draggableSelector, function(e){ 
                         var $cellDragElement = $(e.target);
                         var $managedCell = _internal.getManagedCellAndIndexThatElementIsWithin($cellDragElement).$cell;
                         // user clicked on perhaps child element of draggable element.
                         // always send cell itself as 'this' for mouse event handlers.
                         if ($managedCell) {
                             callback.call($managedCell[0], e);
-                        }
+                        } 
                     });
                 };
 
@@ -296,22 +318,11 @@
                 
                 onCellMouseEvent('dragstart', dragstart);
                 onCellMouseEvent('mousedown', mousedown); 
-                onCellMouseEvent('mouseover', mouseover); 
-                onCellMouseEvent('mouseup', mouseup); 
+                onCellMouseEvent('mouseover', mouseover);  
 
-                $(base.options.mouseMoveSelector).on('mousemove', function(mouseEvent){               
-                    // These coordinates are needed for when we move dragged objects around in grid.
-                    // Other mouse events do not have pageX, pageY values.
-                    _internal.lastMouseMovePageCoordinates = {
-                        pageX: mouseEvent.pageX,
-                        pageY: mouseEvent.pageY
-                    };
-
-                    var $draggedCell = $(_internal.draggedCellSelector);
-                    if ($draggedCell.length > 0){ // should just be one.
-                        moveDraggedCell($draggedCell, mouseEvent);
-                    }
-                });
+                // it is not appropriate to confine the events to the visible cell wrapper.
+                $(base.options.mouseMoveSelector).on('mousemove', mousemove);
+                $(base.options.mouseMoveSelector).on('mouseup', mouseup);
             }
         };
         
@@ -448,16 +459,7 @@
         draggedCellClass: 'gridstrap-cell-drag',
         mouseMoveSelector: 'body',
         visibleCellContainerSelector: 'body',
-        //gridOverlayClass: 'grid-overlay',
         getAbsolutePositionAndSizeOfCell: function($cell){
-
-            // var rect = $cell[0].getBoundingClientRect();
-            // return {
-            //     x: rect.left,
-            //     y: rect.top,
-            //     w: rect.width,
-            //     h: rect.height
-            // };
             var position = $cell.offset();
             var w = $cell.outerWidth();
             var h = $cell.outerHeight();

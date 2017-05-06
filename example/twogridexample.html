@@ -1,0 +1,50 @@
+<html>
+    <head>
+          <script
+  src="http://code.jquery.com/jquery-3.2.1.js"
+  integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+  crossorigin="anonymous"></script>
+
+        <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+      
+
+        <link href="../style.css" rel="stylesheet"  >
+        <script src="../js.js"></script>
+        <script>
+            $(function(){
+                var c = 50;
+                for(var i = 0; i < c; i++) {
+                    $('#abc').append('<div class="column col-xs-4 ' + i.toString() +'"><header>' + i.toString() +'<button>move</button></header></div>  ');
+                    $('#def').append('<div class="column col-xs-4 ' + i.toString() +'"><header>' + i.toString() +'<button>move</button></header></div>  ');
+                }
+                var aa = $('#abc').gridstrap({
+                    gridCellSelector: '.column',
+                   // swapMode: false,
+                    rearrangeWhileDragging: false
+                });
+                
+                var dd = $('#def').gridstrap({
+                    gridCellSelector: '.column',
+                   // swapMode: false, 
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-5"> 
+                    <div class="row" id="abc">            
+                    </div> 
+                </div>
+                <div class="col-xs-2"> middle break </div>
+                <div class="col-xs-5"> 
+                    <div class="row" id="def">            
+            </div> </div>
+            </div>
+           
+        </div> 
+    </body>
+</html>
+
