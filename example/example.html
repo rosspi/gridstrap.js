@@ -52,11 +52,17 @@
                         '.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCells().length) + ')',
                         Math.floor(Math.random() * $('#abc').data('Gridstrap').getCells().length));
                 });
-                // $('button:eq(5)').on('click', function(e){ 
+                $('button:eq(5)').on('click', function(e){ 
 
-                //     var $cells = $($('#abc').data('Gridstrap').getCells());
-                //     $cells.
-                // });
+                    var $hiddenCells = $('#abc').data('Gridstrap').getHiddenCells();
+                    $hiddenCells.each(function(){
+                        for(var i = 1; i <= 12; i++){
+                            $(this).removeClass('col-xs-' + i.toString());
+                        }
+                        $(this).addClass('col-xs-' + (Math.floor(Math.random() * 5) + 1).toString());
+                    });
+                    $('#abc').data('Gridstrap').updateVisibleCellCoordinates();
+                });
             });
         </script>
     </head>

@@ -1,0 +1,6 @@
+1. cross-grid functionality - make it hook into each instance's methods.
+2. non-contiguous functionality for dragging etc.
+3. window resize events
+4. touch/mobile
+5. browser support
+6. tests
