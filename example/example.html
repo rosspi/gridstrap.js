@@ -13,14 +13,14 @@
         <script src="../js.js"></script>
         <script>
             $(function(){
-                var c = 30;
+                var c = 50;
                 for(var i = 0; i < c; i++) {
                     $('#abc').append('<div class="column col-xs-4 ' + i.toString() +'"><header>' + i.toString() +'</header></div>  ');
                 }
                 var xx = $('#abc').gridstrap({
                     gridCellSelector: '.column',
-                   // swapMode: true,
-                   // rearrangeWhileDragging: false
+                   // swapMode: false,
+                    rearrangeWhileDragging: false
                 });
 
                 console.log(xx);
@@ -30,18 +30,27 @@
 
                     $('#abc').data('Gridstrap').attachCell($('.column:first'));
                     //$('#abc').data('Gridstrap').attachCell('<div class="column col-xs-1">hello</div>');
+ 
                 });
                 $('button:eq(1)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').insertCell('<p class="column">hello man</p>');
+                    $('#abc').data('Gridstrap').insertCell(
+                        '<p class="column col-xs-' + Math.ceil(Math.random() * 6) + '">hello man</p>',
+                        Math.floor(Math.random() * 10));
                 });
                 $('button:eq(2)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').detachCell('.gridstrap-cell-visible:eq(' + Math.round(Math.random() *c) + ')');
+                    $('#abc').data('Gridstrap').detachCell('.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCellElements().length) + ')');
                 });
                 $('button:eq(3)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').removeCell('.gridstrap-cell-visible:eq(' + Math.round(Math.random() *c) + ')');
+                    $('#abc').data('Gridstrap').removeCell('.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCellElements().length) + ')');
+                });
+                $('button:eq(4)').on('click', function(e){ 
+
+                    $('#abc').data('Gridstrap').moveCell(
+                        '.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCellElements().length) + ')',
+                        Math.floor(Math.random() * $('#abc').data('Gridstrap').getCellElements().length));
                 });
             });
         </script>
@@ -51,10 +60,11 @@
             <div class="row" id="abc">            
             </div>
         </div>
-        <button>add random html</button>
+        <button>atttachy random html</button>
         <button>insert into grid</button>
         <button>detach one</button>
         <button>remove one</button>
+        <button>move two</button>
     </body>
 </html>
 
