@@ -18,21 +18,30 @@
                     $('#abc').append('<div class="column col-xs-4 ' + i.toString() +'"><header>' + i.toString() +'</header></div>  ');
                 }
                 var xx = $('#abc').gridstrap({
-                    gridItemSelector: '.column',
+                    gridCellSelector: '.column',
                    // swapMode: true,
                    // rearrangeWhileDragging: false
                 });
 
                 console.log(xx);
 
-                $('button:first').on('click', function(e){
-                    $('#abc').prepend('<div class="column col-xs-4">hello</div>')
+                $('button:eq(0)').on('click', function(e){
+                    $('#abc').prepend('<div class="column col-xs-1">hello</div>')
 
-                    $('#abc').data('Gridstrap').updateVisibleCellCoordinates();
+                    $('#abc').data('Gridstrap').attachCell($('.column:first'));
+                    //$('#abc').data('Gridstrap').attachCell('<div class="column col-xs-1">hello</div>');
                 });
-                $('button:last').on('click', function(e){ 
+                $('button:eq(1)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').insertCell();
+                    $('#abc').data('Gridstrap').insertCell('<p class="column">hello man</p>');
+                });
+                $('button:eq(2)').on('click', function(e){ 
+
+                    $('#abc').data('Gridstrap').detachCell('.gridstrap-cell-visible:eq(' + Math.round(Math.random() *c) + ')');
+                });
+                $('button:eq(3)').on('click', function(e){ 
+
+                    $('#abc').data('Gridstrap').removeCell('.gridstrap-cell-visible:eq(' + Math.round(Math.random() *c) + ')');
                 });
             });
         </script>
@@ -44,6 +53,8 @@
         </div>
         <button>add random html</button>
         <button>insert into grid</button>
+        <button>detach one</button>
+        <button>remove one</button>
     </body>
 </html>
 

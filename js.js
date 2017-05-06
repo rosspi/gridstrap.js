@@ -37,6 +37,27 @@
 
                 base._internal.setVisibleCellPositionAndSize($cell, positionNSize); 
             },
+            getManagedCellAndIndexThatElementIsWithin : function(element) {
+                if (!element){
+                    return {
+                        index: -1,
+                        $cell: null
+                    };
+                } 
+                var $potential = $(element);
+                for (var i = 0; i < base._internal.cellsArray.length; i++){
+                    if ($potential.closest(base._internal.cellsArray[i]).length > 0){
+                        return {
+                            index: i,
+                            $cell: base._internal.cellsArray[i]
+                        };
+                    }
+                }
+                return {
+                    index: -1,
+                    $cell: null
+                };
+            }, 
             visibleCellWrapperSelector: null, //initialised in init()
             draggedCellSelector: null, // initialised in init()
             setVisibleCellPositionAndSize : function($cell, positionNSize){ 
@@ -173,7 +194,7 @@
                 var $draggedCell = $(base._internal.draggedCellSelector);
                 if ($draggedCell.length > 0){
                     // Is currently dragging.
-                    var $cellOfTarget = getManagedCellElementIsWithin(mouseEvent.target);
+                    var $cellOfTarget = base._internal.getManagedCellAndIndexThatElementIsWithin(mouseEvent.target).$cell;
                     if ($cellOfTarget && $draggedCell.closest($cellOfTarget).length == 0){
                         // make sure you're not mouseover-ing the dragged cell itself.
                         // css' 'pointer-events', 'none' should do this job, but this double checks.
@@ -232,21 +253,7 @@
                         }
                     }
                 }
-            }; 
-
-            var getManagedCellElementIsWithin = function(element) {
-                if (!element){
-                    return null;
-                }
-                var $managedCell = null;
-                var $potential = $(element);
-                for(var i = 0; i < base._internal.cellsArray.length && !$managedCell; i++){
-                    if ($potential.closest(base._internal.cellsArray[i]).length > 0){
-                        $managedCell = base._internal.cellsArray[i];
-                    }
-                }
-                return $managedCell;
-            };
+            };  
 
             var moveDraggedCell = function($cell, mouseEvent){
                 // user can do something custom for dragging if they want.
@@ -265,7 +272,7 @@
                 $cell.css('pointer-events', 'none');
 
                 var element = document.elementFromPoint(mouseEvent.pageX, mouseEvent.pageY);
-                var $cellOfElement = getManagedCellElementIsWithin(element);
+                var $cellOfElement = base._internal.getManagedCellAndIndexThatElementIsWithin(element).$cell;
                 if ($cellOfElement){
                     $cellOfElement.trigger('mouseover');
                 }
@@ -280,7 +287,7 @@
 
                 $(base._internal.visibleCellWrapperSelector).on(eventName, draggableSelector, function(e){
                     var $cellDragElement = $(e.target);
-                    var $managedCell = getManagedCellElementIsWithin($cellDragElement);
+                    var $managedCell = base._internal.getManagedCellAndIndexThatElementIsWithin($cellDragElement).$cell;
                     // user clicked on perhaps child element of draggable element.
                     // always send cell itself as 'this' for mouse event handlers.
                     if ($managedCell) {
@@ -324,15 +331,70 @@
         };
 
         // returns jquery object of new cell.
-        base.insertCell = function(index, cellHtml){
-            //var $cells = base.$el.find(base.options.gridCellSelector);
+        // index is optional.
+        base.insertCell = function(cellHtml, index){             
+            var $existingGridCells = base.$el.find(base.options.gridCellSelector);
+            if (typeof(index) === 'undefined'){
+                index = $existingGridCells.length;
+            }
+            var $insertedCell;
+            if (index === $existingGridCells.length){
+                $insertedCell = $(cellHtml).insertAfter($existingGridCells.last());
+            } else {
+                $insertedCell = $(cellHtml).insertBefore($existingGridCells.eq(index));
+            } 
 
-            base._internal.initCellsHiddenCopyAndSetAbsolutePosition($(this)); 
+            base.attachCell($insertedCell);
+
+            return $insertedCell;
         };
 
         base.attachCell = function(selector) {
 
+            base._internal.initCellsHiddenCopyAndSetAbsolutePosition(selector); 
+
+            base.updateVisibleCellCoordinates();
         };
+
+        base.detachCell = function(selector) {
+
+            var cellNIndex = base._internal.getManagedCellAndIndexThatElementIsWithin(selector);
+            
+            var $hiddenClone = cellNIndex.$cell.data(base._internal.constants.DATA_HIDDEN_CELL);
+
+            var $detachedVisibleCell = cellNIndex.$cell.detach();
+
+            // remove 'visible' things, and put the cell back where it came from.
+            $detachedVisibleCell.css('top', '');
+            $detachedVisibleCell.css('left', '');
+            $detachedVisibleCell.css('width', '');
+            $detachedVisibleCell.css('height', ''); 
+            $detachedVisibleCell.removeData(base._internal.constants.DATA_HIDDEN_CELL);
+            $detachedVisibleCell.removeClass(base.options.visibleCellClass); 
+
+            var $reattachedOriginalCell = $detachedVisibleCell.insertAfter($hiddenClone);
+
+            // remove hidden clone.
+            $hiddenClone.remove();  
+
+            // finally remove from managed array
+            base._internal.cellsArray.splice(cellNIndex.index, 1);   
+
+            return $reattachedOriginalCell;
+        };
+
+        base.removeCell = function(selector) {
+            
+            var $detachedCell = base.detachCell(selector);
+
+            $detachedCell.remove();
+
+            base.updateVisibleCellCoordinates();
+        };
+
+        base.getCells = function(){
+            base._internal.cellsArray
+        }
         
         
         // Run initializer
