@@ -86,7 +86,7 @@
             },
             recentDragMouseOvers: [], // tuple of element and timestamp 
             lastMouseOverCellTarget: null, // for rearranging on mouseup
-            moveCell: function($movingCell, $targetCell) { 
+            moveCell: function($movingVisibleCell, $targetVisibleCell) { 
 
                 var swapJQueryElements = function($a, $b){
                     var getInPlaceFunction = function($element){
@@ -133,8 +133,12 @@
                     }
                 };
 
-                var $hiddenTarget = $targetCell.data(_internal.constants.DATA_HIDDEN_CELL);
-                var $hiddenDragged = $movingCell.data(_internal.constants.DATA_HIDDEN_CELL);
+                var $hiddenDragged = $movingVisibleCell.data(_internal.constants.DATA_HIDDEN_CELL);
+                var $hiddenTarget = $targetVisibleCell.data(_internal.constants.DATA_HIDDEN_CELL);
+
+                if ($hiddenDragged.is($hiddenTarget)){
+                    return;
+                }
 
                 if (base.options.swapMode) {
                     swapJQueryElements($hiddenDragged, $hiddenTarget); 
@@ -143,6 +147,25 @@
                 } 
 
                 base.updateVisibleCellCoordinates();
+            },
+            getHiddenCells : function() {
+                // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order. 
+
+                // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
+                var $attachedHiddenCells = $(base.$el).find('*').filter(function(){
+                    var $linkedVisibleCell = $(this).data(_internal.constants.DATA_VISIBLE_CELL);
+                    if (!$linkedVisibleCell || $linkedVisibleCell.length === 0){
+                        return false;
+                    }
+                    for(var i = 0; i < _internal.cellsArray.length; i++){
+                        if (_internal.cellsArray[i].is($linkedVisibleCell)){
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                return $attachedHiddenCells;
             },
 
             init: function() {
@@ -292,13 +315,13 @@
 
                 // only call event if occured on one of managed cells that has been initialised.
                 var onCellMouseEvent = function(eventName, callback){ 
-                    // the cell itself OR any dragCellHandleSelector within the cell.
-                    
                     var draggableSelector = base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
-                    if (eventName === 'mouseover'){
-                        // if mouseover, then we want the event to be lenient as to what triggers it.
-                        // i.e. any part of a cell can trigger mouseover.
-                        // prepend with OR/, selector.
+                    if (base.options.dragCellHandleSelector === $.Gridstrap.defaultOptions.dragCellHandleSelector ||
+                        eventName === 'mouseover'){
+                        // if the default settings apply for drag handle mouse events,
+                        // or if mouseover, then we want the event to be lenient as to what triggers it.
+                        // Prepend selector with grid itself as an OR/, selector.
+                        // To become the cell itself OR any dragCellHandleSelector within the cell. 
                         draggableSelector = base.options.gridCellSelector + ',' + draggableSelector;
                     }
 
@@ -343,21 +366,21 @@
         // returns jquery object of new cell.
         // index is optional.
         base.insertCell = function(cellHtml, index){             
-            var $existingVisibleCells = $(base.getCellElements());
+            var $existingHiddenCells = _internal.getHiddenCells();
             if (typeof(index) === 'undefined'){
-                index = $existingVisibleCells.length;
+                index = $existingHiddenCells.length;
             }
 
             var $insertedCell;
-            if (index === $existingVisibleCells.length){
-                if ($existingVisibleCells.length === 0){
+            if (index === $existingHiddenCells.length){
+                if ($existingHiddenCells.length === 0){
                     // the grid is empty.
                     $insertedCell = $(cellHtml).appendTo(base.$el);
                 } else { 
-                    $insertedCell = $(cellHtml).insertAfter($existingVisibleCells.last().data(_internal.constants.DATA_HIDDEN_CELL));
+                    $insertedCell = $(cellHtml).insertAfter($existingHiddenCells.last());
                 }
             } else {
-                $insertedCell = $(cellHtml).insertBefore($existingVisibleCells.eq(index).data(_internal.constants.DATA_HIDDEN_CELL));
+                $insertedCell = $(cellHtml).insertBefore($existingHiddenCells.eq(index));
             } 
 
             base.attachCell($insertedCell);
@@ -415,35 +438,25 @@
         base.moveCell = function(selector, toIndex) {
             var cellNIndex = _internal.getManagedCellAndIndexThatElementIsWithin(selector);
 
-            var existingVisibleCells = base.getCellElements();
+            var $existingVisibleCells = base.getCells();
             
-            _internal.moveCell(cellNIndex.$cell, $(existingVisibleCells[toIndex]));
+            _internal.moveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex));
         };
 
-        base.getCellElements = function(){
-            // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order. 
+        base.getCells = function(){
+            var $attachedHiddenCells = _internal.getHiddenCells();
 
-            // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
-            var $attachedHiddenCells = $(base.$el).find('*').filter(function(){
-                var $linkedVisibleCell = $(this).data(_internal.constants.DATA_VISIBLE_CELL);
-                if (!$linkedVisibleCell || $linkedVisibleCell.length === 0){
-                    return false;
-                }
-                for(var i = 0; i < _internal.cellsArray.length; i++){
-                    if (_internal.cellsArray[i].is($linkedVisibleCell)){
-                        return true;
-                    }
-                }
-                return false;
-            });
-
-            // cannot map to an array of jquery objects, so map to array of ordinray elements. Jquery can interpret that later ok.
             var attachedVisibleCellElements = $attachedHiddenCells.map(function(){
                 return $(this).data(_internal.constants.DATA_VISIBLE_CELL)[0];
             });   
 
-            return attachedVisibleCellElements;         
-        }
+            return $(attachedVisibleCellElements);  
+        };
+
+        base.getHiddenCells = function(){   
+
+            return _internal.getHiddenCells();;         
+        };
         
         
         // Initialiser
