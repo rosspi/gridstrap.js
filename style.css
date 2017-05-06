@@ -32,11 +32,14 @@
   position: absolute !important;
   opacity: 0.6;
   background-color: red !important;
-    transition:width 0.1s, height 0.1s,  left 0.1s, top 0.1s ;
+    transition:width 1.5s, height 0.5s,  left 1.5s, top 1.5s ;
 }
 .gridstrap-cell-hidden{ 
   opacity: 0.1; 
+  pointer-events: none;
 }
 .gridstrap-cell-drag{
   background-color: blue !important;
+  transition: none;
+  /*pointer-events: none;*/
 }

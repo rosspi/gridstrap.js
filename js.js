@@ -1,4 +1,4 @@
-(function($){
+(function($, window, document){
     $.Gridstrap = function(el, options){
         // To avoid scope issues, use 'base' instead of 'this'
         // to reference this class from internal events and functions.
@@ -11,19 +11,26 @@
         base._internal = {
             constants: {
                 DATA_HIDDEN_CELL : 'hidden-cell',
-                DATA_CELL_POSITION_AND_SIZE : 'position-size'
+                DATA_MOUSEDOWN_CELL_POSITION : 'mousedown-cell-position',
+                DATA_MOUSEDOWN_SCREEN_POSITION : 'mousedown-screen-position',
+                DATA_CELL_POSITION_AND_SIZE : 'position-size',
+                RECENT_DRAG_MOUSEOVER_THROTTLE: 500
             },
             cells: [],
             draggedCellSelector: null, // initialised in init()
-            setVisibleCellPositionAndSize : function($cell, positionNSize){                 
-                // relied upon when drag-stop.
-                $cell.data(base._internal.constants.DATA_CELL_POSITION_AND_SIZE, positionNSize);
+            setVisibleCellPositionAndSize : function($cell, positionNSize){ 
 
+                // relied upon when drag-stop. 
+                $cell.data(base._internal.constants.DATA_CELL_POSITION_AND_SIZE, positionNSize);
+                
                 $cell.css('top', positionNSize.y);
                 $cell.css('left', positionNSize.x);
                 $cell.css('width', positionNSize.w);
                 $cell.css('height', positionNSize.h); 
-            }
+            },
+            recentDragMouseOvers: [], // tuple of element and timestamp
+            lastMouseMovePageCoordinates: {pageX:0, pageY:0},
+            lastMouseOverCellTarget: null // for rearranging on mouseup
         };
         
         // Add a reverse reference to the DOM object
@@ -32,14 +39,15 @@
         base.init = function(){
             base.options = $.extend({},$.Gridstrap.defaultOptions, options);
              
-            base._internal.draggedCellSelector = base.options.draggedCellClass.replace(/(^ *| +)/g, '$1.');
+            // turn class name/list into selector.
+            base._internal.draggedCellSelector = base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
             
             // Put your initialization code here
             //console.log('this is');
            // console.log(base);
 
             var initHiddenCopiesAndSetAbsolutePositions = function(){
-                var cells = base.$el.find(base.options.gridItemSelector);
+                var cells = base.$el.find(base.options.gridCellSelector);
                 cells.each(function(e) {
                     var $this = $(this);
                     base._internal.cells.push($this);
@@ -60,86 +68,232 @@
             };
 
             var dragstart = function(e){
-                e.preventDefault();
+                e.preventDefault(); 
+            };
 
-                $(this).addClass(base.options.draggedCellClass);
-            };
-            var dragenter = function(e){
-                $(this).addClass('over'); 
-            };
-            var dragover = function(e){
-                if (e.preventDefault) {
-                    e.preventDefault(); // Necessary. Allows us to drop.
+            var mousedown = function(e){ 
+                console.log('down');
+                var $toBeDragged = $(this);
+                if (!$toBeDragged.hasClass(base.options.draggedCellClass)){
+                    $toBeDragged.data(base._internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION, {
+                        x: e.pageX,
+                        y: e.pageY
+                    }); 
+                    $toBeDragged.data(base._internal.constants.DATA_MOUSEDOWN_CELL_POSITION, base.options.getAbsolutePositionAndSizeOfCell($toBeDragged)); 
+                    
+                    $toBeDragged.addClass(base.options.draggedCellClass);
+ 
+                    moveDraggedCell($toBeDragged, e);
                 }
+            }; 
 
-                var dt = e.dataTransfer || e.originalEvent.dataTransfer;
+            var swapJQueryElements = function($a, $b){
+                var getInPlaceFunction = function($element){
+                    var $other = $a.is($element) ? $b : $a;
+                    var $next = $element.next();
+                    var $prev = $element.prev();
+                    var $parent = $element.parent();
+                    // cannot swap a with b exactly if there are no other siblings.
+                    if ($next.length > 0 && !$next.is($other)){
+                        return function($newElement){
+                            $next.before($newElement);
+                        }
+                    } else if ($prev.length > 0 && !$prev.is($other)){
+                        return function($newElement){
+                            $prev.after($newElement);
+                        }
+                    } else {
+                        // no siblings, so can just use append
+                        return function($newElement){
+                            $parent.append($newElement);
+                        }
+                    }
+                };
 
-                dt.dropEffect = 'move';  // See the section on the DataTransfer object.
-
-                return false;
+                var aInPlaceFunc = getInPlaceFunction($a);
+                var bInPlaceFunc = getInPlaceFunction($b);
+                var $aDetached = $a.detach();
+                var $bDetached = $b.detach();
+                // swap finally.
+                bInPlaceFunc($aDetached);
+                aInPlaceFunc($bDetached); 
             };
-            var dragleave = function(e){
-                $(this).removeClass('over'); 
-            };
 
-            var drop = function(e) {
-                // this / e.target is current target element.
+            var detachAndInsertInPlaceJQueryElement = function($detachElement, $inPlaceElement) {
+                var inPlaceElementIndex = $inPlaceElement.index();
+                var detachElementIndex = $detachElement.index();
 
-                if (e.stopPropagation) {
-                    e.stopPropagation(); // stops the browser from redirecting.
+                var $detachedElement = $detachElement.detach();
+
+                if (inPlaceElementIndex < detachElementIndex){
+                    $inPlaceElement.before($detachedElement);
+                } else {
+                    $inPlaceElement.after($detachedElement);
                 }
+            };
 
-                // See the section on the DataTransfer object.
-
+            var setAndGetElementRecentlyDraggedMouseOver = function(element) {
+                var d = new Date();
+                var n = d.getTime(); 
+                for(var i = 0; i < base._internal.recentDragMouseOvers.length; i++){
+                    if (base._internal.recentDragMouseOvers[i].n + base._internal.constants.RECENT_DRAG_MOUSEOVER_THROTTLE < n){
+                        // expired.
+                        base._internal.recentDragMouseOvers.splice(i, 1);
+                    }
+                    if (i < base._internal.recentDragMouseOvers.length && $(base._internal.recentDragMouseOvers[i].e).is(element)){
+                        return true;
+                    }
+                }
+                base._internal.recentDragMouseOvers.push({
+                    n: n,
+                    e: element
+                });
                 return false;
             }
 
-            var dragEnd = function (e) {
-                // this/e.target is the source node.
+            var mouseover = function(mouseEvent){
+                // clear initially.
+                base._internal.lastMouseOverCellTarget = null;
 
-                $(e.target).each(function(e){
-                    $(this).removeClass('over');
-                });
-                // [].forEach.call(cols, function (col) {
-                //     col.classList.remove('over');
-                // });
-            }; 
+                var $draggedCell = $(base._internal.draggedCellSelector);
+                if ($draggedCell.length > 0){
+                    // Is currently dragging.
+                    var $cellOfTarget = getManagedCellElementIsWithin(mouseEvent.target);
+                    if ($cellOfTarget && $draggedCell.closest($cellOfTarget).length == 0){
+                        // make sure you're not mouseover-ing the dragged cell itself.
+                        // css' 'pointer-events', 'none' should do this job, but this double checks.
+                            
+                        base._internal.lastMouseOverCellTarget = $cellOfTarget;
 
-            // only call event if occured on one of managed cells that has been initialised.
-            var onCellEvent = function(eventName, callback){
-                base.$el.on(eventName, base.options.gridItemSelector, function(e){
-                    var $cell = $(e.target);
-                    var managedCell = false;
-                    for(var i = 0; i < base._internal.cells.length && !managedCell; i++){
-                        if (base._internal.cells[i].is($cell)){
-                            managedCell = true;
+                        if (!setAndGetElementRecentlyDraggedMouseOver($cellOfTarget)) {
+                            // do not move two cells that have recently already moved.
+
+                            if (base.options.rearrangeWhileDragging){
+                                var $hiddenTarget = $cellOfTarget.data(base._internal.constants.DATA_HIDDEN_CELL);
+                                var $hiddenDragged = $draggedCell.data(base._internal.constants.DATA_HIDDEN_CELL);
+
+                                if (base.options.swapMode) {
+                                    swapJQueryElements($hiddenDragged, $hiddenTarget); 
+                                } else {
+                                    detachAndInsertInPlaceJQueryElement($hiddenDragged, $hiddenTarget); 
+                                } 
+
+                                base.updateVisibleCellCoordinates();
+                                
+                                // reset dragged object to mouse pos, not pos of hidden cells.
+                                // don't pass mouseEvent here because mousedown doesn't have pageX, pageY.
+                                moveDraggedCell($draggedCell, base._internal.lastMouseMovePageCoordinates); 
+                            }
+                            $cellOfTarget.css('opacity', Math.random()); // TODO Remove
                         }
                     }
-                    if (managedCell) {
-                        callback.call(this, e);
+                }
+            };
+
+            var mouseup = function (e) {
+                var $dragged = $(base._internal.draggedCellSelector);
+                if ($dragged.length > 0){ 
+
+                    // no more dragging.
+                    $dragged.removeClass(base.options.draggedCellClass);
+                    $dragged.removeData(base._internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION); 
+                    
+                    var cellOriginalPosition = $dragged.data(base._internal.constants.DATA_CELL_POSITION_AND_SIZE);
+                    base._internal.setVisibleCellPositionAndSize($dragged, cellOriginalPosition);  
+
+                    if (base._internal.lastMouseOverCellTarget){
+                        if (!base.options.rearrangeWhileDragging){
+                            // just rearrange on mouseup
+                            var $hiddenTarget = $cellOfTarget.data(base._internal.constants.DATA_HIDDEN_CELL);
+                            var $hiddenDragged = $draggedCell.data(base._internal.constants.DATA_HIDDEN_CELL);
+
+                            if (base.options.swapMode) {
+                                swapJQueryElements($hiddenDragged, $hiddenTarget); 
+                            } else {
+                                detachAndInsertInPlaceJQueryElement($hiddenDragged, $hiddenTarget); 
+                            } 
+
+                            base.updateVisibleCellCoordinates();
+                        }
+                    }
+                }
+            }; 
+
+            var getManagedCellElementIsWithin = function(element) {
+                if (!element){
+                    return null;
+                }
+                var $managedCell = null;
+                var $potential = $(element);
+                for(var i = 0; i < base._internal.cells.length && !$managedCell; i++){
+                    if ($potential.closest(base._internal.cells[i]).length > 0){
+                        $managedCell = base._internal.cells[i];
+                    }
+                }
+                return $managedCell;
+            };
+
+            var moveDraggedCell = function($cell, mouseEvent){
+                // user can do something custom for dragging if they want.
+                var callbackResult = base.options.mouseMoveDragCallback($cell, mouseEvent);
+                if (!callbackResult && typeof(callbackResult) === 'boolean'){
+                    return;
+                }
+
+                var originalMouseDownCellPosition = $cell.data(base._internal.constants.DATA_MOUSEDOWN_CELL_POSITION);
+                var originalMouseDownScreenPosition = $cell.data(base._internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION);
+
+                base.options.setPositionOfDraggedCell(originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent);
+                
+                //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
+                var oldPointerEvents = $cell.css('pointer-events'); 
+                $cell.css('pointer-events', 'none');
+
+                var element = document.elementFromPoint(mouseEvent.pageX, mouseEvent.pageY);
+                var $cellOfElement = getManagedCellElementIsWithin(element);
+                if ($cellOfElement){
+                    $cellOfElement.trigger('mouseover');
+                }
+                $cell.css('pointer-events', oldPointerEvents);
+            };
+
+            // only call event if occured on one of managed cells that has been initialised.
+            var onCellMouseEvent = function(eventName, callback){
+
+                // the cell itself OR any dragCellHandleSelector within the cell.
+                var draggableSelector = base.options.gridCellSelector + ',' + base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
+
+                base.$el.on(eventName, draggableSelector, function(e){
+                    var $cellDragElement = $(e.target);
+                    var $managedCell = getManagedCellElementIsWithin($cellDragElement);
+                    // user clicked on perhaps child element of draggable element.
+                    // always send cell itself as 'this' for mouse event handlers.
+                    if ($managedCell) {
+                        callback.call($managedCell[0], e);
                     }
                 });
             };
             
-            onCellEvent('dragstart', dragstart);
-            //base.$el.on('dragstart', base.options.gridItemSelector, dragstart);
-            //$('.column').on('dragenter', dragenter);
-            // base.$el.on('dragenter', cellSelectorAndChildren, dragenter);
-            // base.$el.on('dragover', cellSelector, dragover);
-            // base.$el.on('dragleave', cellSelectorAndChildren, dragleave);
-            // base.$el.on('drop', cellSelector, drop);
-            // base.$el.on('dragend', cellSelector, dragEnd);
+            onCellMouseEvent('dragstart', dragstart);
+            onCellMouseEvent('mousedown', mousedown); 
+            onCellMouseEvent('mouseover', mouseover); 
+            onCellMouseEvent('mouseup', mouseup); 
 
-            initHiddenCopiesAndSetAbsolutePositions();
+            $(base.options.mouseMoveSelector).on('mousemove', function(mouseEvent){               
+                // These coordinates are needed for when we move dragged objects around in grid.
+                // Other mouse events do not have pageX, pageY values.
+                base._internal.lastMouseMovePageCoordinates = {
+                    pageX: mouseEvent.pageX,
+                    pageY: mouseEvent.pageY
+                };
 
-            $(base.options.mouseMoveSelector).on('mousemove', function(mouseEvent){
                 var $draggedCell = $(base._internal.draggedCellSelector);
-                if ($draggedCell.length > 0){
-                    $draggedCell.each(function(e){
-                        base.options.setPositionOfDraggedCell($(this), mouseEvent);
-                    })
+                if ($draggedCell.length > 0){ // should just be one.
+                    moveDraggedCell($draggedCell, mouseEvent);
                 }
             });
+
+            initHiddenCopiesAndSetAbsolutePositions();
         };
         
         // Sample Function, Uncomment to use
@@ -168,13 +322,22 @@
     };
     
     $.Gridstrap.defaultOptions = {
-        gridItemSelector: '*',
+        gridCellSelector: '>*', // relative to parent element
         hiddenCellClass: 'gridstrap-cell-hidden',
         visibleCellClass: 'gridstrap-cell-visible',
+        dragCellHandleSelector: '*', // relative to and including cell element.
         draggedCellClass: 'gridstrap-cell-drag',
         mouseMoveSelector: 'body',
         //gridOverlayClass: 'grid-overlay',
         getAbsolutePositionAndSizeOfCell: function($cell){
+
+            // var rect = $cell[0].getBoundingClientRect();
+            // return {
+            //     x: rect.left,
+            //     y: rect.top,
+            //     w: rect.width,
+            //     h: rect.height
+            // };
             var position = $cell.offset();
             var w = $cell.outerWidth();
             var h = $cell.outerHeight();
@@ -188,10 +351,19 @@
         getHtmlOfSourceCell: function($cell){
             return $cell[0].outerHTML;
         },
-        setPositionOfDraggedCell: function($cell, mouseEvent) {
-            $cell.css('left', mouseEvent.pageX);
-            $cell.css('top', mouseEvent.pageY);
+        setPositionOfDraggedCell: function(originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent) {
+            var left = mouseEvent.pageX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
+            var top = mouseEvent.pageY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
+            $cell.css('left', left);
+            $cell.css('top', top);
+            console.log({left:left, top:top});
         },
+        mouseMoveDragCallback: function($cell, mouseEvent){
+            // do whatever you want.
+            // return false to prevent normal operation.
+        },
+        rearrangeWhileDragging: true,
+        swapMode: true,
         contiguous: true
     };
     
@@ -201,75 +373,5 @@
         });
     };
     
-})(jQuery);
-
-// // dingbjrga
-// $(function(){
-//     // function handleDragStart(e) {
-//     //     this.style.opacity = '0.4';  // this / e.target is the source node.
-//     // }
-
-//     // var cols = $('.column').each(function(e){
-        
-//     // });
-//     // [].forEach.call(cols, function(col) {
-//     // col.addEventListener('dragstart', handleDragStart, false);
-//     // });
-
-//     var dragstart = function(e){
-//         this.style.opacity = '0.4';
-//     };
-//     var dragenter = function(e){
-//         $(this).addClass('over'); 
-//     };
-//     var dragover = function(e){
-//         if (e.preventDefault) {
-//             e.preventDefault(); // Necessary. Allows us to drop.
-//         }
-
-//         var dt = e.dataTransfer || e.originalEvent.dataTransfer;
-
-//         dt.dropEffect = 'move';  // See the section on the DataTransfer object.
-
-//         return false;
-//     };
-//     var dragleave = function(e){
-//         $(this).removeClass('over'); 
-//     };
-
-//     var drop = function(e) {
-//         // this / e.target is current target element.
-
-//         if (e.stopPropagation) {
-//             e.stopPropagation(); // stops the browser from redirecting.
-//         }
-
-//         // See the section on the DataTransfer object.
-
-//         return false;
-//     }
-
-//     var dragEnd = function (e) {
-//         // this/e.target is the source node.
-
-//         $(e.target).each(function(e){
-//             $(this).removeClass('over');
-//         });
-//         // [].forEach.call(cols, function (col) {
-//         //     col.classList.remove('over');
-//         // });
-//     };
-
-//     var gridSelector = '#abc';
-//     var cellSelector = '.column'; 
-//     var cellSelectorAndChildren = '.column,.column *'; 
-    
-//     $(gridSelector).on('dragstart', cellSelector, dragstart);
-//     //$('.column').on('dragenter', dragenter);
-//     $(gridSelector).on('dragenter', cellSelectorAndChildren, dragenter);
-//     $(gridSelector).on('dragover', cellSelector, dragover);
-//     $(gridSelector).on('dragleave', cellSelectorAndChildren, dragleave);
-//     $(gridSelector).on('drop', cellSelector, drop);
-//     $(gridSelector).on('dragend', cellSelector, dragEnd);
-
-// });
+})(jQuery, window, document);
+ 

@@ -13,8 +13,13 @@
         <script src="../js.js"></script>
         <script>
             $(function(){
+                var c = 30;
+                for(var i = 0; i < c; i++) {
+                    $('#abc').append('<div class="column col-xs-4 ' + i.toString() +'"><header>' + i.toString() +'</header></div>  ');
+                }
                 var xx = $('#abc').gridstrap({
-                    gridItemSelector: '.column'
+                    gridItemSelector: '.column',
+                    swapMode: false
                 });
 
                 console.log(xx);
@@ -33,25 +38,7 @@
     </head>
     <body>
         <div class="container">
-            <div class="row" id="abc">
-                <div class="column col-xs-4" draggable="true" > 
-                    <header>A</header>
-                </div>   
-                <div class="column col-xs-4" draggable="true" > 
-                    <header>B</header>
-                </div>   
-                <div class="column col-xs-4" draggable="true" > 
-                    <header>C</header>
-                </div>    
-                <div class="column col-xs-4" draggable="true" > 
-                    <header>D</header>
-                </div>   
-                <div class="column col-xs-4" draggable="true" > 
-                    <header>E</header>
-                </div>   
-                <div class="column col-xs-4" draggable="true" > 
-                    <header>F</header>
-                </div>                            
+            <div class="row" id="abc">            
             </div>
         </div>
         <button>add random html</button>
