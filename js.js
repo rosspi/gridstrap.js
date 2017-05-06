@@ -84,8 +84,7 @@
                 $cell.css('width', positionNSize.w);
                 $cell.css('height', positionNSize.h); 
             },
-            recentDragMouseOvers: [], // tuple of element and timestamp
-            lastMouseMovePageCoordinates: {pageX:0, pageY:0},
+            recentDragMouseOvers: [], // tuple of element and timestamp 
             lastMouseOverCellTarget: null, // for rearranging on mouseup
             moveCell: function($movingCell, $targetCell) { 
 
@@ -179,8 +178,8 @@
                     var $toBeDragged = $(this);
                     if (!$toBeDragged.hasClass(base.options.draggedCellClass)){
                         $toBeDragged.data(_internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION, {
-                            x: e.pageX,
-                            y: e.pageY
+                            x: e.clientX,
+                            y: e.clientY
                         }); 
                         $toBeDragged.data(_internal.constants.DATA_MOUSEDOWN_CELL_POSITION, base.options.getAbsolutePositionAndSizeOfCell($toBeDragged)); 
                         
@@ -230,22 +229,15 @@
 
                                     _internal.moveCell($draggedCell, $cellOfTarget);  
                                     
-                                    // reset dragged object to mouse pos, not pos of hidden cells.
-                                    // don't pass mouseEvent here because mousedown doesn't have pageX, pageY.
-                                    moveDraggedCell($draggedCell, _internal.lastMouseMovePageCoordinates); 
+                                    // reset dragged object to mouse pos, not pos of hidden cells. 
+                                    moveDraggedCell($draggedCell, mouseEvent); 
                                 } 
                             }
                         }
                     }
                 };
 
-                var mousemove = function(e){          
-                    // These coordinates are needed for when we move dragged objects around in grid.
-                    // Other mouse events do not have pageX, pageY values.
-                    _internal.lastMouseMovePageCoordinates = {
-                        pageX: e.pageX,
-                        pageY: e.pageY
-                    };
+                var mousemove = function(e){    
 
                     var $draggedCell = $(_internal.draggedCellSelector);
                     if ($draggedCell.length > 0){ // should just be one.
@@ -290,7 +282,7 @@
                     var oldPointerEvents = $cell.css('pointer-events'); 
                     $cell.css('pointer-events', 'none');
 
-                    var element = document.elementFromPoint(mouseEvent.pageX, mouseEvent.pageY);
+                    var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
                     var $cellOfElement = _internal.getManagedCellAndIndexThatElementIsWithin(element).$cell;
                     if ($cellOfElement){
                         $cellOfElement.trigger('mouseover');
@@ -301,8 +293,15 @@
                 // only call event if occured on one of managed cells that has been initialised.
                 var onCellMouseEvent = function(eventName, callback){ 
                     // the cell itself OR any dragCellHandleSelector within the cell.
-                    var draggableSelector = base.options.gridCellSelector + ',' + base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
                     
+                    var draggableSelector = base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
+                    if (eventName === 'mouseover'){
+                        // if mouseover, then we want the event to be lenient as to what triggers it.
+                        // i.e. any part of a cell can trigger mouseover.
+                        // prepend with OR/, selector.
+                        draggableSelector = base.options.gridCellSelector + ',' + draggableSelector;
+                    }
+
                     $(_internal.visibleCellWrapperSelector).on(eventName, draggableSelector, function(e){ 
                         var $cellDragElement = $(e.target);
                         var $managedCell = _internal.getManagedCellAndIndexThatElementIsWithin($cellDragElement).$cell;
@@ -474,8 +473,8 @@
             return $cell[0].outerHTML;
         },
         setPositionOfDraggedCell: function(originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent) {
-            var left = mouseEvent.pageX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
-            var top = mouseEvent.pageY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
+            var left = mouseEvent.clientX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
+            var top = mouseEvent.clientY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
             $cell.css('left', left);
             $cell.css('top', top); 
         },
