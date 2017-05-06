@@ -16,7 +16,28 @@
                 DATA_CELL_POSITION_AND_SIZE : 'position-size',
                 RECENT_DRAG_MOUSEOVER_THROTTLE: 500
             },
-            cells: [],
+            cellsArray: [],
+            initCellsHiddenCopyAndSetAbsolutePosition: function($cell) {
+                base._internal.cellsArray.push($cell);
+
+                var htmlToClone = base.options.getHtmlOfSourceCell($cell);
+                var positionNSize = base.options.getAbsolutePositionAndSizeOfCell($cell); 
+
+                $cell.before(htmlToClone);
+                var $hiddenClone = $cell.prev();
+
+                $hiddenClone.addClass(base.options.hiddenCellClass);                    
+                $cell.addClass(base.options.visibleCellClass);
+
+                // make it ref hidden cloned cell.
+                $cell.data(base._internal.constants.DATA_HIDDEN_CELL, $hiddenClone); 
+                
+                // put absolute $cell in container.
+                $(base._internal.visibleCellWrapperSelector).append($cell.detach());
+
+                base._internal.setVisibleCellPositionAndSize($cell, positionNSize); 
+            },
+            visibleCellWrapperSelector: null, //initialised in init()
             draggedCellSelector: null, // initialised in init()
             setVisibleCellPositionAndSize : function($cell, positionNSize){ 
 
@@ -46,24 +67,19 @@
             //console.log('this is');
            // console.log(base);
 
+            var genId = function(){
+                return 'gridstrap-' + Math.random().toString(36).substr(2,5) + Math.round(Math.random() * 1000).toString();
+            };
+
             var initHiddenCopiesAndSetAbsolutePositions = function(){
-                var cells = base.$el.find(base.options.gridCellSelector);
-                cells.each(function(e) {
-                    var $this = $(this);
-                    base._internal.cells.push($this);
+                var $cells = base.$el.find(base.options.gridCellSelector);
 
-                    var htmlToClone = base.options.getHtmlOfSourceCell($this);
-                    var positionNSize = base.options.getAbsolutePositionAndSizeOfCell($this); 
-
-                    $this.before(htmlToClone);
-                    var $hiddenClone = $this.prev();
-
-                    $hiddenClone.addClass(base.options.hiddenCellClass);                    
-                    $this.addClass(base.options.visibleCellClass);
-
-                    $this.data(base._internal.constants.DATA_HIDDEN_CELL, $hiddenClone); 
-
-                    base._internal.setVisibleCellPositionAndSize($this, positionNSize); 
+                var wrapperGenId = genId();
+                base._internal.visibleCellWrapperSelector = '#' + wrapperGenId;
+                $(base.options.visibleCellContainerSelector).append('<div id="' + wrapperGenId + '"></div>');
+                
+                $cells.each(function(e) { 
+                    base._internal.initCellsHiddenCopyAndSetAbsolutePosition($(this)); 
                 });
             };
 
@@ -72,7 +88,6 @@
             };
 
             var mousedown = function(e){ 
-                console.log('down');
                 var $toBeDragged = $(this);
                 if (!$toBeDragged.hasClass(base.options.draggedCellClass)){
                     $toBeDragged.data(base._internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION, {
@@ -204,8 +219,8 @@
                     if (base._internal.lastMouseOverCellTarget){
                         if (!base.options.rearrangeWhileDragging){
                             // just rearrange on mouseup
-                            var $hiddenTarget = $cellOfTarget.data(base._internal.constants.DATA_HIDDEN_CELL);
-                            var $hiddenDragged = $draggedCell.data(base._internal.constants.DATA_HIDDEN_CELL);
+                            var $hiddenTarget = base._internal.lastMouseOverCellTarget.data(base._internal.constants.DATA_HIDDEN_CELL);
+                            var $hiddenDragged = $dragged.data(base._internal.constants.DATA_HIDDEN_CELL);
 
                             if (base.options.swapMode) {
                                 swapJQueryElements($hiddenDragged, $hiddenTarget); 
@@ -225,9 +240,9 @@
                 }
                 var $managedCell = null;
                 var $potential = $(element);
-                for(var i = 0; i < base._internal.cells.length && !$managedCell; i++){
-                    if ($potential.closest(base._internal.cells[i]).length > 0){
-                        $managedCell = base._internal.cells[i];
+                for(var i = 0; i < base._internal.cellsArray.length && !$managedCell; i++){
+                    if ($potential.closest(base._internal.cellsArray[i]).length > 0){
+                        $managedCell = base._internal.cellsArray[i];
                     }
                 }
                 return $managedCell;
@@ -263,7 +278,7 @@
                 // the cell itself OR any dragCellHandleSelector within the cell.
                 var draggableSelector = base.options.gridCellSelector + ',' + base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
 
-                base.$el.on(eventName, draggableSelector, function(e){
+                $(base._internal.visibleCellWrapperSelector).on(eventName, draggableSelector, function(e){
                     var $cellDragElement = $(e.target);
                     var $managedCell = getManagedCellElementIsWithin($cellDragElement);
                     // user clicked on perhaps child element of draggable element.
@@ -273,6 +288,8 @@
                     }
                 });
             };
+
+            initHiddenCopiesAndSetAbsolutePositions();
             
             onCellMouseEvent('dragstart', dragstart);
             onCellMouseEvent('mousedown', mousedown); 
@@ -292,17 +309,11 @@
                     moveDraggedCell($draggedCell, mouseEvent);
                 }
             });
-
-            initHiddenCopiesAndSetAbsolutePositions();
         };
         
-        // Sample Function, Uncomment to use
-        // base.functionName = function(paramaters){
-        // 
-        // }; 
         base.updateVisibleCellCoordinates = function(){
-            for (var i = 0; i < base._internal.cells.length; i++) {
-                var $this = base._internal.cells[i]; 
+            for (var i = 0; i < base._internal.cellsArray.length; i++) {
+                var $this = base._internal.cellsArray[i]; 
 
                 var $hiddenClone = $this.data(base._internal.constants.DATA_HIDDEN_CELL);
                 
@@ -312,8 +323,15 @@
             } 
         };
 
-        base.insertCell = function(index, html){
-            // todo
+        // returns jquery object of new cell.
+        base.insertCell = function(index, cellHtml){
+            //var $cells = base.$el.find(base.options.gridCellSelector);
+
+            base._internal.initCellsHiddenCopyAndSetAbsolutePosition($(this)); 
+        };
+
+        base.attachCell = function(selector) {
+
         };
         
         
@@ -328,6 +346,7 @@
         dragCellHandleSelector: '*', // relative to and including cell element.
         draggedCellClass: 'gridstrap-cell-drag',
         mouseMoveSelector: 'body',
+        visibleCellContainerSelector: 'body',
         //gridOverlayClass: 'grid-overlay',
         getAbsolutePositionAndSizeOfCell: function($cell){
 
