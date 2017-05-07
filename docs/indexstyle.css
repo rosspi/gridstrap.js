@@ -359,3 +359,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
   height: 100px; 
   width:100%; 
 }
+
+iframe{
+  border: none;
+  height:500px;
+}

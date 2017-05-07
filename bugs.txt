@@ -1,2 +1,5 @@
-1. problem with dragging mouseover - it needs to check parent-most element for throttling and compare that,, not just any old element that could be a child element.
+1. problem with dragging mouseover - it needs to check parent-most element for throttling and compare that,, not just any old element that could be a child element. See github border edging index page thing.
 2. maybe an issue with detaching then necessary reordering... ? yes some issue not sure if real issue or some trivial thing.
+3. fix window resize debounce or something
+4. make z-index fade out somehow, maybe with transition when releas of drag. SHouldnt underlap so quik.
+5. mouseover or mousemove not sure whats appropariate to try to get noncontiguous stuff working - it at least needs a better mouseevent target event bound.

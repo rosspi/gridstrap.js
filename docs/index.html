@@ -45,9 +45,20 @@
       <a href="#basic-demo" aria-controls="basic-demo" role="tab" data-toggle="tab">Basic</a>
     </li>
     <li role="presentation">
-      <a href="#responsive-demo" aria-controls="profile" role="tab" data-toggle="tab">Responsive</a></li>
-    <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
-    <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
+      <a href="#responsive-demo" aria-controls="responsive-demo" role="tab" data-toggle="tab">Responsive</a>
+    </li>
+    <li role="presentation">
+      <a href="#resize-demo" aria-controls="resize-demo" role="tab" data-toggle="tab">Resize</a>
+    </li>
+    <li role="presentation">
+      <a href="#noncontiguous-demo" aria-controls="noncontiguous-demo" role="tab" data-toggle="tab">Non-contiguous</a>
+    </li>
+    <li role="presentation">
+      <a href="#dual-demo" aria-controls="dual-demo" role="tab" data-toggle="tab">Dual</a>
+    </li>
+    <li role="presentation">
+      <a href="#api-demo" aria-controls="api-demo" role="tab" data-toggle="tab">API</a>
+    </li>
   </ul>
 
   <!-- Tab panes -->
@@ -71,7 +82,22 @@
       </iframe>
       <!--<div id="responsive-grid" ></div>-->
     </div>
-    <div role="tabpanel" class="tab-pane" id="messages">...</div>
+    <div role="tabpanel" class="tab-pane" id="api-demo">
+      <div class="row">
+        <div class="col-xs-1">
+          <label>
+            <input type="checkbox" id="replace-mode"/> Replace mode
+          </label>
+          <label>
+            <input type="checkbox" id="rearrange-mode"/> Rearrange
+          </label>
+        </div>
+        <div class="col-xs-11">
+          <div class="row" id="api-grid"> 
+          </div> 
+        </div>
+      </div>
+    </div>
     <div role="tabpanel" class="tab-pane" id="settings">...</div>
   </div>
 
