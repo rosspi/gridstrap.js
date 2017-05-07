@@ -1,5 +1,7 @@
 (function($, window, document){
     $.Gridstrap = function(el, options){
+
+        if ("undefined" == typeof jQuery) throw new Error("yeah nah's JavaScript requires jQuery");
         // To avoid scope issues, use 'base' instead of 'this'
         // to reference this class from internal events and functions.
         var base = this;
@@ -7,6 +9,13 @@
         // Access to jQuery and DOM versions of element
         base.$el = $(el);
         base.el = el;
+
+        // Do nothing if it's already been done before.
+        var existingInitialisation = base.$el.data('Gridstrap');
+        if (existingInitialisation){
+            console.log('Gridstrap already initialised for element: ' + base.el.nodeName);
+            return;
+        }
 
         var _internal = {
             constants: {
@@ -21,14 +30,18 @@
             initCellsHiddenCopyAndSetAbsolutePosition: function($cell) {
                 _internal.cellsArray.push($cell);
 
-                var htmlToClone = base.options.getHtmlOfSourceCell($cell);
+                // Create html clone to take place of original $cell.
+                // Treat it as the 'hidden' cell, and turn the original $cell
+                // into the visible/absolute cell.
+ 
+                var htmlOfOriginal = base.options.getHtmlOfSourceCell($cell);
                 var positionNSize = base.options.getAbsolutePositionAndSizeOfCell($cell); 
 
-                $cell.before(htmlToClone);
+                $cell.before(htmlOfOriginal);
                 var $hiddenClone = $cell.prev();
 
                 $hiddenClone.addClass(base.options.hiddenCellClass);                    
-                $cell.addClass(base.options.visibleCellClass);
+                $cell.addClass(base.options.visibleCellClass);      
 
                 // make it ref hidden cloned cell, both ways.
                 $cell.data(_internal.constants.DATA_HIDDEN_CELL, $hiddenClone); 
@@ -174,19 +187,23 @@
                 var genId = function(){
                     return 'gridstrap-' + Math.random().toString(36).substr(2,5) + Math.round(Math.random() * 1000).toString();
                 };
-
-                var wrapperGeneratedId = genId();
-                _internal.visibleCellWrapperSelector = '#' + wrapperGeneratedId; 
-                // drag selector must be within wrapper div. Turn class name/list into selector.
-                _internal.draggedCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
-
-                $(base.options.visibleCellContainerSelector).append('<div id="' + wrapperGeneratedId + '"></div>');
                 
                 // Put your initialization code here
                 //console.log('this is'); 
 
-                var initHiddenCopiesAndSetAbsolutePositions = function(){
+                var initHiddenCopiesAndSetAbsolutePositions = function(){ 
+
+                    // must pick cells before potentially adding child wrapper to selection.
                     var $originalCells = base.$el.find(base.options.gridCellSelector);
+
+                    var wrapperGeneratedId = genId();
+                    _internal.visibleCellWrapperSelector = '#' + wrapperGeneratedId; 
+                    // drag selector must be within wrapper div. Turn class name/list into selector.
+                    _internal.draggedCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
+
+                    // if option not specified, use JQuery element as parent for wrapper.
+                    base.options.visibleCellContainerParentSelector = base.options.visibleCellContainerParentSelector || base.$el;
+                    $(base.options.visibleCellContainerParentSelector).append('<div id="' + wrapperGeneratedId + '" class="' + base.options.visibleCellContainerClass + '"></div>'); 
                     
                     $originalCells.each(function(e) { 
                         _internal.initCellsHiddenCopyAndSetAbsolutePosition($(this)); 
@@ -346,11 +363,12 @@
                 $(base.options.mouseMoveSelector).on('mousemove', mousemove);
                 $(base.options.mouseMoveSelector).on('mouseup', mouseup);
             }
-        };
+        }; //~internal oject
         
         // Add a reverse reference to the DOM object
         base.$el.data('Gridstrap', base);
         
+        // Public methods below.
         base.updateVisibleCellCoordinates = function(){
             for (var i = 0; i < _internal.cellsArray.length; i++) {
                 var $this = _internal.cellsArray[i]; 
@@ -457,6 +475,10 @@
 
             return _internal.getHiddenCells();;         
         };
+
+        base.getCellContainer = function() {
+            return $(_internal.visibleCellWrapperSelector);
+        };
         
         
         // Initialiser
@@ -470,8 +492,9 @@
         dragCellHandleSelector: '*', // relative to and including cell element.
         draggedCellClass: 'gridstrap-cell-drag',
         mouseMoveSelector: 'body',
-        visibleCellContainerSelector: 'body',
-        getAbsolutePositionAndSizeOfCell: function($cell){
+        visibleCellContainerParentSelector: null, // null by default, use Jquery parent element.
+        visibleCellContainerClass : 'gridstrap-container',
+        getAbsolutePositionAndSizeOfCell: function($cell){ 
             var position = $cell.offset();
             var w = $cell.outerWidth();
             var h = $cell.outerHeight();

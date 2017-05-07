@@ -1,0 +1,46 @@
+
+/* Prevent the text contents of draggable elements from being selectable. */
+[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Required to make elements draggable in old WebKit */
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
+.column {
+  background-color: grey;
+  
+  text-align: center;
+  cursor: move;
+  border: 1px solid #000;
+   /* transition:width 2s, height 2s, background-color 2s, transform 2s;*/
+}
+.over {
+  background-color: greenyellow !important;
+}
+.column header {
+  color: #fff;
+  text-shadow: #000 0 1px;
+  box-shadow: 5px;
+  padding: 5px;
+  background-color:orange;
+  
+} 
+.gridstrap-cell-visible{
+  position: absolute !important;
+  opacity: 0.6;
+  background-color: red !important;
+    transition:width 1.5s, height 0.5s,  left 1.5s, top 1.5s ;
+    transition:width 0.1s, height 0.1s,  left 0.1s, top 0.1s ;
+}
+.gridstrap-cell-hidden{ 
+  opacity: 0.1; 
+  pointer-events: none;
+}
+.gridstrap-cell-drag{
+  background-color: blue !important;
+  transition: none;
+  /*pointer-events: none;*/
+}

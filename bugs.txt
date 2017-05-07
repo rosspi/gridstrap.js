@@ -1,0 +1,2 @@
+1. problem with dragging mouseover - it needs to check parent-most element for throttling and compare that,, not just any old element that could be a child element.
+2. maybe an issue with detaching then necessary reordering... ? yes some issue not sure if real issue or some trivial thing.
