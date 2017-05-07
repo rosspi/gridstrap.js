@@ -1,1 +1,0 @@
-1. when detaching objects, the detached objects are still being used for reordering, needs to check if theyre part of themanaged list/
