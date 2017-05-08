@@ -1,590 +1,612 @@
-(function($, window, document){
-    $.Gridstrap = function(el, options){
+(function ($, window, document) {
+  $.Gridstrap = function (el, options) {
 
-        if ("undefined" == typeof jQuery) throw new Error("yeah nah's JavaScript requires jQuery");
-        // To avoid scope issues, use 'base' instead of 'this'
-        // to reference this class from internal events and functions.
-        var base = this;
-        
-        // Access to jQuery and DOM versions of element
-        base.$el = $(el);
-        base.el = el;
+    if ("undefined" == typeof jQuery) throw new Error("yeah nah's JavaScript requires jQuery");
+    // To avoid scope issues, use 'base' instead of 'this'
+    // to reference this class from internal events and functions.
+    var base = this;
 
-        var _internal = {
-            constants: {
-                DATA_HIDDEN_CELL : 'hidden-cell', //two way link
-                DATA_VISIBLE_CELL : 'visible-cell', //two way link
-                DATA_MOUSEDOWN_CELL_POSITION : 'mousedown-cell-position',
-                DATA_MOUSEDOWN_SCREEN_POSITION : 'mousedown-screen-position',
-                DATA_CELL_POSITION_AND_SIZE : 'position-size'
-            },
-            cellsArray: [],
-            initCellsHiddenCopyAndSetAbsolutePosition: function($cell) {
-                _internal.cellsArray.push($cell);
+    // Access to jQuery and DOM versions of element
+    base.$el = $(el);
+    base.el = el;
 
-                // Create html clone to take place of original $cell.
-                // Treat it as the 'hidden' cell, and turn the original $cell
-                // into the visible/absolute cell.
- 
-                var htmlOfOriginal = base.options.getHtmlOfSourceCell.call(base, $cell);
-                var positionNSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $cell); 
+    var _internal = {
+      constants: {
+        DATA_HIDDEN_CELL: 'hidden-cell', //two way link
+        DATA_VISIBLE_CELL: 'visible-cell', //two way link
+        DATA_MOUSEDOWN_CELL_POSITION: 'mousedown-cell-position',
+        DATA_MOUSEDOWN_PAGE_POSITION: 'mousedown-screen-position',
+        DATA_CELL_POSITION_AND_SIZE: 'position-size'
+      },
+      cellsArray: [],
+      initCellsHiddenCopyAndSetAbsolutePosition: function ($cell) {
+        _internal.cellsArray.push($cell);
 
-                $cell.before(htmlOfOriginal);
-                var $hiddenClone = $cell.prev();
+        // Create html clone to take place of original $cell.
+        // Treat it as the 'hidden' cell, and turn the original $cell
+        // into the visible/absolute cell.
 
-                $hiddenClone.addClass(base.options.hiddenCellClass);                    
-                $cell.addClass(base.options.visibleCellClass);      
+        var htmlOfOriginal = base.options.getHtmlOfSourceCell.call(base, $cell);
+        var positionNSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $cell);
 
-                // make it ref hidden cloned cell, both ways.
-                $cell.data(_internal.constants.DATA_HIDDEN_CELL, $hiddenClone); 
-                $hiddenClone.data(_internal.constants.DATA_VISIBLE_CELL, $cell); 
-                
-                // put absolute $cell in container.
-                $(_internal.visibleCellWrapperSelector).append($cell.detach());
+        $cell.before(htmlOfOriginal);
+        var $hiddenClone = $cell.prev();
 
-                _internal.setVisibleCellPositionAndSize($cell, positionNSize); 
-            },
-            getManagedCellAndIndexThatElementIsWithin : function(visibleCellElement) {
-                var noCell = {
-                    index: -1,
-                    $cell: null
-                };
-                if (!visibleCellElement){
-                    return noCell;
-                }  
-                var $visibleCellElement = $(visibleCellElement);
+        $hiddenClone.addClass(base.options.hiddenCellClass);
+        $cell.addClass(base.options.visibleCellClass);
 
-                var visibleCellAndIndex = null;
-                // visibleCellAndIndex.$cell might be a child element/control perhaps of $visibleCell (found in the managed array).
-                for (var i = 0; i < _internal.cellsArray.length && !visibleCellAndIndex; i++){
-                    if ($visibleCellElement.closest(_internal.cellsArray[i]).length > 0){
-                        visibleCellAndIndex = {
-                            index: i,
-                            $cell: _internal.cellsArray[i]
-                        };
-                    }
-                }
+        // make it ref hidden cloned cell, both ways.
+        $cell.data(_internal.constants.DATA_HIDDEN_CELL, $hiddenClone);
+        $hiddenClone.data(_internal.constants.DATA_VISIBLE_CELL, $cell);
 
-                if (!visibleCellAndIndex){
-                    return noCell;
-                }
+        // put absolute $cell in container.
+        $(_internal.visibleCellWrapperSelector).append($cell.detach());
 
-                // check if linked hidden element is NOT in parent element.
-                var $linkedHiddenCell = visibleCellAndIndex.$cell.data(_internal.constants.DATA_HIDDEN_CELL);
-                if (!$linkedHiddenCell.closest(base.$el).is(base.$el)){
-                    return noCell;
-                }
-
-                return visibleCellAndIndex;
-            },  
-            visibleCellWrapperSelector: null, //initialised in init()
-            draggedCellSelector: null, // initialised in init()
-            setVisibleCellPositionAndSize : function($cell, positionNSize){ 
-
-                // relied upon when drag-stop. 
-                $cell.data(_internal.constants.DATA_CELL_POSITION_AND_SIZE, positionNSize);
-                
-                $cell.css('top', positionNSize.y);
-                $cell.css('left', positionNSize.x);
-                $cell.css('width', positionNSize.w);
-                $cell.css('height', positionNSize.h); 
-            },
-            recentDragMouseOvers: [], // tuple of element and timestamp 
-            lastMouseOverCellTarget: null, // for rearranging on mouseup
-            moveCell: function($movingVisibleCell, $targetVisibleCell) { 
-
-                var swapJQueryElements = function($a, $b){
-                    var getInPlaceFunction = function($element){
-                        var $other = $a.is($element) ? $b : $a;
-                        var $next = $element.next();
-                        var $prev = $element.prev();
-                        var $parent = $element.parent();
-                        // cannot swap a with b exactly if there are no other siblings.
-                        if ($next.length > 0 && !$next.is($other)){
-                            return function($newElement){
-                                $next.before($newElement);
-                            }
-                        } else if ($prev.length > 0 && !$prev.is($other)){
-                            return function($newElement){
-                                $prev.after($newElement);
-                            }
-                        } else {
-                            // no siblings, so can just use append
-                            return function($newElement){
-                                $parent.append($newElement);
-                            }
-                        }
-                    };
-
-                    var aInPlaceFunc = getInPlaceFunction($a);
-                    var bInPlaceFunc = getInPlaceFunction($b);
-                    var $aDetached = $a.detach();
-                    var $bDetached = $b.detach();
-                    // swap finally.
-                    bInPlaceFunc($aDetached);
-                    aInPlaceFunc($bDetached); 
-                };
-
-                var detachAndInsertInPlaceJQueryElement = function($detachElement, $inPlaceElement) {
-                    var inPlaceElementIndex = $inPlaceElement.index();
-                    var detachElementIndex = $detachElement.index();
-
-                    var $detachedElement = $detachElement.detach();
-
-                    if (inPlaceElementIndex < detachElementIndex){
-                        $inPlaceElement.before($detachedElement);
-                    } else {
-                        $inPlaceElement.after($detachedElement);
-                    }
-                };
-
-                var $hiddenDragged = $movingVisibleCell.data(_internal.constants.DATA_HIDDEN_CELL);
-                var $hiddenTarget = $targetVisibleCell.data(_internal.constants.DATA_HIDDEN_CELL);
-
-                if ($hiddenDragged.is($hiddenTarget)){
-                    return;
-                }
-
-                if (base.options.swapMode) {
-                    swapJQueryElements($hiddenDragged, $hiddenTarget); 
-                } else {
-                    detachAndInsertInPlaceJQueryElement($hiddenDragged, $hiddenTarget); 
-                } 
-
-                base.updateVisibleCellCoordinates();
-            },
-            getHiddenCells : function() {
-                // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order. 
-
-                // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
-                var $attachedHiddenCells = $(base.$el).find('*').filter(function(){
-                    var $linkedVisibleCell = $(this).data(_internal.constants.DATA_VISIBLE_CELL);
-                    if (!$linkedVisibleCell || $linkedVisibleCell.length === 0){
-                        return false;
-                    }
-                    for(var i = 0; i < _internal.cellsArray.length; i++){
-                        if (_internal.cellsArray[i].is($linkedVisibleCell)){
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-
-                return $attachedHiddenCells;
-            },
-
-            init: function() {
-                base.options = $.extend({},$.Gridstrap.defaultOptions, options);
-
-                // Do nothing if it's already been done before.
-                var existingInitialisation = base.$el.data('Gridstrap');
-                if (existingInitialisation){
-                    if (base.options.debug){ 
-                        console.log('Gridstrap already initialised for element: ' + base.el.nodeName);
-                    }
-                    return;
-                } else {        
-                    // Add a reverse reference to the DOM object
-                    base.$el.data('Gridstrap', base);
-
-                    if (base.options.debug){ 
-                        console.log('Gridstrap initialised for element: ' + base.el.nodeName);
-                    }
-                }
-                        
-                var genId = function(){
-                    return 'gridstrap-' + Math.random().toString(36).substr(2,5) + Math.round(Math.random() * 1000).toString();
-                }; 
-
-                var initHiddenCopiesAndSetAbsolutePositions = function(){ 
-
-                    // must pick cells before potentially adding child wrapper to selection.
-                    var $originalCells = base.$el.find(base.options.gridCellSelector);
-
-                    var wrapperGeneratedId = genId();
-                    _internal.visibleCellWrapperSelector = '#' + wrapperGeneratedId; 
-                    // drag selector must be within wrapper div. Turn class name/list into selector.
-                    _internal.draggedCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
-
-                    // if option not specified, use JQuery element as parent for wrapper.
-                    base.options.visibleCellContainerParentSelector = base.options.visibleCellContainerParentSelector || base.$el;
-                    $(base.options.visibleCellContainerParentSelector).append('<div id="' + wrapperGeneratedId + '" class="' + base.options.visibleCellContainerClass + '"></div>'); 
-                    
-                    $originalCells.each(function(e) { 
-                        _internal.initCellsHiddenCopyAndSetAbsolutePosition($(this)); 
-                    });
-                };
-
-                var dragstart = function(e){
-                    e.preventDefault(); 
-                };
-
-                var mousedown = function(e){ 
-                    var $toBeDragged = $(this);
-                    if (!$toBeDragged.hasClass(base.options.draggedCellClass)){
-                        $toBeDragged.data(_internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION, {
-                            x: e.clientX,
-                            y: e.clientY
-                        }); 
-                        $toBeDragged.data(_internal.constants.DATA_MOUSEDOWN_CELL_POSITION, base.options.getAbsolutePositionAndSizeOfCell.call(base, $toBeDragged)); 
-                        
-                        $toBeDragged.addClass(base.options.draggedCellClass);
-    
-                        moveDraggedCell($toBeDragged, e);
-                    }
-                }; 
-
-                var setAndGetElementRecentlyDraggedMouseOver = function(element) {
-                    var d = new Date();
-                    var n = d.getTime(); 
-                    for(var i = 0; i < _internal.recentDragMouseOvers.length; i++){
-                        if (_internal.recentDragMouseOvers[i].n + base.options.dragMouseoverThrottle < n){
-                            // expired.
-                            _internal.recentDragMouseOvers.splice(i, 1);
-                        }
-                        if (i < _internal.recentDragMouseOvers.length && $(_internal.recentDragMouseOvers[i].e).is(element)){
-                            return true;
-                        }
-                    }
-                    _internal.recentDragMouseOvers.push({
-                        n: n,
-                        e: element
-                    });
-                    return false;
-                }
-
-                var mouseover = function(mouseEvent){
-                    // clear initially.
-                    _internal.lastMouseOverCellTarget = null;
-
-                    var $draggedCell = $(_internal.draggedCellSelector);
-                    if ($draggedCell.length > 0){
-                        // Is currently dragging.
-                        var $cellOfTarget = _internal.getManagedCellAndIndexThatElementIsWithin(mouseEvent.target).$cell;
-                        if ($cellOfTarget && $draggedCell.closest($cellOfTarget).length == 0){
-                            // make sure you're not mouseover-ing the dragged cell itself.
-                            // css' 'pointer-events', 'none' should do this job, but this double checks.
-                                
-                            _internal.lastMouseOverCellTarget = $cellOfTarget;
-
-                            if (!setAndGetElementRecentlyDraggedMouseOver($cellOfTarget)) {
-                                // do not move two cells that have recently already moved.
-
-                                if (base.options.rearrangeWhileDragging){
-
-                                    _internal.moveCell($draggedCell, $cellOfTarget);  
-                                    
-                                    // reset dragged object to mouse pos, not pos of hidden cells. 
-                                    moveDraggedCell($draggedCell, mouseEvent); 
-                                } 
-                            }
-                        } else {
-                            // not overlapping any existing managed cell while dragging.
-                            var nonContiguousOptions = base.options.nonContiguousOptions;
-                            var nonContiguousSelector = nonContiguousOptions.selector; 
-                            if (nonContiguousSelector && 
-                                nonContiguousSelector.length){
-                                
-                                var $visibleCells = base.getCells(); 
-                                
-                                var lastVisibleCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $visibleCells.last());
-                                while (lastVisibleCellPositionAndSize.x + lastVisibleCellPositionAndSize.w < mouseEvent.clientX && 
-                                    lastVisibleCellPositionAndSize.y + lastVisibleCellPositionAndSize.h < mouseEvent.clientY){
-                                    // insert dummy cells if cursor is beyond where the cells finish.
-                                    var $insertedCell = base.insertCell(
-                                        nonContiguousOptions.getNonContiguousHtml(),
-                                        $visibleCells.length
-                                    );
-                                    $insertedCell.addClass(base.options.nonContiguousPlaceholderCellClass);
-                                    
-                                    // might have to keep adding them.
-                                    lastVisibleCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $insertedCell);                                   
-                                    $visibleCells = $visibleCells.add($insertedCell);
-                                }
-                                // remove ones at end when we have too much.
-                                while (lastVisibleCellPositionAndSize.x + lastVisibleCellPositionAndSize.w > mouseEvent.clientX && 
-                                    lastVisibleCellPositionAndSize.y + lastVisibleCellPositionAndSize.h > mouseEvent.clientY &&
-                                    $visibleCells.last().hasClass(base.options.nonContiguousPlaceholderCellClass)){
-                                        
-                                    var $lastVisibleCell = $visibleCells.last();                                  
-                                    $visibleCells = $visibleCells.not($lastVisibleCell);
-
-                                    base.removeCell($lastVisibleCell);
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var mousemove = function(e){    
-
-                    var $draggedCell = $(_internal.draggedCellSelector);
-                    if ($draggedCell.length > 0){ // should just be one.
-                        moveDraggedCell($draggedCell, e);
-                    } 
-                };
-
-                var mouseup = function (e) {
-                    var $draggedCell = $(_internal.draggedCellSelector);
-                    if ($draggedCell.length > 0){ 
-
-                        // no more dragging.
-                        $draggedCell.removeClass(base.options.draggedCellClass);
-                        $draggedCell.removeData(_internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION); 
-                        
-                        var cellOriginalPosition = $draggedCell.data(_internal.constants.DATA_CELL_POSITION_AND_SIZE);
-                        _internal.setVisibleCellPositionAndSize($draggedCell, cellOriginalPosition);  
-
-                        if (_internal.lastMouseOverCellTarget){
-                            if (!base.options.rearrangeWhileDragging){
-                                // just rearrange on mouseup
-
-                                _internal.moveCell($draggedCell, _internal.lastMouseOverCellTarget);   
-                            }
-                        }
-                    }
-                };  
-
-                var moveDraggedCell = function($cell, mouseEvent){
-                    // user can do something custom for dragging if they want.
-                    var callbackResult = base.options.mouseMoveDragCallback.call(base, $cell, mouseEvent);
-                    if (!callbackResult && typeof(callbackResult) === 'boolean'){
-                        return;
-                    }
-
-                    var originalMouseDownCellPosition = $cell.data(_internal.constants.DATA_MOUSEDOWN_CELL_POSITION);
-                    var originalMouseDownScreenPosition = $cell.data(_internal.constants.DATA_MOUSEDOWN_SCREEN_POSITION);
-
-                    base.options.setPositionOfDraggedCell.call(base, originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent);
-                    
-                    //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
-                    var oldPointerEvents = $cell.css('pointer-events'); 
-                    $cell.css('pointer-events', 'none');
-
-                    var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-                    var $cellOfElement = _internal.getManagedCellAndIndexThatElementIsWithin(element).$cell;
-                    if ($cellOfElement){
-                        $cellOfElement.trigger('mouseover');
-                    }
-                    $cell.css('pointer-events', oldPointerEvents);
-                };
-
-                // only call event if occured on one of managed cells that has been initialised.
-                var onCellMouseEvent = function(eventName, callback){ 
-                    var draggableSelector = base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
-                    if (base.options.dragCellHandleSelector === $.Gridstrap.defaultOptions.dragCellHandleSelector ||
-                        eventName === 'mouseover'){
-                        // if the default settings apply for drag handle mouse events,
-                        // or if mouseover, then we want the event to be lenient as to what triggers it.
-                        // Prepend selector with grid itself as an OR/, selector.
-                        // To become the cell itself OR any dragCellHandleSelector within the cell. 
-                        draggableSelector = base.options.gridCellSelector + ',' + draggableSelector;
-                    }
-
-                    $(_internal.visibleCellWrapperSelector).on(eventName, draggableSelector, function(e){ 
-                        var $cellDragElement = $(e.target);
-                        var $managedCell = _internal.getManagedCellAndIndexThatElementIsWithin($cellDragElement).$cell;
-                        // user clicked on perhaps child element of draggable element.
-                        // always send cell itself as 'this' for mouse event handlers.
-                        if ($managedCell) {
-                            callback.call($managedCell[0], e);
-                        } 
-                    });
-                };
-
-                initHiddenCopiesAndSetAbsolutePositions();
-                
-                onCellMouseEvent('dragstart', dragstart);
-                onCellMouseEvent('mousedown', mousedown); 
-                onCellMouseEvent('mouseover', mouseover);  
-
-                // it is not appropriate to confine the events to the visible cell wrapper.
-                $(base.options.mouseMoveSelector).on('mousemove', mousemove);
-                $(base.options.mouseMoveSelector).on('mouseup', mouseup);
-
-                if (base.options.updateCoordinatesOnWindowResize) { 
-                    $(window).on('resize', base.updateVisibleCellCoordinates);
-                }
-
-            } //~init()
-
-        }; //~internal oject
-        
-        // Public methods below.
-        base.updateVisibleCellCoordinates = function(){
-            for (var i = 0; i < _internal.cellsArray.length; i++) {
-                var $this = _internal.cellsArray[i]; 
-
-                var $hiddenClone = $this.data(_internal.constants.DATA_HIDDEN_CELL);
-                
-                var positionNSizeOfHiddenClone = base.options.getAbsolutePositionAndSizeOfCell.call(base, $hiddenClone);  
-                
-                _internal.setVisibleCellPositionAndSize($this, positionNSizeOfHiddenClone);
-            } 
+        _internal.setVisibleCellPositionAndSize($cell, positionNSize);
+      },
+      getManagedCellAndIndexThatElementIsWithin: function (visibleCellElement) {
+        var noCell = {
+          index: -1,
+          $cell: null
         };
+        if (!visibleCellElement) {
+          return noCell;
+        }
+        var $visibleCellElement = $(visibleCellElement);
 
-        // returns jquery object of new cell.
-        // index is optional.
-        base.insertCell = function(cellHtml, index){             
-            var $existingHiddenCells = _internal.getHiddenCells();
-            if (typeof(index) === 'undefined'){
-                index = $existingHiddenCells.length;
-            }
-
-            var $insertedCell;
-            if (index === $existingHiddenCells.length){
-                if ($existingHiddenCells.length === 0){
-                    // the grid is empty.
-                    $insertedCell = $(cellHtml).appendTo(base.$el);
-                } else { 
-                    $insertedCell = $(cellHtml).insertAfter($existingHiddenCells.last());
-                }
-            } else {
-                $insertedCell = $(cellHtml).insertBefore($existingHiddenCells.eq(index));
-            } 
-
-            base.attachCell($insertedCell);
-
-            return $insertedCell;
-        };
-
-        base.attachCell = function(selector) {
-
-            if (!$(selector).closest(base.$el).is(base.$el)){
-                throw 'Cannot attach element that is not a child of gridstrap parent';
-            }
-
-            _internal.initCellsHiddenCopyAndSetAbsolutePosition(selector); 
-
-            base.updateVisibleCellCoordinates();
-        };
-
-        base.detachCell = function(selector) {
-
-            var cellNIndex = _internal.getManagedCellAndIndexThatElementIsWithin(selector);
-            
-            var $hiddenClone = cellNIndex.$cell.data(_internal.constants.DATA_HIDDEN_CELL);
-
-            var $detachedVisibleCell = cellNIndex.$cell.detach();
-
-            // remove 'visible' things, and put the cell back where it came from.
-            $detachedVisibleCell.css('top', '');
-            $detachedVisibleCell.css('left', '');
-            $detachedVisibleCell.css('width', '');
-            $detachedVisibleCell.css('height', ''); 
-            $detachedVisibleCell.removeData(_internal.constants.DATA_HIDDEN_CELL);
-            $detachedVisibleCell.removeClass(base.options.visibleCellClass); 
-
-            var $reattachedOriginalCell = $detachedVisibleCell.insertAfter($hiddenClone);
-
-            // remove hidden clone.
-            $hiddenClone.remove();  
-
-            // finally remove from managed array
-            _internal.cellsArray.splice(cellNIndex.index, 1);   
-
-            return $reattachedOriginalCell;
-        };
-
-        base.removeCell = function(selector) {
-            
-            var $detachedCell = base.detachCell(selector);
-
-            $detachedCell.remove();
-
-            base.updateVisibleCellCoordinates();
-        };
-
-        base.moveCell = function(selector, toIndex) {
-            var cellNIndex = _internal.getManagedCellAndIndexThatElementIsWithin(selector);
-
-            var $existingVisibleCells = base.getCells();
-            
-            _internal.moveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex));
-        };
-
-        base.getCells = function(){
-            var $attachedHiddenCells = _internal.getHiddenCells();
-
-            var attachedVisibleCellElements = $attachedHiddenCells.map(function(){
-                return $(this).data(_internal.constants.DATA_VISIBLE_CELL)[0];
-            });   
-
-            return $(attachedVisibleCellElements);  
-        };
-
-        base.getHiddenCells = function(){   
-
-            return _internal.getHiddenCells();;         
-        };
-
-        base.getCellContainer = function() {
-            return $(_internal.visibleCellWrapperSelector);
-        }; 
-
-        base.updateOptions = function(newOptions) {
-            base.options = $.extend({}, base.options, newOptions);
-        };
-        
-        // Initialiser
-        _internal.init();
-    };
-    
-    $.Gridstrap.defaultOptions = {
-        gridCellSelector: '>*', // relative to parent element
-        hiddenCellClass: 'gridstrap-cell-hidden',
-        visibleCellClass: 'gridstrap-cell-visible',
-        dragCellHandleSelector: '*', // relative to and including cell element.
-        draggedCellClass: 'gridstrap-cell-drag',
-        mouseMoveSelector: 'body', // detect mousemouse and mouseup events within this element.
-        visibleCellContainerParentSelector: null, // null by default, use Jquery parent element.
-        visibleCellContainerClass : 'gridstrap-container',
-        nonContiguousPlaceholderCellClass : 'gridstack-noncontiguous',
-        getAbsolutePositionAndSizeOfCell: function($cell){ 
-            if (this.options.debug && !$cell.is(':visible')){ 
-                console.log('Grid cell is invisible. Gridstrap should not initialise an invisible grid. (' + this.el.nodeName + ': ' + $cell[0].nodeName + ')');
-            }
-            var position = $cell.offset();
-            var w = $cell.outerWidth();
-            var h = $cell.outerHeight();
-            return {
-                x: position.left,
-                y: position.top,
-                w: w,
-                h: h
+        var visibleCellAndIndex = null;
+        // visibleCellAndIndex.$cell might be a child element/control perhaps of $visibleCell (found in the managed array).
+        for (var i = 0; i < _internal.cellsArray.length && !visibleCellAndIndex; i++) {
+          if ($visibleCellElement.closest(_internal.cellsArray[i]).length > 0) {
+            visibleCellAndIndex = {
+              index: i,
+              $cell: _internal.cellsArray[i]
             };
-        },
-        getHtmlOfSourceCell: function($cell){
-            return $cell[0].outerHTML;
-        },
-        setPositionOfDraggedCell: function(originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent) {
-            var left = mouseEvent.clientX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
-            var top = mouseEvent.clientY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
-            $cell.css('left', left);
-            $cell.css('top', top); 
-        },
-        mouseMoveDragCallback: function($cell, mouseEvent){
-            // do whatever you want.
-            // return false to prevent normal operation.
-        },
-        rearrangeWhileDragging: true,
-        swapMode: false,
-        nonContiguousOptions: {
-            selector: null, 
-            getHtml: function(){
-                return null;
+          }
+        }
+
+        if (!visibleCellAndIndex) {
+          return noCell;
+        }
+
+        // check if linked hidden element is NOT in parent element.
+        var $linkedHiddenCell = visibleCellAndIndex.$cell.data(_internal.constants.DATA_HIDDEN_CELL);
+        if (!$linkedHiddenCell.closest(base.$el).is(base.$el)) {
+          return noCell;
+        }
+
+        return visibleCellAndIndex;
+      },
+      visibleCellWrapperSelector: null, //initialised in init()
+      draggedCellSelector: null, // initialised in init()
+      setVisibleCellPositionAndSize: function ($cell, positionNSize) {
+
+        // relied upon when drag-stop. 
+        $cell.data(_internal.constants.DATA_CELL_POSITION_AND_SIZE, positionNSize);
+
+        $cell.css('top', positionNSize.y);
+        $cell.css('left', positionNSize.x);
+        $cell.css('width', positionNSize.w);
+        $cell.css('height', positionNSize.h);
+      },
+      recentDragMouseOvers: [], // tuple of element and timestamp 
+      lastMouseOverCellTarget: null, // for rearranging on mouseup
+      lastMoveMovePageCoordinates: { // cause certain mouseevents dont have this data.
+        pageX: 0,
+        pageY: 0
+      },
+      moveCell: function ($movingVisibleCell, $targetVisibleCell) {
+
+        var swapJQueryElements = function ($a, $b) {
+          var getInPlaceFunction = function ($element) {
+            var $other = $a.is($element) ? $b : $a;
+            var $next = $element.next();
+            var $prev = $element.prev();
+            var $parent = $element.parent();
+            // cannot swap a with b exactly if there are no other siblings.
+            if ($next.length > 0 && !$next.is($other)) {
+              return function ($newElement) {
+                $next.before($newElement);
+              }
+            } else if ($prev.length > 0 && !$prev.is($other)) {
+              return function ($newElement) {
+                $prev.after($newElement);
+              }
+            } else {
+              // no siblings, so can just use append
+              return function ($newElement) {
+                $parent.append($newElement);
+              }
             }
-        },
-        updateCoordinatesOnWindowResize: true,
-        debug: false,
-        dragMouseoverThrottle: 500
-    };
-    
-    $.fn.gridstrap = function(options){
-        return this.each(function(){
-            (new $.Gridstrap(this, options));
+          };
+
+          var aInPlaceFunc = getInPlaceFunction($a);
+          var bInPlaceFunc = getInPlaceFunction($b);
+          var $aDetached = $a.detach();
+          var $bDetached = $b.detach();
+          // swap finally.
+          bInPlaceFunc($aDetached);
+          aInPlaceFunc($bDetached);
+        };
+
+        var detachAndInsertInPlaceJQueryElement = function ($detachElement, $inPlaceElement) {
+          var inPlaceElementIndex = $inPlaceElement.index();
+          var detachElementIndex = $detachElement.index();
+
+          var $detachedElement = $detachElement.detach();
+
+          if (inPlaceElementIndex < detachElementIndex) {
+            $inPlaceElement.before($detachedElement);
+          } else {
+            $inPlaceElement.after($detachedElement);
+          }
+        };
+
+        var $hiddenDragged = $movingVisibleCell.data(_internal.constants.DATA_HIDDEN_CELL);
+        var $hiddenTarget = $targetVisibleCell.data(_internal.constants.DATA_HIDDEN_CELL);
+
+        if ($hiddenDragged.is($hiddenTarget)) {
+          return;
+        }
+
+        if (base.options.swapMode) {
+          swapJQueryElements($hiddenDragged, $hiddenTarget);
+        } else {
+          detachAndInsertInPlaceJQueryElement($hiddenDragged, $hiddenTarget);
+        }
+
+        base.updateVisibleCellCoordinates();
+      },
+      getHiddenCells: function () {
+        // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order. 
+
+        // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
+        var $attachedHiddenCells = $(base.$el).find('*').filter(function () {
+          var $linkedVisibleCell = $(this).data(_internal.constants.DATA_VISIBLE_CELL);
+          if (!$linkedVisibleCell || $linkedVisibleCell.length === 0) {
+            return false;
+          }
+          for (var i = 0; i < _internal.cellsArray.length; i++) {
+            if (_internal.cellsArray[i].is($linkedVisibleCell)) {
+              return true;
+            }
+          }
+          return false;
         });
+
+        return $attachedHiddenCells;
+      },
+
+      init: function () {
+        base.options = $.extend({}, $.Gridstrap.defaultOptions, options);
+
+        // Do nothing if it's already been done before.
+        var existingInitialisation = base.$el.data('Gridstrap');
+        if (existingInitialisation) {
+          if (base.options.debug) {
+            console.log('Gridstrap already initialised for element: ' + base.el.nodeName);
+          }
+          return;
+        } else {
+          // Add a reverse reference to the DOM object
+          base.$el.data('Gridstrap', base);
+
+          if (base.options.debug) {
+            console.log('Gridstrap initialised for element: ' + base.el.nodeName);
+          }
+        }
+
+        var genId = function () {
+          return 'gridstrap-' + Math.random().toString(36).substr(2, 5) + Math.round(Math.random() * 1000).toString();
+        };
+
+        var initHiddenCopiesAndSetAbsolutePositions = function () {
+
+          // must pick cells before potentially adding child wrapper to selection.
+          var $originalCells = base.$el.find(base.options.gridCellSelector);
+
+          var wrapperGeneratedId = genId();
+          _internal.visibleCellWrapperSelector = '#' + wrapperGeneratedId;
+          // drag selector must be within wrapper div. Turn class name/list into selector.
+          _internal.draggedCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.draggedCellClass.replace(/(^ *| +)/g, '.') + ':first';
+
+          // if option not specified, use JQuery element as parent for wrapper.
+          base.options.visibleCellContainerParentSelector = base.options.visibleCellContainerParentSelector || base.$el;
+          $(base.options.visibleCellContainerParentSelector).prepend('<div id="' + wrapperGeneratedId + '" class="' + base.options.visibleCellContainerClass + '"></div>');
+
+          $originalCells.each(function (e) {
+            _internal.initCellsHiddenCopyAndSetAbsolutePosition($(this));
+          });
+        };
+
+        var setAndGetElementRecentlyDraggedMouseOver = function (element) {
+          var d = new Date();
+          var n = d.getTime();
+          for (var i = 0; i < _internal.recentDragMouseOvers.length; i++) {
+            if (_internal.recentDragMouseOvers[i].n + base.options.dragMouseoverThrottle < n) {
+              // expired.
+              _internal.recentDragMouseOvers.splice(i, 1);
+            }
+            if (i < _internal.recentDragMouseOvers.length && $(_internal.recentDragMouseOvers[i].e).is(element)) {
+              return true;
+            }
+          }
+          _internal.recentDragMouseOvers.push({
+            n: n,
+            e: element
+          });
+          return false;
+        };
+
+        var onDragstart = function (mouseEvent, $cell) {
+          mouseEvent.preventDefault();
+        };
+
+        var onMousedown = function (mouseEvent, $toBeDragged) { 
+          if (base.options.enableDragging && !$toBeDragged.hasClass(base.options.draggedCellClass)) {
+            $toBeDragged.data(_internal.constants.DATA_MOUSEDOWN_PAGE_POSITION, {
+              x: mouseEvent.pageX,
+              y: mouseEvent.pageY
+            });
+            $toBeDragged.data(_internal.constants.DATA_MOUSEDOWN_CELL_POSITION, base.options.getAbsolutePositionAndSizeOfCell.call(base, $toBeDragged));
+
+            $toBeDragged.addClass(base.options.draggedCellClass);
+
+            moveDraggedCell(mouseEvent, $toBeDragged);
+          }
+        };
+
+        var onMouseover = function (mouseEvent, $cell) {
+          // clear initially.
+          _internal.lastMouseOverCellTarget = null;
+
+          var $draggedCell = $(_internal.draggedCellSelector);
+          if ($draggedCell.length > 0) {
+            // Is currently dragging. 
+            if ($cell && $draggedCell.closest($cell).length === 0) {
+              // make sure you're not mouseover-ing the dragged cell itself.
+              // css' 'pointer-events', 'none' should do this job, but this double checks.
+
+              _internal.lastMouseOverCellTarget = $cell;
+
+              if (!setAndGetElementRecentlyDraggedMouseOver($cell)) {
+                // do not move two cells that have recently already moved.
+
+                if (base.options.rearrangeWhileDragging) {
+
+                  _internal.moveCell($draggedCell, $cell);
+
+                  // reset dragged object to mouse pos, not pos of hidden cells. 
+                  moveDraggedCell(mouseEvent, $draggedCell);
+                }
+              }
+            }  
+          }
+        };
+
+        var onMousemove = function (mouseEvent) {
+          var $draggedCell = $(_internal.draggedCellSelector);
+          if ($draggedCell.length > 0) { // should just be one.
+            moveDraggedCell(mouseEvent, $draggedCell);
+
+            ////////not overlapping any existing managed cell while dragging.
+            var nonContiguousOptions = base.options.nonContiguousOptions;
+            var nonContiguousSelector = nonContiguousOptions.selector;
+            if (nonContiguousSelector &&
+              nonContiguousSelector.length) {
+
+              var $hiddenCells = base.getHiddenCells();
+
+              var lastHiddenCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $hiddenCells.last());
+              var draggedCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $draggedCell);
+
+              while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h > lastHiddenCellPositionAndSize.y) {
+                // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
+                // insert dummy cells if cursor is beyond where the cells finish.
+                var $insertedCell = base.insertCell(
+                  nonContiguousOptions.getHtml(),
+                  $hiddenCells.length
+                );
+                $insertedCell.addClass(base.options.nonContiguousPlaceholderCellClass);
+                var $insertedHiddenCell = $insertedCell.data(_internal.constants.DATA_HIDDEN_CELL);
+
+                // might have to keep adding them.
+                lastHiddenCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $insertedHiddenCell);
+                draggedCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $draggedCell);
+
+                $hiddenCells = $hiddenCells.add($insertedHiddenCell);
+              }
+              // remove ones at end when we have too much.
+              // THIS PART FIXINFG BELOW BPLEASE.l
+              var $lastHiddenCell = $hiddenCells.last();
+              while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h < lastHiddenCellPositionAndSize.y &&
+                $lastHiddenCell.data(_internal.constants.DATA_VISIBLE_CELL).hasClass(base.options.nonContiguousPlaceholderCellClass)) {
+
+                $hiddenCells = $hiddenCells.not($lastHiddenCell);
+
+                base.removeCell($lastHiddenCell.data(_internal.constants.DATA_VISIBLE_CELL));
+
+                $lastHiddenCell = $hiddenCells.last();
+
+                lastHiddenCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $lastHiddenCell);
+              var draggedCellPositionAndSize = base.options.getAbsolutePositionAndSizeOfCell.call(base, $draggedCell);
+              }
+            }
+          }
+        };
+
+        var onMouseup = function (mouseEvent) {
+          var $draggedCell = $(_internal.draggedCellSelector);
+          if ($draggedCell.length > 0) {
+
+            // no more dragging.
+            $draggedCell.removeClass(base.options.draggedCellClass);
+            $draggedCell.removeData(_internal.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+
+            var cellOriginalPosition = $draggedCell.data(_internal.constants.DATA_CELL_POSITION_AND_SIZE);
+            _internal.setVisibleCellPositionAndSize($draggedCell, cellOriginalPosition);
+
+            if (_internal.lastMouseOverCellTarget) {
+              if (!base.options.rearrangeWhileDragging) {
+                // just rearrange on mouseup
+
+                _internal.moveCell($draggedCell, _internal.lastMouseOverCellTarget);
+              }
+            }
+          }
+        };
+
+        var moveDraggedCell = function (mouseEvent, $cell) {
+          // user can do something custom for dragging if they want.
+          var callbackResult = base.options.mouseMoveDragCallback.call(base, $cell, mouseEvent);
+          if (!callbackResult && typeof (callbackResult) === 'boolean') {
+            return;
+          }
+
+          var originalMouseDownCellPosition = $cell.data(_internal.constants.DATA_MOUSEDOWN_CELL_POSITION);
+          var originalMouseDownScreenPosition = $cell.data(_internal.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+
+          base.options.setPositionOfDraggedCell.call(base, originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent);
+
+          //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
+          var oldPointerEvents = $cell.css('pointer-events');
+          $cell.css('pointer-events', 'none');
+
+          var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+          var $cellOfElement = _internal.getManagedCellAndIndexThatElementIsWithin(element).$cell;
+          if ($cellOfElement) {
+            // have to create event here like this other mouse coords are missing.
+            $cellOfElement.trigger(
+              $.Event('mouseover.gridstrap', {
+                pageX : mouseEvent.pageX,
+                pageY: mouseEvent.pageY
+              }));
+          }
+          $cell.css('pointer-events', oldPointerEvents);
+        };
+
+        // only call event if occured on one of managed cells that has been initialised.
+        var handleCellMouseEvent = function (eventName, onlyCallWhenTargetsCell, callback) {
+          var draggableSelector = base.options.gridCellSelector + ' ' + base.options.dragCellHandleSelector;
+          if (base.options.dragCellHandleSelector === $.Gridstrap.defaultOptions.dragCellHandleSelector ||
+            eventName === 'mouseover') {
+            // If the default settings apply for drag handle mouse events,
+            // or if mouseover, then we want the event to be lenient as to what triggers it.
+            // Prepend selector with grid cell itself as an OR/, selector.
+            // To become the cell itself OR any dragCellHandleSelector within the cell. 
+            draggableSelector = base.options.gridCellSelector + ',' + draggableSelector;
+          }
+
+          $(base.options.visibleCellContainerParentSelector).on(eventName, function (mouseEvent) {
+            var $cellDragElement = $(mouseEvent.target);
+            var $managedCell = _internal.getManagedCellAndIndexThatElementIsWithin($cellDragElement).$cell;
+            // user clicked on perhaps child element of draggable element.
+            
+            if (onlyCallWhenTargetsCell && $managedCell === null){
+              // do nothing if mouse is not interacting with a cell
+              // and we're not meant to do anything unless it is.
+              return;
+            }
+            // $managedCell may be null, callback needs to take care of that.
+            callback(mouseEvent, $managedCell);
+          });
+        };
+
+        initHiddenCopiesAndSetAbsolutePositions();
+
+        handleCellMouseEvent('dragstart.gridstrap', true, onDragstart);
+        handleCellMouseEvent('mousedown.gridstrap', true, onMousedown);
+        // pass false as param because we need to do non-contiguous stuff in there.
+        handleCellMouseEvent('mouseover.gridstrap', false, onMouseover);
+
+        // it is not appropriate to confine the events to the visible cell wrapper.
+        $(base.options.mouseMoveSelector)
+          .on('mousemove.gridstrap', onMousemove)
+          .on('mouseup.gridstrap', onMouseup);
+
+        if (base.options.updateCoordinatesOnWindowResize) {
+          $(window).on('resize.gridstrap', base.updateVisibleCellCoordinates);
+        }
+
+      } //~init()
+
+    }; //~internal oject
+
+    // Public methods below.
+    base.updateVisibleCellCoordinates = function () {
+      for (var i = 0; i < _internal.cellsArray.length; i++) {
+        var $this = _internal.cellsArray[i];
+
+        var $hiddenClone = $this.data(_internal.constants.DATA_HIDDEN_CELL);
+
+        var positionNSizeOfHiddenClone = base.options.getAbsolutePositionAndSizeOfCell.call(base, $hiddenClone);
+
+        _internal.setVisibleCellPositionAndSize($this, positionNSizeOfHiddenClone);
+      }
     };
-    
+
+    // returns jquery object of new cell.
+    // index is optional.
+    base.insertCell = function (cellHtml, index) {
+      var $existingHiddenCells = _internal.getHiddenCells();
+      if (typeof (index) === 'undefined') {
+        index = $existingHiddenCells.length;
+      }
+
+      var $insertedCell;
+      if (index === $existingHiddenCells.length) {
+        if ($existingHiddenCells.length === 0) {
+          // the grid is empty.
+          $insertedCell = $(cellHtml).appendTo(base.$el);
+        } else {
+          $insertedCell = $(cellHtml).insertAfter($existingHiddenCells.last());
+        }
+      } else {
+        $insertedCell = $(cellHtml).insertBefore($existingHiddenCells.eq(index));
+      }
+
+      base.attachCell($insertedCell);
+
+      return $insertedCell;
+    };
+
+    base.attachCell = function (selector) {
+
+      if (!$(selector).closest(base.$el).is(base.$el)) {
+        throw 'Cannot attach element that is not a child of gridstrap parent';
+      }
+
+      _internal.initCellsHiddenCopyAndSetAbsolutePosition(selector);
+
+      base.updateVisibleCellCoordinates();
+    };
+
+    base.detachCell = function (selector) {
+
+      var cellNIndex = _internal.getManagedCellAndIndexThatElementIsWithin(selector);
+
+      var $hiddenClone = cellNIndex.$cell.data(_internal.constants.DATA_HIDDEN_CELL);
+
+      var $detachedVisibleCell = cellNIndex.$cell.detach();
+
+      // remove 'visible' things, and put the cell back where it came from.
+      $detachedVisibleCell.css('top', '');
+      $detachedVisibleCell.css('left', '');
+      $detachedVisibleCell.css('width', '');
+      $detachedVisibleCell.css('height', '');
+      $detachedVisibleCell.removeData(_internal.constants.DATA_HIDDEN_CELL);
+      $detachedVisibleCell.removeClass(base.options.visibleCellClass);
+
+      var $reattachedOriginalCell = $detachedVisibleCell.insertAfter($hiddenClone);
+
+      // remove hidden clone.
+      $hiddenClone.remove();
+
+      // finally remove from managed array
+      _internal.cellsArray.splice(cellNIndex.index, 1);
+
+      return $reattachedOriginalCell;
+    };
+
+    base.removeCell = function (selector) {
+
+      var $detachedCell = base.detachCell(selector);
+
+      $detachedCell.remove();
+
+      base.updateVisibleCellCoordinates();
+    };
+
+    base.moveCell = function (selector, toIndex) {
+      var cellNIndex = _internal.getManagedCellAndIndexThatElementIsWithin(selector);
+
+      var $existingVisibleCells = base.getCells();
+
+      _internal.moveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex));
+    };
+
+    base.getCells = function () {
+      var $attachedHiddenCells = _internal.getHiddenCells();
+
+      var attachedVisibleCellElements = $attachedHiddenCells.map(function () {
+        return $(this).data(_internal.constants.DATA_VISIBLE_CELL)[0];
+      });
+
+      return $(attachedVisibleCellElements);
+    };
+
+    base.getHiddenCells = function () {
+
+      return _internal.getHiddenCells();;
+    };
+
+    base.getCellContainer = function () {
+      return $(_internal.visibleCellWrapperSelector);
+    };
+
+    base.updateOptions = function (newOptions) {
+      base.options = $.extend({}, base.options, newOptions);
+    };
+
+    // Initialiser
+    _internal.init();
+  };
+
+  $.Gridstrap.defaultOptions = {
+    gridCellSelector: '>*', // relative to parent element
+    hiddenCellClass: 'gridstrap-cell-hidden',
+    visibleCellClass: 'gridstrap-cell-visible',
+    dragCellHandleSelector: '*', // relative to and including cell element.
+    draggedCellClass: 'gridstrap-cell-drag',
+    mouseMoveSelector: 'body', // detect mousemouse and mouseup events within this element.
+    visibleCellContainerParentSelector: null, // null by default, use Jquery parent element.
+    visibleCellContainerClass: 'gridstrap-container',
+    nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous',
+    getAbsolutePositionAndSizeOfCell: function ($cell) {
+      if (this.options.debug && !$cell.is(':visible')) {
+        console.log('Grid cell is invisible. Gridstrap should not initialise an invisible grid. (' + this.el.nodeName + ': ' + $cell[0].nodeName + ')');
+      }
+      var position = $cell.offset();
+      var w = $cell.outerWidth();
+      var h = $cell.outerHeight();
+      return {
+        x: position.left,
+        y: position.top,
+        w: w,
+        h: h
+      };
+    },
+    getHtmlOfSourceCell: function ($cell) {
+      return $cell[0].outerHTML;
+    },
+    setPositionOfDraggedCell: function (originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent) { 
+      var left = mouseEvent.pageX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
+      var top = mouseEvent.pageY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
+      $cell.css('left', left);
+      $cell.css('top', top);
+    },
+    mouseMoveDragCallback: function ($cell, mouseEvent) {
+      // do whatever you want.
+      // return false to prevent normal operation.
+    },
+    enableDragging: true,
+    rearrangeWhileDragging: true,
+    swapMode: false,
+    nonContiguousOptions: {
+      selector: null,
+      getHtml: function () {
+        return null;
+      }
+    },
+    updateCoordinatesOnWindowResize: true,
+    debug: false,
+    dragMouseoverThrottle: 500
+  };
+
+  $.fn.gridstrap = function (options) {
+    return this.each(function () {
+      (new $.Gridstrap(this, options));
+    });
+  };
+
 })(jQuery, window, document);
- 

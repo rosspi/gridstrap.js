@@ -1,25 +1,32 @@
 
-$(function(){
-    var basicCellCount = 12 * 5;  
-    for (var i = 0 ; i < basicCellCount; i++){
+$(function(){ 
+    for (var i = 0 ; i < 12 * 5; i++){
         $('#basic-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>'); 
+    } 
+    for (var i = 0 ; i < 12; i++){ 
+        $('#noncontiguous-grid').append('<div class="col-xs-'+ Math.floor((Math.random() * 3 + 1)).toString()+' cell"><div class="inner"></div></div>');
     }
-    var apiCellCount = 12 * 2;  
-    for (var i = 0 ; i < apiCellCount; i++){ 
+    for (var i = 0 ; i < 12 * 2; i++){ 
         $('#api-grid').append('<div class="col-xs-'+ Math.floor((Math.random() * 4 + 1)).toString()+' cell"><div class="inner"></div></div>');
     }
 
     $('#basic-grid').gridstrap({
-          nonContiguousOptions: {
-            selector: '#gwgwe', 
-            getHtml: function(){
-                return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
-            }
-        },
+         
     });
 
     $('a[href="#responsive-demo"]').on('shown.bs.tab', function(){ 
         $('iframe')[0].contentWindow.postMessage({} , '*'); 
+    });
+
+    $('a[href="#noncontiguous-demo"]').on('shown.bs.tab', function(){ 
+        $('#noncontiguous-grid').gridstrap({
+             nonContiguousOptions: {
+                selector: '#gwgwe', 
+                getHtml: function(){
+                    return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
+                }
+            },
+        });
     });
 
     $('a[href="#api-demo"]').on('shown.bs.tab', function(){ 

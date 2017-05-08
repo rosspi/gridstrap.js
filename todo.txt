@@ -4,3 +4,4 @@
 4. touch/mobile
 5. browser support
 6. tests
+7. make mouse events namespaced

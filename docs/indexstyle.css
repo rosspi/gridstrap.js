@@ -358,9 +358,16 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 
   height: 100px; 
   width:100%; 
+  cursor: default;
 }
 
 iframe{
   border: none;
   height:500px;
+}
+
+#noncontiguous-grid{
+  height:400px;
+  pointer-events: all;
+  background-color: orange;
 }
