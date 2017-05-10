@@ -28,40 +28,40 @@
                 $('button:eq(0)').on('click', function(e){
                     $('#abc').prepend('<div class="column col-xs-1">hello</div>')
 
-                    $('#abc').data('Gridstrap').attachCell($('.column:first'));
-                    //$('#abc').data('Gridstrap').attachCell('<div class="column col-xs-1">hello</div>');
+                    $('#abc').data('gridstrap').attachCell($('.column:first'));
+                    //$('#abc').data('gridstrap').attachCell('<div class="column col-xs-1">hello</div>');
  
                 });
                 $('button:eq(1)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').insertCell(
+                    $('#abc').data('gridstrap').insertCell(
                         '<p class="column col-xs-' + Math.ceil(Math.random() * 6) + '">hello man</p>',
                         Math.floor(Math.random() * 10));
                 });
                 $('button:eq(2)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').detachCell('.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCells().length) + ')');
+                    $('#abc').data('gridstrap').detachCell('.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('gridstrap').getCells().length) + ')');
                 });
                 $('button:eq(3)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').removeCell('.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCells().length) + ')');
+                    $('#abc').data('gridstrap').removeCell('.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('gridstrap').getCells().length) + ')');
                 });
                 $('button:eq(4)').on('click', function(e){ 
 
-                    $('#abc').data('Gridstrap').moveCell(
-                        '.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('Gridstrap').getCells().length) + ')',
-                        Math.floor(Math.random() * $('#abc').data('Gridstrap').getCells().length));
+                    $('#abc').data('gridstrap').moveCell(
+                        '.gridstrap-cell-visible:eq(' + Math.floor(Math.random() * $('#abc').data('gridstrap').getCells().length) + ')',
+                        Math.floor(Math.random() * $('#abc').data('gridstrap').getCells().length));
                 });
                 $('button:eq(5)').on('click', function(e){ 
 
-                    var $hiddenCells = $('#abc').data('Gridstrap').getHiddenCells();
+                    var $hiddenCells = $('#abc').data('gridstrap').getHiddenCells();
                     $hiddenCells.each(function(){
                         for(var i = 1; i <= 12; i++){
                             $(this).removeClass('col-xs-' + i.toString());
                         }
                         $(this).addClass('col-xs-' + (Math.floor(Math.random() * 5) + 1).toString());
                     });
-                    $('#abc').data('Gridstrap').updateVisibleCellCoordinates();
+                    $('#abc').data('gridstrap').updateVisibleCellCoordinates();
                 });
             });
         </script>

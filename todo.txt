@@ -1,7 +1,9 @@
 1. cross-grid functionality - make it hook into each instance's methods.
 2. non-contiguous functionality for dragging etc.
-3. window resize events
+3. window resize events - make trhottlesd
 4. touch/mobile
 5. browser support
 6. tests
-7. make mouse events namespaced
+7. nested  grid support
+8. explain existence: Gridster is very much its own system for managing a grid. TODO.... and gridstack again has its own ssysmem todo.... Gridstrap merely calculates the absolute position of the grid cells and makes them so. This means it'll work effortlessly with bootstrap- no extra css or conflicting styles, or different ways of managing a grid to work with. Much more lightweight.
+9. make more callback options.

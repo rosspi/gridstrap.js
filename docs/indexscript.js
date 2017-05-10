@@ -6,6 +6,14 @@ $(function(){
     for (var i = 0 ; i < 12; i++){ 
         $('#noncontiguous-grid').append('<div class="col-xs-'+ Math.floor((Math.random() * 3 + 1)).toString()+' cell"><div class="inner"></div></div>');
     }
+
+    for (var i = 0 ; i < 12 *2; i++){ 
+        $('#dual1-grid').append('<div class="col-xs-1 cell"><div class="inner"></div></div>'); 
+    }
+    for (var i = 0 ; i < 12 ; i++){  
+        $('#dual2-grid').append('<div class="col-xs-2 cell"><div class="inner"></div></div>');
+    }
+
     for (var i = 0 ; i < 12 * 2; i++){ 
         $('#api-grid').append('<div class="col-xs-'+ Math.floor((Math.random() * 4 + 1)).toString()+' cell"><div class="inner"></div></div>');
     }
@@ -29,6 +37,17 @@ $(function(){
         });
     });
 
+    $('a[href="#dual-demo"]').on('shown.bs.tab', function(){ 
+        $('#dual1-grid').gridstrap({
+          additionalDragGridstrapTargetSelector: '#dual2-grid',
+          visibleCellContainerParentSelector: '#dual-demo'
+        });
+        $('#dual2-grid').gridstrap({
+          additionalDragGridstrapTargetSelector: '#dual1-grid',
+          visibleCellContainerParentSelector: '#dual-demo'
+        });
+    });
+
     $('a[href="#api-demo"]').on('shown.bs.tab', function(){ 
         $('#api-grid').gridstrap({
             debug: true,
@@ -38,14 +57,14 @@ $(function(){
     }); 
 
     $('#replace-mode').on('change', function(){
-        var data = $('#api-grid').data('Gridstrap');
+        var data = $('#api-grid').data('gridstrap');
         data.updateOptions({
             swapMode: $(this).is(':checked')
         });
     });
 
     $('#rearrange-mode').on('change', function(){
-        var data = $('#api-grid').data('Gridstrap');
+        var data = $('#api-grid').data('gridstrap');
         data.updateOptions({
             rearrangeWhileDragging: $(this).is(':checked')
         });
