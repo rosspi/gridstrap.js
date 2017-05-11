@@ -39,12 +39,16 @@ $(function(){
 
     $('a[href="#dual-demo"]').on('shown.bs.tab', function(){ 
         $('#dual1-grid').gridstrap({
-          additionalDragGridstrapTargetSelector: '#dual2-grid',
+         // additionalDragGridstrapTargetSelector: '#dual2-grid',
           visibleCellContainerParentSelector: '#dual-demo'
         });
         $('#dual2-grid').gridstrap({
           additionalDragGridstrapTargetSelector: '#dual1-grid',
           visibleCellContainerParentSelector: '#dual-demo'
+        });
+
+        $('#dual1-grid').data('gridstrap').updateOptions({
+          additionalDragGridstrapTargetSelector: '#dual2-grid'
         });
     });
 
