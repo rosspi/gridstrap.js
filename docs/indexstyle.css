@@ -361,6 +361,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
   cursor: default;
 }
 
+.inner.nested{
+  height:15px;
+}
+
 iframe{
   border: none;
   height:500px;
