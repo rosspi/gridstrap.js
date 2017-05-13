@@ -13,6 +13,11 @@
   z-index: 10000;
   /*pointer-events: none;*/
 }
+.gridstrap-cell-resize{
+  transition: none;
+  z-index: 10000;
+
+}
 .gridstack-noncontiguous{
   opacity: 0.02; 
 }

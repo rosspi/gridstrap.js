@@ -68,7 +68,10 @@ figure { margin: 1em 40px; }
 hr { box-sizing: content-box; height: 0; }
 
 /** Contain overflow in all browsers. */
-pre { overflow: auto; }
+pre { overflow: auto;
+background-color: #f3f6fa !important;
+margin-top: 1rem;
+ }
 
 /** Address odd `em`-unit font size rendering in all browsers. */
 code, kbd, pre, samp { font-family: monospace, monospace; font-size: 1em; }
@@ -297,13 +300,12 @@ margin:0px;
 @media screen and (min-width: 42em) and (max-width: 64em) { .project-tagline { font-size: 1.15rem; } }
 @media screen and (max-width: 42em) { .project-tagline { font-size: 1rem; } }
 
-.main-content { word-wrap: break-word; }
-.main-content :first-child { margin-top: 0; }
+.main-content { word-wrap: break-word; } 
 @media screen and (min-width: 64em) { .main-content { max-width: 64rem; padding: 2rem 6rem; margin: 0 auto; font-size: 1.1rem; } }
 @media screen and (min-width: 42em) and (max-width: 64em) { .main-content { padding: 2rem 4rem; font-size: 1.1rem; } }
 @media screen and (max-width: 42em) { .main-content { padding: 2rem 1rem; font-size: 1rem; } }
 .main-content img { max-width: 100%; }
-.main-content h1, .main-content h2, .main-content h3, .main-content h4, .main-content h5, .main-content h6 { margin-top: 2rem; margin-bottom: 1rem; font-weight: normal; color: #159957; }
+.main-content h1, .main-content h2, .main-content h3, .main-content h4, .main-content h5, .main-content h6 { margin-top: 2rem; margin-bottom: 1rem; font-weight: normal; color: rgba(254, 137, 51, 1); }
 .main-content p { margin-bottom: 1em; }
 .main-content code { padding: 2px 4px; font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 0.9rem; color: #567482; background-color: #f3f6fa; border-radius: 0.3rem; }
 .main-content pre { padding: 0.8rem; margin-top: 0; margin-bottom: 1rem; font: 1rem Consolas, "Liberation Mono", Menlo, Courier, monospace; color: #567482; word-wrap: normal; background-color: #f3f6fa; border: solid 1px #dce6f0; border-radius: 0.3rem; }
@@ -341,6 +343,7 @@ margin:0px;
 
 .cell{
    
+  min-height: 100px; 
   padding:1px;
 }
 
@@ -356,13 +359,26 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 
   border:  solid 1px lightgray;
 
-  height: 100px; 
+  min-height: 100px; 
+  height:100%;
   width:100%; 
   cursor: default;
 }
 
 .inner.nested{
   height:15px;
+}
+
+.inner .resize{
+  border-right: 1px solid grey;
+  border-bottom: 1px solid #cac9c9;
+  cursor: se-resize;
+  transform: rotate(45);
+  height: 10px; 
+  width:10px; 
+  position: absolute;
+  right: 5px;
+  bottom: 5px; 
 }
 
 iframe{
@@ -374,4 +390,8 @@ iframe{
   height:400px;
   pointer-events: all;
   background-color: orange;
+}
+
+#custom-grid>div{ 
+  float:left;
 }

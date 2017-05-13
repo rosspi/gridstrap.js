@@ -33,7 +33,9 @@
     </section>
 
      <section class="main-content">
-      <p>Text can be <strong>bold</strong>, <em>italic</em>, or <del>strikethrough</del>.</p>
+      <p>gridstrap.js is a jQuery plugin to allow for drag 'n' drop for Bootstrap's responsive <a href="https://getbootstrap.com/css/#grid" target="_blank">grid</a> system. 
+
+Inspired by gridster.js. Built with love.Text can be <strong>bold</strong>, <em>italic</em>, or <del>strikethrough</del>.</p>
 
 <p><a href="another-page">Link to another page</a>.</p> 
 
@@ -60,6 +62,9 @@
       <a href="#dual-demo" aria-controls="dual-demo" role="tab" data-toggle="tab">Dual</a>
     </li>
     <li role="presentation">
+      <a href="#custom-demo" aria-controls="custom-demo" role="tab" data-toggle="tab">Custom</a>
+    </li>
+    <li role="presentation">
       <a href="#api-demo" aria-controls="api-demo" role="tab" data-toggle="tab">API</a>
     </li>
   </ul>
@@ -70,25 +75,67 @@
       <div id="basic-grid"> 
       </div> 
       <div class="row">
-        <div class="col-xs-12">
-          <pre class="highlight"><code><span class="c1">// Javascript code with syntax highlighting.</span>
-<span class="kd">var</span> <span class="nx">fun</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">lang</span><span class="p">(</span><span class="nx">l</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">dateformat</span><span class="p">.</span><span class="nx">i18n</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'./lang/'</span> <span class="o">+</span> <span class="nx">l</span><span class="p">)</span>
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre>
-        </div>
+        <div class="col-xs-12">  
+          <pre><code class="language-javascript">&lt;div id=&quot;basic-grid&quot; class=&quot;row&quot;&gt;
+    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+    ...
+&lt;/div&gt;
+
+&lt;script&gt;
+    $('#basic-grid').gridstrap();
+&lt;/script&gt;</code></pre> 
+        </div> 
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="responsive-demo">  
       <iframe style="width:500px;" id="ff" src="./responsive.html" > 
       </iframe> 
+      <div class="row">
+        <div class="col-xs-12">  
+          <pre><code class="language-javascript">&lt;script&gt;
+    // The above grid is within an iframe to demonstrate its responsive behaviour. 
+    // It is otherwise the same as the basic demo.
+    $('#responsive-grid').gridstrap();
+&lt;/script&gt;</code></pre> 
+        </div> 
+      </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="nested-demo">
       <div id="nested-grid"> 
+      </div>
+      <div class="row">
+        <div class="col-xs-12">  
+          <pre><code class="language-javascript">&lt;div id=&quot;nested-grid&quot; class=&quot;row&quot;&gt;
+    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;
+        &lt;div class=&quot;nested-inner-grid&quot;&gt;
+            &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+            &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+            ....
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
+    ...
+&lt;/div&gt;
+
+&lt;script&gt;
+    // Init outer grid first.
+    $('#nested-grid').gridstrap();
+    // Inner grid is identifiable via a class rather than an id.
+    // This is necessary because gridstrap creates a copy of all internal html elements
+    // and you cannot have two elements with the same id.
+    // By default the visible cells within the grid will have a 'gridstrap-cell-visible' class.
+    $('.gridstrap-cell-visible .nested-inner-grid').gridstrap();
+&lt;/script&gt;</code></pre> 
+        </div> 
       </div> 
     </div>
-    <div role="tabpanel" class="tab-pane" id="resize-demo">...</div>
+    <div role="tabpanel" class="tab-pane" id="resize-demo">
+      <div id="resize-grid"> 
+      </div>
+    </div>
     <div role="tabpanel" class="tab-pane" id="noncontiguous-demo">
       <div id="noncontiguous-grid"> 
       </div> 
@@ -102,24 +149,26 @@
           &nbsp;
         </div>
         <div class="col-xs-5">
-          <div   id="dual2-grid"> 
+          <div id="dual2-grid"> 
           </div> 
         </div>
       </div>
     </div>
+    <div role="tabpanel" class="tab-pane" id="custom-demo">
+      <div class="row" id="custom-grid"> 
+      </div>
+    </div>
     <div role="tabpanel" class="tab-pane" id="api-demo">
-      <div class="row">
-        <div class="col-xs-1">
+      <div class="row" id="api-grid">  
+      </div>
+      <div class="row"> 
+        <div class="col-xs-2">
           <label>
             <input type="checkbox" id="replace-mode"/> Replace mode
           </label>
           <label>
             <input type="checkbox" id="rearrange-mode"/> Rearrange
           </label>
-        </div>
-        <div class="col-xs-11">
-          <div class="row" id="api-grid"> 
-          </div> 
         </div>
       </div>
     </div> 
@@ -150,80 +199,7 @@
 <span class="k">end</span>
 </code></pre>
 </div>
-
-<h4 id="header-4"><a href="#header-4"></a>Header 4</h4>
-
-<ul>
-  <li>This is an unordered list following a header.</li>
-  <li>This is an unordered list following a header.</li>
-  <li>This is an unordered list following a header.</li>
-</ul>
-
-<h5 id="header-5"><a href="#header-5"></a>Header 5</h5>
-
-<ol>
-  <li>This is an ordered list following a header.</li>
-  <li>This is an ordered list following a header.</li>
-  <li>This is an ordered list following a header.</li>
-</ol>
-
-<h6 id="header-6"><a href="#header-6"></a>Header 6</h6>
-
-<table>
-  <thead>
-    <tr>
-      <th style="text-align: left">head1</th>
-      <th style="text-align: left">head two</th>
-      <th style="text-align: left">three</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align: left">ok</td>
-      <td style="text-align: left">good swedish fish</td>
-      <td style="text-align: left">nice</td>
-    </tr>
-    <tr>
-      <td style="text-align: left">out of stock</td>
-      <td style="text-align: left">good and plenty</td>
-      <td style="text-align: left">nice</td>
-    </tr>
-    <tr>
-      <td style="text-align: left">ok</td>
-      <td style="text-align: left">good <code class="highlighter-rouge">oreos</code></td>
-      <td style="text-align: left">hmm</td>
-    </tr>
-    <tr>
-      <td style="text-align: left">ok</td>
-      <td style="text-align: left">good <code class="highlighter-rouge">zoute</code> drop</td>
-      <td style="text-align: left">yumm</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="theres-a-horizontal-rule-below-this">There’s a horizontal rule below this.</h3>
-
-<hr />
  
-
-<p><img src="https://assets-cdn.github.com/images/icons/emoji/octocat.png" alt="" /></p>
-
-<h3 id="large-image">Large image</h3>
-
-<p><img src="https://guides.github.com/activities/hello-world/branching.png" alt="" /></p>
-
-<h3 id="definition-lists-can-be-used-with-html-syntax">Definition lists can be used with HTML syntax.</h3>
-
-<dl>
-<dt>Name</dt>
-<dd>Godzilla</dd>
-<dt>Born</dt>
-<dd>1952</dd>
-<dt>Birthplace</dt>
-<dd>Japan</dd>
-<dt>Color</dt>
-<dd>Green</dd>
-</dl>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.
 </code></pre>
@@ -248,8 +224,11 @@
   crossorigin="anonymous"></script>
     
         <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/themes/prism.css" />
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/prism.js"></script>
         <script src="../js.js" ></script>
         <script src="./indexscript.js" ></script>
+
   </body>
 </html>
