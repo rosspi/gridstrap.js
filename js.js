@@ -50,11 +50,11 @@
         $hiddenClone.data(base.constants.DATA_VISIBLE_CELL, $cell);
 
         // put absolute $cell in container.
-        $(_internal.visibleCellWrapperSelector).append($cell.detach());
+        $(_internal.visibleCellContainerSelector).append($cell.detach());
 
         base.setCellAbsolutePositionAndSize($cell, positionNSize);
       },
-      visibleCellWrapperSelector: null, //initialised in init()
+      visibleCellContainerSelector: null, //initialised in init()
       dragCellSelector: null, // initialised in init() 
       resizeCellSelector: null, // initialised in init() 
       recentDragMouseOvers: [], // tuple of element and timestamp 
@@ -64,6 +64,53 @@
         pageY: 0
       },
       additionalGridstrapDragTargetSelector: null, //can drop onto other grids.
+      $getClosestGridstrap: function(element) { // looks up the tree to find the closest instantiated gridstap instance. May not be this one in the case of nested grids.
+        var dataExistsInSelector = function(selector) {
+          return $(selector).filter(function(){
+            return !!$(this).data(base.constants.DATA_GRIDSTRAP);
+          });
+        };
+        // a little strange that we can;t select parents() and include element itself in the order desired, so we have to do it like this.
+        var $currentElement = dataExistsInSelector(element);
+        if ($currentElement.length){
+          return $currentElement.first();
+        }
+        return dataExistsInSelector($(element).parents()).first(); 
+      },
+      getCellAndInternalIndex: function (element) { // element or jquery selector, child of cell or it itself.
+        if (!element) {
+          return null;
+        }
+
+        var $visibleCellElement = $(element);
+
+        var visibleCellAndIndex = null;
+        // visibleCellAndIndex.$cell might be a child element/control perhaps of $visibleCell (found in the managed array).
+        for (var i = 0; i < _internal.cellsArray.length && !visibleCellAndIndex; i++) {
+          var $closestManagedCell = $visibleCellElement.closest(_internal.cellsArray[i]);
+          if ($closestManagedCell.length > 0) {
+
+            var $closestGridstrap = _internal.$getClosestGridstrap($visibleCellElement);
+
+            if ($closestGridstrap.is(base.$el)) {
+              visibleCellAndIndex = {
+                index: i,
+                $cell: _internal.cellsArray[i]
+              };
+            }
+          }
+        }
+
+        return visibleCellAndIndex;
+
+        // I DONT THINK THIS IS NECESSARY?
+        // check if linked hidden element is NOT in parent element.
+        // var $linkedHiddenCell = visibleCellAndIndex.$cell.data(base.constants.DATA_HIDDEN_CELL);
+        // if (!$linkedHiddenCell.closest(base.$el).is(base.$el)) {
+        //   return noCell;
+        // }
+      },
+
       moveCell: function ($movingVisibleCell, $targetVisibleCell, gridstrapData) {
         var swapJQueryElements = function ($a, $b) {
           var getInPlaceFunction = function ($element) {
@@ -213,7 +260,7 @@
       resizeCell: function ($cell, width, height) {
         base.options.onResizeCell.call(base, $cell, width, height);
       },
-      getHiddenCells: function () {
+      getHiddenCellsInElementOrder: function () {
         // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order. 
 
         // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
@@ -275,7 +322,7 @@
             }));
         };
         var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-        var cellAndIndex = base.getCellAndIndex(element);
+        var cellAndIndex = _internal.getCellAndInternalIndex(element);
         if (cellAndIndex) {
           // have to create event here like this other mouse coords are missing.
           triggerMouseOverEvent(cellAndIndex.$cell);
@@ -287,10 +334,10 @@
 
               var additionalData = $(this).data(base.constants.DATA_GRIDSTRAP);
               if (additionalData) {
-                var additionalDataCell = additionalData.getCellAndIndex(element);
-                if (additionalDataCell) {
+                var $additionalDataCell = additionalData.getCellOfElement(element);
+                if ($additionalDataCell) {
                   // have to create event here like this other mouse coords are missing.
-                  triggerMouseOverEvent(additionalDataCell.$cell);
+                  triggerMouseOverEvent($additionalDataCell);
                 }
               }
             });
@@ -300,6 +347,19 @@
         // restore pointer-events css.
         $cell.css('pointer-events', oldPointerEvents);
       },
+      $getDraggingCell: function(){
+        var $draggedCell = $(_internal.dragCellSelector);
+        if (!$draggedCell.length) {
+          return $(); //empty set
+        }
+        // closest gridstrap must be this one - could be nested, we don't want to pick that up.
+        var $closestGridstrap = _internal.$getClosestGridstrap($draggedCell);
+        if (!$closestGridstrap.is(base.$el)){
+          return $(); //empty set
+        }
+
+        return $draggedCell;          
+      },
       mouseEventHandlers: {
         onDragstart: function (mouseEvent, $cell, gridstrapData) {
           if (gridstrapData === base) {
@@ -308,10 +368,6 @@
         },
 
         onMousedown: function (mouseEvent, $cell, gridstrapData) {
-
-          if (!base.options.enableDragging) {
-            return;
-          }
 
           if (gridstrapData !== base) {
             return;
@@ -331,9 +387,10 @@
             }
 
             return;
-          }
+          } 
 
-          if (!$cell.hasClass(base.options.dragCellClass)) {
+          if (base.options.enableDragging && 
+            !$cell.hasClass(base.options.dragCellClass)) {
 
             $cell.data(base.constants.DATA_MOUSEDOWN_PAGE_POSITION, {
               x: mouseEvent.pageX,
@@ -354,8 +411,8 @@
             return;
           }
 
-          var $draggedCell = $(_internal.dragCellSelector);
-          if ($draggedCell && $draggedCell.length) {
+          var $draggedCell = _internal.$getDraggingCell();
+          if ($draggedCell.length) {
             // Is currently dragging. 
             if ($cell && $draggedCell.closest($cell).length === 0) {
               // make sure you're not mouseover-ing the dragged cell itself.
@@ -398,7 +455,7 @@
 
           } else {
 
-            var $draggedCell = $(_internal.dragCellSelector);
+            var $draggedCell = _internal.$getDraggingCell();
             if ($draggedCell.length) { // should just be one.
 
               _internal.moveDraggedCell(mouseEvent, $draggedCell);
@@ -474,7 +531,7 @@
             return;
           }
 
-          var $draggedCell = $(_internal.dragCellSelector);
+          var $draggedCell = _internal.$getDraggingCell();
           if ($draggedCell.length > 0) {
 
             // no more dragging.
@@ -508,15 +565,15 @@
 
         $(gridstrap.options.visibleCellContainerParentSelector).on(eventName, draggableSelector, function (mouseEvent) {
           // user clicked on perhaps child element of draggable element.
-          var managedCell = gridstrap.getCellAndIndex(mouseEvent.target);
+          var $managedCell = gridstrap.getCellOfElement(mouseEvent.target);
 
-          if (onlyCallWhenTargetsCell && !managedCell) {
+          if (onlyCallWhenTargetsCell && !$managedCell) {
             // do nothing if mouse is not interacting with a cell
             // and we're not meant to do anything unless it is.
             return;
           }
           // $managedCell may be null, callback needs to take care of that.
-          callback(mouseEvent, managedCell && managedCell.$cell, gridstrap);
+          callback(mouseEvent, $managedCell, gridstrap);
         });
       },
       debounce: function (callback, milliseconds, leading) {
@@ -559,7 +616,7 @@
         }
 
         var genRandomString = function () {
-          return 'gridstrap-' + Math.random().toString(36).substr(2, 5) + Math.round(Math.random() * 1000).toString();
+          return Math.random().toString(36).substr(2, 5) + Math.round(Math.random() * 1000).toString();
         };
 
         var initHiddenCopiesAndSetAbsolutePositions = function () {
@@ -569,10 +626,12 @@
 
           _internal.idPrefix = genRandomString();
           var wrapperGeneratedId = 'gridstrap-' + _internal.idPrefix;
-          _internal.visibleCellWrapperSelector = '#' + wrapperGeneratedId;
+          _internal.visibleCellContainerSelector = '#' + wrapperGeneratedId;
           // drag selector must be within wrapper div. Turn class name/list into selector.
-          _internal.dragCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.dragCellClass.replace(/(^ *| +)/g, '.') + ':first';
-          _internal.resizeCellSelector = _internal.visibleCellWrapperSelector + ' ' + base.options.resizeCellClass.replace(/(^ *| +)/g, '.') + ':first';
+          _internal.dragCellSelector = _internal.visibleCellContainerSelector + ' ' + base.options.dragCellClass.replace(/(^ *| +)/g, '.') + ':first';
+          _internal.resizeCellSelector = _internal.visibleCellContainerSelector + ' ' + base.options.resizeCellClass.replace(/(^ *| +)/g, '.') + ':first';
+          // visibleCellContainerClassSelector just contains a .class selector, dont prfix with id. Important. Refactor this.
+          _internal.visibleCellContainerClassSelector = base.options.visibleCellContainerClass.replace(/(^ *| +)/g, '.') + ':first';
 
           // if option not specified, use JQuery element as parent for wrapper.
           base.options.visibleCellContainerParentSelector = base.options.visibleCellContainerParentSelector || base.$el;
@@ -646,7 +705,7 @@
     // returns jquery object of new cell.
     // index is optional.
     base.insertCell = function (cellHtml, index) {
-      var $existingHiddenCells = _internal.getHiddenCells();
+      var $existingHiddenCells = _internal.getHiddenCellsInElementOrder();
       if (typeof (index) === 'undefined') {
         index = $existingHiddenCells.length;
       }
@@ -683,7 +742,7 @@
 
     base.detachCell = function (selector) {
 
-      var cellNIndex = base.getCellAndIndex(selector);
+      var cellNIndex = _internal.getCellAndInternalIndex(selector);
 
       var $hiddenClone = cellNIndex.$cell.data(base.constants.DATA_HIDDEN_CELL);
 
@@ -718,7 +777,7 @@
     };
 
     base.moveCell = function (selector, toIndex, targetGridstrap) {
-      var cellNIndex = base.getCellAndIndex(selector);
+      var cellNIndex = _internal.getCellAndInternalIndex(selector);
 
       var $existingVisibleCells = base.getCells();
 
@@ -730,7 +789,7 @@
     };
 
     base.getCells = function () {
-      var $attachedHiddenCells = _internal.getHiddenCells();
+      var $attachedHiddenCells = _internal.getHiddenCellsInElementOrder();
 
       var attachedVisibleCellElements = $attachedHiddenCells.map(function () {
         return $(this).data(base.constants.DATA_VISIBLE_CELL)[0];
@@ -741,51 +800,28 @@
 
     base.getHiddenCells = function () {
 
-      return _internal.getHiddenCells();;
+      return _internal.getHiddenCellsInElementOrder();;
     };
 
     base.getCellContainer = function () {
-      return $(_internal.visibleCellWrapperSelector);
+      return $(_internal.visibleCellContainerSelector);
     };
 
     base.updateOptions = function (newOptions) {
       base.options = $.extend({}, base.options, newOptions);
-    };
+    }; 
 
-    base.getCellAndIndex = function (element) { // element or jquery selector, child of cell or it itself.
-      if (!element) {
-        return null;
-      }
+    base.getCellOfElement = function(element) { // could be selector
+      var found = _internal.getCellAndInternalIndex(element);
+      return found && found.$cell;
+    }; 
 
-      var $visibleCellElement = $(element);
+    base.getCellIndexOfElement = function(element) { // could be selector
+      var $cell = base.getCellOfElement(element);
 
-      var visibleCellAndIndex = null;
-      // visibleCellAndIndex.$cell might be a child element/control perhaps of $visibleCell (found in the managed array).
-      for (var i = 0; i < _internal.cellsArray.length && !visibleCellAndIndex; i++) {
-        var $closestManagedCell = $visibleCellElement.closest(_internal.cellsArray[i]);
-        if ($closestManagedCell.length > 0) {
+      var $cells = base.getCells();
 
-          var $closestGridstrap = $visibleCellElement.parents().filter(function () {
-            return !!$(this).data(base.constants.DATA_GRIDSTRAP);
-          }).first();
-
-          if ($closestGridstrap.is(base.$el)) {
-            visibleCellAndIndex = {
-              index: i,
-              $cell: _internal.cellsArray[i]
-            };
-          }
-        }
-      }
-
-      return visibleCellAndIndex;
-
-      // I DONT THINK THIS IS NECESSARY?
-      // check if linked hidden element is NOT in parent element.
-      // var $linkedHiddenCell = visibleCellAndIndex.$cell.data(base.constants.DATA_HIDDEN_CELL);
-      // if (!$linkedHiddenCell.closest(base.$el).is(base.$el)) {
-      //   return noCell;
-      // }
+      return $cells.index($cell);
     };
 
     base.setCellAbsolutePositionAndSize = function ($cell, positionAndSize) {
@@ -827,6 +863,7 @@
       var $hiddenCell = $visibleCell.data(base.constants.DATA_HIDDEN_CELL);
 
       var getVisibleCellCalled = false, getHiddenCellCalled = false;
+
       callback.call(base, function(){
         getVisibleCellCalled = true;
         return $visibleCell;

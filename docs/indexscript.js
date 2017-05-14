@@ -10,12 +10,12 @@ $(function () {
       $('#nested-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>');
     }
     if (i > 2) {
-      $('.nested-inner-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner nested"></div></div>');
+      $('.nested-inner-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell nested"><div class="inner nested"></div></div>');
     }
   }
 
   for (var i = 0; i < 12 * 2; i++) {
-    $('#resize-grid').append('<div class="col-xs-2 cell"><div class="inner"><div class="resize"></div></div></div>');
+    $('#resize-grid').append('<div class="col-xs-2 cell"><div class="inner">' + i + '<div class="resize"></div></div></div>');
   }
 
   for (var i = 0; i < 12; i++) {
@@ -82,6 +82,7 @@ $(function () {
     $('#resize-grid').gridstrap({
       resizeHandleSelector: '.resize',
       resizeOnDrag: true,
+      debug: true,
       // onResizeCell: function ($cell, width, height) {
 
       //   var $hiddenCell = $cell.data('gridstrap-hidden-cell');
@@ -110,11 +111,12 @@ $(function () {
     });
 
     var gridstrap = $('#resize-grid').data('gridstrap');
+     $('#resize-grid').off(gridstrap.constants.EVENT_CELL_RESIZE);
     $('#resize-grid').on(gridstrap.constants.EVENT_CELL_RESIZE, function(e){
       e.preventDefault();
 
       var gs = $(this).data('gridstrap');
-      var index = gs.getCellAndIndex(e.target).index;
+      var index = gs.getCellIndexOfElement(e.target); 
 
       gs.modifyCell(index, function (getVisibleCell, getHiddenCell) { 
         var $hiddenCell = getHiddenCell(); 
