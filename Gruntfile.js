@@ -1,3 +1,5 @@
+const webpackConfig = require('./webpack.config.js');
+console.log(webpackConfig);
 module.exports = function( grunt ) {
 
 	grunt.initConfig( {
@@ -68,6 +70,7 @@ module.exports = function( grunt ) {
 			unit: {
 				configFile: "karma.conf.js",
 				background: true,
+        port: 9876 ,// IMPORTANT!
 				singleRun: false,
 				browsers: [ "PhantomJS", "Firefox" ]
 			},
@@ -79,6 +82,14 @@ module.exports = function( grunt ) {
 				browsers: [ "PhantomJS" ]
 			}
 		},
+
+    webpack: {
+      options: {
+        stats: !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
+      },
+      prod: webpackConfig,
+      dev: webpackConfig, //Object.assign({ watch: true }, webpackConfig)
+    },
 
 		// watch for changes to source
 		// Better than calling grunt a million times
@@ -97,9 +108,10 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( "grunt-contrib-coffee" );
 	grunt.loadNpmTasks( "grunt-contrib-watch" );
 	grunt.loadNpmTasks( "grunt-karma" );
+  grunt.loadNpmTasks('grunt-webpack');
 
 	grunt.registerTask( "travis", [ "jshint", "karma:travis" ] );
 	grunt.registerTask( "lint", [ "jshint", "jscs" ] );
 	grunt.registerTask( "build", [ "concat", "uglify" ] );
-	grunt.registerTask( "default", [ "jshint", "build", "karma:unit:run" ] );
+	grunt.registerTask( "default", [ "jshint", "webpack", "build", "karma:unit" ] );
 };
