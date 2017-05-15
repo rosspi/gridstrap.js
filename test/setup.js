@@ -7,6 +7,5 @@
 
 	$( "body" ).prepend( $testCanvas );
 
-  $testCanvas.ca();
 
 }( jQuery ) );

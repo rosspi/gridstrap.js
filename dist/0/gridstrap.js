@@ -1,7 +1,331 @@
-import Constants from './constants';
-import Utils from './utils';
-import {Handlers} from './handlers';
-import {Setup} from './setup';
+(function(e, a) { for(var i in a) e[i] = a[i]; }(exports, /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// identity function for calling harmony imports with the correct context
+/******/ 	__webpack_require__.i = function(value) { return value; };
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony default export */ __webpack_exports__["a"] = ({
+  generateRandomId: function () {
+    return Math.random().toString(36).substr(2, 5) + Math.round(Math.random() * 1000).toString();
+  }
+});
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+class Setup {
+  constructor(plugin) {
+    this.plugin = plugin;
+
+    this.something = 'ok';
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Setup;
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony default export */ __webpack_exports__["a"] = ({
+  DATA_GRIDSTRAP: 'gridstrap',
+  DATA_HIDDEN_CELL: 'gridstrap-hidden-cell',
+  DATA_VISIBLE_CELL: 'gridstrap-visible-cell',
+  DATA_MOUSEDOWN_CELL_POSITION: 'gridstrap-mousedown-cell-position',
+  DATA_MOUSEDOWN_PAGE_POSITION: 'gridstrap-mousedown-screen-position',
+  DATA_CELL_POSITION_AND_SIZE: 'gridstrap-position-size',
+  EVENT_DRAGSTART: 'dragstart',
+  EVENT_MOUSEDOWN: 'mousedown',
+  EVENT_MOUSEOVER: 'mouseover',
+  EVENT_MOUSEMOVE: 'mousemove',
+  EVENT_MOUSEUP: 'mouseup',
+  EVENT_RESIZE: 'resize',
+  EVENT_CELL_RESIZE: 'cellresize'
+});
+
+/***/ }),
+/* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__setup__ = __webpack_require__(1);
+
+
+class Handlers {
+
+  constructor(setup) {
+    this.setup = setup;
+  }
+
+  onDragstart(mouseEvent, $cell, gridstrapData) {
+    if (gridstrapData === this.base) {
+      mouseEvent.preventDefault();
+    }
+  }
+
+  onMousedown(mouseEvent, $cell, gridstrapData) {
+
+    if (gridstrapData !== this.base) {
+      return;
+    }
+
+    if (this.base.options.resizeHandleSelector && $(mouseEvent.target).closest(this.base.options.resizeHandleSelector).length) {
+      // is resizing, not dragging.
+      if (!$cell.hasClass(this.base.options.resizeCellClass)) {
+        $cell.addClass(this.base.options.resizeCellClass);
+
+        $cell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION, {
+          x: mouseEvent.pageX,
+          y: mouseEvent.pageY
+        });
+        $cell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION, this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $cell));
+      }
+
+      return;
+    }
+
+    if (this.base.options.enableDragging && !$cell.hasClass(this.base.options.dragCellClass)) {
+
+      $cell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION, {
+        x: mouseEvent.pageX,
+        y: mouseEvent.pageY
+      });
+      $cell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION, this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $cell));
+
+      $cell.addClass(this.base.options.dragCellClass);
+
+      _internal.moveDraggedCell(mouseEvent, $cell);
+    }
+  }
+
+  onMouseover(mouseEvent, $cell, gridstrapData) {
+    // clear initially.
+    _internal.lastMouseOverCellTarget = null;
+
+    if (!gridstrapData.options.enableDragging) {
+      return;
+    }
+
+    var $draggedCell = _internal.$getDraggingCell();
+    if ($draggedCell.length) {
+      // Is currently dragging. 
+      if ($cell && $draggedCell.closest($cell).length === 0) {
+        // make sure you're not mouseover-ing the dragged cell itself.
+        // css' 'pointer-events', 'none' should do this job, but this double checks.
+
+        _internal.lastMouseOverCellTarget = $cell;
+
+        if (!_internal.setAndGetElementRecentlyDraggedMouseOver($cell)) {
+          // do not move two cells that have recently already moved.
+
+          if (gridstrapData.options.rearrangeWhileDragging) {
+
+            _internal.moveCell($draggedCell, $cell, gridstrapData);
+
+            // reset dragged object to mouse pos, not pos of hidden cells. 
+            _internal.moveDraggedCell(mouseEvent, $draggedCell);
+          }
+        }
+      }
+    }
+  }
+
+  onMousemove(mouseEvent) {
+
+    var $resizedCell = $(_internal.resizeCellSelector);
+    if ($resizedCell.length) {
+      // is resizing
+
+      var originalMouseDownCellPosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION);
+      var originalMouseDownPagePosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+
+      var newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
+      var newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
+
+      $resizedCell.css('width', newW);
+      $resizedCell.css('height', newH);
+
+      if (this.base.options.resizeOnDrag) {
+        _internal.resizeCell($resizedCell, newW, newH);
+      }
+    } else {
+
+      var $draggedCell = _internal.$getDraggingCell();
+      if ($draggedCell.length) {
+        // should just be one.
+
+        _internal.moveDraggedCell(mouseEvent, $draggedCell);
+
+        // ATTEMPT TO GET NONCONTIG WOKING...
+        ////////not overlapping any existing managed cell while dragging.
+        var nonContiguousOptions = this.base.options.nonContiguousOptions;
+        var nonContiguousSelector = nonContiguousOptions.selector;
+        if (nonContiguousSelector && nonContiguousSelector.length) {
+
+          var $hiddenCells = this.base.getHiddenCells();
+
+          var lastHiddenCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $hiddenCells.last());
+          var draggedCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+
+          while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h > lastHiddenCellPositionAndSize.y) {
+            // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
+            // insert dummy cells if cursor is beyond where the cells finish.
+            var $insertedCell = this.base.insertCell(nonContiguousOptions.getHtml(), $hiddenCells.length);
+            $insertedCell.addClass(this.base.options.nonContiguousPlaceholderCellClass);
+            var $insertedHiddenCell = $insertedCell.data(this.base.constants.DATA_HIDDEN_CELL);
+
+            // might have to keep adding them.
+            lastHiddenCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $insertedHiddenCell);
+            draggedCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+
+            $hiddenCells = $hiddenCells.add($insertedHiddenCell);
+          }
+          // remove ones at end when we have too much.
+          // THIS PART FIXINFG BELOW BPLEASE.l
+          var $lastHiddenCell = $hiddenCells.last();
+          while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h < lastHiddenCellPositionAndSize.y && $lastHiddenCell.data(this.base.constants.DATA_VISIBLE_CELL).hasClass(this.base.options.nonContiguousPlaceholderCellClass)) {
+
+            $hiddenCells = $hiddenCells.not($lastHiddenCell);
+
+            this.base.removeCell($lastHiddenCell.data(this.base.constants.DATA_VISIBLE_CELL));
+
+            $lastHiddenCell = $hiddenCells.last();
+
+            lastHiddenCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $lastHiddenCell);
+            var draggedCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+          }
+        }
+      }
+    }
+  }
+
+  onMouseup(mouseEvent) {
+    if (!this.base.options.enableDragging) {
+      return;
+    }
+
+    var $resizedCell = $(_internal.resizeCellSelector);
+    if (this.base.options.resizeHandleSelector && $resizedCell.length) {
+      if (!this.base.options.resizeOnDrag) {
+        var originalMouseDownCellPosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION);
+        var originalMouseDownPagePosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+
+        var newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
+        var newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
+
+        _internal.resizeCell($resizedCell, newW, newH);
+      }
+
+      $resizedCell.removeClass(this.base.options.resizeCellClass);
+      $resizedCell.removeData(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+
+      return;
+    }
+
+    var $draggedCell = _internal.$getDraggingCell();
+    if ($draggedCell.length > 0) {
+
+      // no more dragging.
+      $draggedCell.removeClass(this.base.options.dragCellClass);
+      $draggedCell.removeData(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+
+      var cellOriginalPosition = $draggedCell.data(this.base.constants.DATA_CELL_POSITION_AND_SIZE);
+      this.base.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
+
+      if (_internal.lastMouseOverCellTarget && !this.base.options.rearrangeWhileDragging) {
+        // else just rearrange on mouseup
+        _internal.moveCell($draggedCell, _internal.lastMouseOverCellTarget, this.base);
+      }
+    }
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Handlers;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__handlers__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__setup__ = __webpack_require__(1);
+
+
+
+
 
 (function ($, window, document) {
   $.Gridstrap = function (el, options) {
@@ -15,9 +339,9 @@ import {Setup} from './setup';
     base.$el = $(el);
     base.el = el;
 
-    base.constants = Object.freeze(Constants);
+    base.constants = Object.freeze(__WEBPACK_IMPORTED_MODULE_0__constants__["a" /* default */]);
 
-    base.setup = new Setup(base);
+    base.setup = new __WEBPACK_IMPORTED_MODULE_3__setup__["a" /* Setup */](base);
 
     var _internal = {
       idPrefix: null, // set in init.
@@ -57,20 +381,22 @@ import {Setup} from './setup';
         pageY: 0
       },
       additionalGridstrapDragTargetSelector: null, //can drop onto other grids.
-      $getClosestGridstrap: function(element) { // looks up the tree to find the closest instantiated gridstap instance. May not be this one in the case of nested grids.
-        var dataExistsInSelector = function(selector) {
-          return $(selector).filter(function(){
+      $getClosestGridstrap: function (element) {
+        // looks up the tree to find the closest instantiated gridstap instance. May not be this one in the case of nested grids.
+        var dataExistsInSelector = function (selector) {
+          return $(selector).filter(function () {
             return !!$(this).data(base.constants.DATA_GRIDSTRAP);
           });
         };
         // a little strange that we can;t select parents() and include element itself in the order desired, so we have to do it like this.
         var $currentElement = dataExistsInSelector(element);
-        if ($currentElement.length){
+        if ($currentElement.length) {
           return $currentElement.first();
         }
-        return dataExistsInSelector($(element).parents()).first(); 
+        return dataExistsInSelector($(element).parents()).first();
       },
-      getCellAndInternalIndex: function (element) { // element or jquery selector, child of cell or it itself.
+      getCellAndInternalIndex: function (element) {
+        // element or jquery selector, child of cell or it itself.
         if (!element) {
           return null;
         }
@@ -115,16 +441,16 @@ import {Setup} from './setup';
             if ($next.length > 0 && !$next.is($other)) {
               return function ($newElement) {
                 $next.before($newElement);
-              }
+              };
             } else if ($prev.length > 0 && !$prev.is($other)) {
               return function ($newElement) {
                 $prev.after($newElement);
-              }
+              };
             } else {
               // no siblings, so can just use append
               return function ($newElement) {
                 $parent.append($newElement);
-              }
+              };
             }
           };
 
@@ -181,7 +507,6 @@ import {Setup} from './setup';
 
                 swapJQueryElements($detachedMovingOriginalCell, $detachedTargetOriginalCell);
 
-
                 //re attach in opposing grids.
                 var $reattachedMovingCell = gridstrapData.attachCell($detachedMovingOriginalCell);
                 var $reattachedTargetCell = base.attachCell($detachedTargetOriginalCell);
@@ -204,7 +529,6 @@ import {Setup} from './setup';
 
                 gridstrapData.updateVisibleCellCoordinates();
                 base.updateVisibleCellCoordinates();
-
               } else {
 
                 // insert mode.
@@ -217,7 +541,6 @@ import {Setup} from './setup';
                 }
 
                 detachAndInsertInPlaceJQueryElement($detachedMovingOriginalCell, $hiddenTarget);
-
 
                 var $reattachedMovingCell = gridstrapData.attachCell($detachedMovingOriginalCell);
 
@@ -293,7 +616,7 @@ import {Setup} from './setup';
       moveDraggedCell: function (mouseEvent, $cell) {
         // user can do something custom for dragging if they want.
         var callbackResult = base.options.mouseMoveDragCallback.call(base, $cell, mouseEvent);
-        if (!callbackResult && typeof (callbackResult) === 'boolean') {
+        if (!callbackResult && typeof callbackResult === 'boolean') {
           return;
         }
 
@@ -307,12 +630,11 @@ import {Setup} from './setup';
         $cell.css('pointer-events', 'none');
 
         var triggerMouseOverEvent = function ($element) {
-          $element.trigger(
-            $.Event(base.constants.EVENT_MOUSEOVER, {
-              pageX: mouseEvent.pageX,
-              pageY: mouseEvent.pageY,
-              target: $element[0]
-            }));
+          $element.trigger($.Event(base.constants.EVENT_MOUSEOVER, {
+            pageX: mouseEvent.pageX,
+            pageY: mouseEvent.pageY,
+            target: $element[0]
+          }));
         };
         var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
         var cellAndIndex = _internal.getCellAndInternalIndex(element);
@@ -340,27 +662,26 @@ import {Setup} from './setup';
         // restore pointer-events css.
         $cell.css('pointer-events', oldPointerEvents);
       },
-      $getDraggingCell: function(){
+      $getDraggingCell: function () {
         var $draggedCell = $(_internal.dragCellSelector);
         if (!$draggedCell.length) {
           return $(); //empty set
         }
         // closest gridstrap must be this one - could be nested, we don't want to pick that up.
         var $closestGridstrap = _internal.$getClosestGridstrap($draggedCell);
-        if (!$closestGridstrap.is(base.$el)){
+        if (!$closestGridstrap.is(base.$el)) {
           return $(); //empty set
         }
 
-        return $draggedCell;          
+        return $draggedCell;
       },
-      mouseEventHandlers: new Handlers(base.setup),
+      mouseEventHandlers: new __WEBPACK_IMPORTED_MODULE_2__handlers__["a" /* Handlers */](base.setup),
 
       handleCellMouseEvent: function (gridstrap, eventName, onlyCallWhenTargetsCell, callback) {
         // only call event if occured on one of managed cells that has been initialised.
 
         var draggableSelector = gridstrap.options.gridCellSelector + ' ' + gridstrap.options.dragCellHandleSelector;
-        if (gridstrap.options.dragCellHandleSelector === $.Gridstrap.defaultOptions.dragCellHandleSelector ||
-          eventName === base.constants.EVENT_MOUSEOVER) {
+        if (gridstrap.options.dragCellHandleSelector === $.Gridstrap.defaultOptions.dragCellHandleSelector || eventName === base.constants.EVENT_MOUSEOVER) {
           // If the default settings apply for drag handle mouse events,
           // or if mouseover, then we want the event to be lenient as to what triggers it.
           // Prepend selector with grid cell itself as an OR/, selector.
@@ -418,14 +739,14 @@ import {Setup} from './setup';
           if (base.options.debug) {
             console.log('Gridstrap initialised for element: ' + base.el.nodeName);
           }
-        } 
+        }
 
         var initHiddenCopiesAndSetAbsolutePositions = function () {
 
           // must pick cells before potentially adding child wrapper to selection.
           var $originalCells = base.$el.find(base.options.gridCellSelector);
 
-          _internal.idPrefix = Utils.generateRandomId();
+          _internal.idPrefix = __WEBPACK_IMPORTED_MODULE_1__utils__["a" /* default */].generateRandomId();
           var wrapperGeneratedId = 'gridstrap-' + _internal.idPrefix;
           _internal.visibleCellContainerSelector = '#' + wrapperGeneratedId;
           // drag selector must be within wrapper div. Turn class name/list into selector.
@@ -451,21 +772,11 @@ import {Setup} from './setup';
         _internal.handleCellMouseEvent(base, base.constants.EVENT_MOUSEOVER + '.gridstrap', false, _internal.mouseEventHandlers.onMouseover);
 
         // it is not appropriate to confine the events to the visible cell wrapper.
-        $(base.options.mouseMoveSelector)
-          .on(
-            base.constants.EVENT_MOUSEMOVE + '.gridstrap', 
-            _internal.mouseEventHandlers.onMousemove)
-          .on(
-            base.constants.EVENT_MOUSEUP + '.gridstrap', 
-            _internal.mouseEventHandlers.onMouseup);
+        $(base.options.mouseMoveSelector).on(base.constants.EVENT_MOUSEMOVE + '.gridstrap', _internal.mouseEventHandlers.onMousemove).on(base.constants.EVENT_MOUSEUP + '.gridstrap', _internal.mouseEventHandlers.onMouseup);
 
         if (base.options.updateCoordinatesOnWindowResize) {
-          $(window).on(base.constants.EVENT_RESIZE + '.gridstrap', _internal.debounce(
-            base.updateVisibleCellCoordinates,
-            base.options.mouseMoveDebounce
-          ));
+          $(window).on(base.constants.EVENT_RESIZE + '.gridstrap', _internal.debounce(base.updateVisibleCellCoordinates, base.options.mouseMoveDebounce));
         }
-
       } //~init()
 
     }; //~internal oject
@@ -500,14 +811,13 @@ import {Setup} from './setup';
           $nestedGridstrap.first().data(base.constants.DATA_GRIDSTRAP).updateVisibleCellCoordinates();
         }
       }
-
     };
 
     // returns jquery object of new cell.
     // index is optional.
     base.insertCell = function (cellHtml, index) {
       var $existingHiddenCells = _internal.getHiddenCellsInElementOrder();
-      if (typeof (index) === 'undefined') {
+      if (typeof index === 'undefined') {
         index = $existingHiddenCells.length;
       }
 
@@ -610,14 +920,16 @@ import {Setup} from './setup';
 
     base.updateOptions = function (newOptions) {
       base.options = $.extend({}, base.options, newOptions);
-    }; 
+    };
 
-    base.getCellOfElement = function(element) { // could be selector
+    base.getCellOfElement = function (element) {
+      // could be selector
       var found = _internal.getCellAndInternalIndex(element);
       return found && found.$cell;
-    }; 
+    };
 
-    base.getCellIndexOfElement = function(element) { // could be selector
+    base.getCellIndexOfElement = function (element) {
+      // could be selector
       var $cell = base.getCellOfElement(element);
 
       var $cells = base.getCells();
@@ -658,26 +970,27 @@ import {Setup} from './setup';
       }
     };
 
-    base.modifyCell = function(cellIndex, callback){    
- 
+    base.modifyCell = function (cellIndex, callback) {
+
       var $visibleCell = base.getCells().eq(cellIndex);
       var $hiddenCell = $visibleCell.data(base.constants.DATA_HIDDEN_CELL);
 
-      var getVisibleCellCalled = false, getHiddenCellCalled = false;
+      var getVisibleCellCalled = false,
+          getHiddenCellCalled = false;
 
-      callback.call(base, function(){
+      callback.call(base, function () {
         getVisibleCellCalled = true;
         return $visibleCell;
-      }, function(){
+      }, function () {
         getHiddenCellCalled = true;
         return $hiddenCell;
       });
-      
-      if (getVisibleCellCalled){
+
+      if (getVisibleCellCalled) {
         // copy contents to hidden cell.
         $hiddenCell.html($visibleCell.html());
-      } 
-      
+      }
+
       base.updateVisibleCellCoordinates();
     };
 
@@ -738,11 +1051,12 @@ import {Setup} from './setup';
     updateCoordinatesOnWindowResize: true,
     debug: false,
     dragMouseoverThrottle: 500, //used for detecting which unique element is mouse-over.
-    windowResizeDebounce: 50, 
+    windowResizeDebounce: 50,
     resizeHandleSelector: null, // does not resize by default. Relative to cell. 
     resizeOnDrag: true,
-    onResizeCell: function ($cell, width, height) { // maybe rename
-      
+    onResizeCell: function ($cell, width, height) {
+      // maybe rename
+
       var event = $.Event(this.constants.EVENT_CELL_RESIZE, {
         width: width,
         height: height,
@@ -750,7 +1064,7 @@ import {Setup} from './setup';
       });
       this.$el.trigger(event);
 
-      if (event.isDefaultPrevented()){
+      if (event.isDefaultPrevented()) {
         return;
       }
 
@@ -764,8 +1078,10 @@ import {Setup} from './setup';
 
   $.fn.gridstrap = function (options) {
     return this.each(function () {
-      (new $.Gridstrap(this, options));
+      new $.Gridstrap(this, options);
     });
   };
-
 })(jQuery, window, document);
+
+/***/ })
+/******/ ])));

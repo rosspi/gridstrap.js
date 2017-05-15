@@ -1,3 +1,6 @@
+
+import Utils from '../../src/utils';
+
 ( function( $, QUnit ) {
 
 	"use strict";
@@ -21,7 +24,6 @@
 	} );
 
 	QUnit.test( "is inside jQuery library", function( assert ) {
-
 		assert.equal( typeof $.fn.defaultPluginName, "function", "has function inside jquery.fn" );
 		assert.equal( typeof $fixture.defaultPluginName, "function", "another way to test it" );
 	} );
