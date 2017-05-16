@@ -1,5 +1,5 @@
-const webpackConfig = require('./webpack.config.js');
- console.log(webpackConfig.src);
+//const webpackConfig = require('./webpack.config.js');
+ 
 module.exports = function( grunt ) {
 
 	grunt.initConfig( {
@@ -48,22 +48,13 @@ module.exports = function( grunt ) {
 		// Minify definitions
 		uglify: {
 			dist: {
-				src: [ "dist/jquery.boilerplate.js" ],
-				dest: "dist/jquery.boilerplate.min.js"
+				src: [ "dist/gridstrap.js" ],
+				dest: "dist/gridstrap.min.js"
 			},
 			options: {
 				banner: "<%= meta.banner %>"
 			}
-		},
-
-		// CoffeeScript compilation
-		coffee: {
-			compile: {
-				files: {
-					"dist/jquery.boilerplate.js": "src/jquery.boilerplate.coffee"
-				}
-			}
-		},
+		}, 
 
 		// karma test runner
 		karma: {
@@ -82,12 +73,20 @@ module.exports = function( grunt ) {
 			}
 		},
 
-    webpack: {
-     options: {
-        stats: !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
-      },
-      prod: webpackConfig.src,
-      dev: webpackConfig.src, //Object.assign({ watch: true }, webpackConfig)
+    browserify: {
+      dist: {
+        options: {
+            transform: [
+              ["babelify", {
+                  loose: "all"
+              }]
+            ]
+        },
+        files: { 
+            "./dist/gridstrap.js": ["./src/gridstrap.js"],
+            "./test/compiled/gridstrap.spec.js": ["./test/spec/*.js"]
+        }
+      }
     },
     // webpacktest: {
     //   options: {
@@ -101,7 +100,7 @@ module.exports = function( grunt ) {
 		// Better than calling grunt a million times
 		// (call 'grunt watch')
 		watch: {
-			files: [ "src/*", "test/**/*" ],
+			files: [ "src/*", "test/spec/*" ],
 			tasks: [ "default" ]
 		}
 
@@ -110,14 +109,13 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( "grunt-contrib-concat" );
 	grunt.loadNpmTasks( "grunt-contrib-jshint" );
 	grunt.loadNpmTasks( "grunt-jscs" );
-	grunt.loadNpmTasks( "grunt-contrib-uglify" );
-	grunt.loadNpmTasks( "grunt-contrib-coffee" );
+	grunt.loadNpmTasks( "grunt-contrib-uglify" ); 
 	grunt.loadNpmTasks( "grunt-contrib-watch" );
 	grunt.loadNpmTasks( "grunt-karma" );
-  grunt.loadNpmTasks('grunt-webpack');
+   grunt.loadNpmTasks("grunt-browserify");
 
 	grunt.registerTask( "travis", [ "jshint", "karma:travis" ] );
 	grunt.registerTask( "lint", [ "jshint", "jscs" ] );
-	grunt.registerTask( "build", [ "concat", "webpack" ] );
+	grunt.registerTask( "build", [ "concat", "browserify", "uglify" ] );
 	grunt.registerTask( "default", [ "jshint",  "build", "karma:unit" ] );
 };

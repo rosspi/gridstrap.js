@@ -1,82 +1,85 @@
-import {Setup} from './setup';
+import Constants from './constants';
+import {Utils} from './utils';
 
 export class Handlers {  
 
-  constructor(setup){
+  constructor(setup, internal){
     this.setup = setup;
-
-
+    this.internal = internal;
   }
 
-  onDragstart (mouseEvent, $cell, gridstrapData) {
-    if (gridstrapData === this.base) {
+  onDragstart (mouseEvent, $cell, gridstrapContext) { 
+    let context = this.setup.Context; 
+
+    if (gridstrapContext === context) {
       mouseEvent.preventDefault();
     }
   }
 
-  onMousedown (mouseEvent, $cell, gridstrapData) {
+  onMousedown (mouseEvent, $cell, gridstrapContext) {
+    let $ = this.setup.jQuery;
+    let context = this.setup.Context;
+    let options = this.setup.Options;
 
-    if (gridstrapData !== this.base) {
+    if (gridstrapContext !== context) {
       return;
     }
 
-    if (this.base.options.resizeHandleSelector &&
-      $(mouseEvent.target).closest(this.base.options.resizeHandleSelector).length) {
+    if (options.resizeHandleSelector &&
+      $(mouseEvent.target).closest(options.resizeHandleSelector).length) {
       // is resizing, not dragging.
-      if (!$cell.hasClass(this.base.options.resizeCellClass)) {
-        $cell.addClass(this.base.options.resizeCellClass);
+      if (!$cell.hasClass(options.resizeCellClass)) {
+        $cell.addClass(options.resizeCellClass);
 
-        $cell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION, {
-          x: mouseEvent.pageX,
-          y: mouseEvent.pageY
-        });
-        $cell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION, this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $cell));
+        this.internal.SetMouseDownData(mouseEvent, $cell); 
       }
 
       return;
     } 
 
-    if (this.base.options.enableDragging && 
-      !$cell.hasClass(this.base.options.dragCellClass)) {
+    if (options.enableDragging && !$cell.hasClass(options.dragCellClass)) {
 
-      $cell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION, {
-        x: mouseEvent.pageX,
-        y: mouseEvent.pageY
-      });
-      $cell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION, this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $cell));
+      this.internal.SetMouseDownData(mouseEvent, $cell);  
 
-      $cell.addClass(this.base.options.dragCellClass);
+      $cell.addClass(options.dragCellClass);
 
-      _internal.moveDraggedCell(mouseEvent, $cell);
+      this.internal.MoveDraggedCell(mouseEvent, $cell);
     }
   }
 
-  onMouseover(mouseEvent, $cell, gridstrapData) {
-    // clear initially.
-    _internal.lastMouseOverCellTarget = null;
+  onMouseover(mouseEvent, $cell, gridstrapContext) {
+    let $ = this.setup.jQuery;
+    let context = this.setup.Context;
+    let options = this.setup.Options;
 
-    if (!gridstrapData.options.enableDragging) {
+    // clear initially.
+    this.internal.LastMouseOverCellTarget = null;
+ 
+    if (!gridstrapContext.options.enableDragging) {
       return;
     }
 
-    var $draggedCell = _internal.$getDraggingCell();
+    var $draggedCell = this.internal.$GetDraggingCell();
     if ($draggedCell.length) {
       // Is currently dragging. 
-      if ($cell && $draggedCell.closest($cell).length === 0) {
+      if ($cell.length && !$draggedCell.closest($cell).length) {
         // make sure you're not mouseover-ing the dragged cell itself.
         // css' 'pointer-events', 'none' should do this job, but this double checks.
 
-        _internal.lastMouseOverCellTarget = $cell;
+        this.internal.LastMouseOverCellTarget = $cell;
 
-        if (!_internal.setAndGetElementRecentlyDraggedMouseOver($cell)) {
+        if (!Utils.IsElementThrottled($, $cell, options.dragMouseoverThrottle)) {
           // do not move two cells that have recently already moved.
 
-          if (gridstrapData.options.rearrangeWhileDragging) {
+          if (gridstrapContext.options.rearrangeWhileDragging) {
 
-            _internal.moveCell($draggedCell, $cell, gridstrapData);
+            this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
+
+// fix dual broen
+            hrthis.internal.SetMouseDownData(mouseEvent, $draggedCell);
 
             // reset dragged object to mouse pos, not pos of hidden cells. 
-            _internal.moveDraggedCell(mouseEvent, $draggedCell);
+            this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
           }
         }
       }
@@ -84,13 +87,16 @@ export class Handlers {
   }
 
   onMousemove (mouseEvent) {
+    let $ = this.setup.jQuery;
+    let context = this.setup.Context;
+    let options = this.setup.Options;
 
-    var $resizedCell = $(_internal.resizeCellSelector);
+    var $resizedCell = $(this.setup.ResizeCellSelector);
     if ($resizedCell.length) {
       // is resizing
 
-      var originalMouseDownCellPosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION);
-      var originalMouseDownPagePosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+      var originalMouseDownCellPosition = $resizedCell.data(Constants.DATA_MOUSEDOWN_CELL_POSITION);
+      var originalMouseDownPagePosition = $resizedCell.data(Constants.DATA_MOUSEDOWN_PAGE_POSITION);
 
       var newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
       var newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
@@ -98,29 +104,29 @@ export class Handlers {
       $resizedCell.css('width', newW);
       $resizedCell.css('height', newH);
 
-      if (this.base.options.resizeOnDrag) {
-        _internal.resizeCell($resizedCell, newW, newH);
+      if (options.resizeOnDrag) {
+        this.internal.ResizeCell($resizedCell, newW, newH);
       }
 
     } else {
 
-      var $draggedCell = _internal.$getDraggingCell();
+      var $draggedCell = this.internal.$GetDraggingCell();
       if ($draggedCell.length) { // should just be one.
 
-        _internal.moveDraggedCell(mouseEvent, $draggedCell);
+        this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
 
 
         // ATTEMPT TO GET NONCONTIG WOKING...
         ////////not overlapping any existing managed cell while dragging.
-        var nonContiguousOptions = this.base.options.nonContiguousOptions;
+        var nonContiguousOptions = options.nonContiguousOptions;
         var nonContiguousSelector = nonContiguousOptions.selector;
         if (nonContiguousSelector &&
           nonContiguousSelector.length) {
 
           var $hiddenCells = this.base.getHiddenCells();
 
-          var lastHiddenCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $hiddenCells.last());
-          var draggedCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+          var lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $hiddenCells.last());
+          var draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
 
           while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h > lastHiddenCellPositionAndSize.y) {
             // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
@@ -129,12 +135,12 @@ export class Handlers {
               nonContiguousOptions.getHtml(),
               $hiddenCells.length
             );
-            $insertedCell.addClass(this.base.options.nonContiguousPlaceholderCellClass);
-            var $insertedHiddenCell = $insertedCell.data(this.base.constants.DATA_HIDDEN_CELL);
+            $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
+            var $insertedHiddenCell = $insertedCell.data(Constants.DATA_HIDDEN_CELL);
 
             // might have to keep adding them.
-            lastHiddenCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $insertedHiddenCell);
-            draggedCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+            lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $insertedHiddenCell);
+            draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
 
             $hiddenCells = $hiddenCells.add($insertedHiddenCell);
           }
@@ -142,16 +148,16 @@ export class Handlers {
           // THIS PART FIXINFG BELOW BPLEASE.l
           var $lastHiddenCell = $hiddenCells.last();
           while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h < lastHiddenCellPositionAndSize.y &&
-            $lastHiddenCell.data(this.base.constants.DATA_VISIBLE_CELL).hasClass(this.base.options.nonContiguousPlaceholderCellClass)) {
+            $lastHiddenCell.data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass)) {
 
             $hiddenCells = $hiddenCells.not($lastHiddenCell);
 
-            this.base.removeCell($lastHiddenCell.data(this.base.constants.DATA_VISIBLE_CELL));
+            this.base.RemoveCell($lastHiddenCell.data(Constants.DATA_VISIBLE_CELL));
 
             $lastHiddenCell = $hiddenCells.last();
 
-            lastHiddenCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $lastHiddenCell);
-            var draggedCellPositionAndSize = this.base.options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+            lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $lastHiddenCell);
+            var draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
           }
         }
       }
@@ -159,42 +165,46 @@ export class Handlers {
   }
 
   onMouseup (mouseEvent) {
-    if (!this.base.options.enableDragging) {
+    let $ = this.setup.jQuery;
+    let context = this.setup.Context;
+    let options = this.setup.Options;
+
+    if (!options.enableDragging) {
       return;
     }
 
-    var $resizedCell = $(_internal.resizeCellSelector);
-    if (this.base.options.resizeHandleSelector && $resizedCell.length) {
-      if (!this.base.options.resizeOnDrag) {
-        var originalMouseDownCellPosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_CELL_POSITION);
-        var originalMouseDownPagePosition = $resizedCell.data(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+    var $resizedCell = $(this.setup.ResizeCellSelector);
+    if (options.resizeHandleSelector && $resizedCell.length) {
+      if (!options.resizeOnDrag) {
+        var originalMouseDownCellPosition = $resizedCell.data(Constants.DATA_MOUSEDOWN_CELL_POSITION);
+        var originalMouseDownPagePosition = $resizedCell.data(Constants.DATA_MOUSEDOWN_PAGE_POSITION);
 
         var newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
         var newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
 
-        _internal.resizeCell($resizedCell, newW, newH);
+        this.internal.ResizeCell($resizedCell, newW, newH);
       }
 
-      $resizedCell.removeClass(this.base.options.resizeCellClass);
-      $resizedCell.removeData(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+      $resizedCell.removeClass(options.resizeCellClass);
+      $resizedCell.removeData(Constants.DATA_MOUSEDOWN_PAGE_POSITION);
 
       return;
     }
 
-    var $draggedCell = _internal.$getDraggingCell();
+    var $draggedCell = this.internal.$GetDraggingCell();
     if ($draggedCell.length > 0) {
 
       // no more dragging.
-      $draggedCell.removeClass(this.base.options.dragCellClass);
-      $draggedCell.removeData(this.base.constants.DATA_MOUSEDOWN_PAGE_POSITION);
+      $draggedCell.removeClass(options.dragCellClass);
+      $draggedCell.removeData(Constants.DATA_MOUSEDOWN_PAGE_POSITION);
 
-      var cellOriginalPosition = $draggedCell.data(this.base.constants.DATA_CELL_POSITION_AND_SIZE);
-      this.base.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
+      var cellOriginalPosition = $draggedCell.data(Constants.DATA_CELL_POSITION_AND_SIZE);
+      context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
 
-      if (_internal.lastMouseOverCellTarget &&
-        !this.base.options.rearrangeWhileDragging) {
+      if (this.internal.LastMouseOverCellTarget &&
+        !options.rearrangeWhileDragging) {
         // else just rearrange on mouseup
-        _internal.moveCell($draggedCell, _internal.lastMouseOverCellTarget, this.base);
+        this.internal.MoveCell($draggedCell, this.internal.LastMouseOverCellTarget, context);
       }
     }
   }  
