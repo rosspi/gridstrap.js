@@ -342,7 +342,6 @@ export class Internal {
 
             Utils.DetachAndInsertInPlaceJQueryElement($detachedMovingOriginalCell, $hiddenTarget);
 
-
             let $reattachedMovingCell = gridstrapContext.attachCell($detachedMovingOriginalCell);
 
             // have to remove visibleCellClass that these two would now have
