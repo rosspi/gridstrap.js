@@ -77,8 +77,12 @@ export class Internal {
     // Treat it as the 'hidden' cell, and turn the original $cell
     // into the visible/absolute cell.
 
+    if (options.debug && !$cell.is(':visible')) {
+      console.log(`Grid cell is invisible. Gridstrap should not initialise an invisible grid. (${this.el.nodeName}): ${$cell[0].nodeName})`);
+    }
+
     let htmlOfOriginal = options.getHtmlOfSourceCell.call(context, $cell);
-    let positionNSize = options.getAbsolutePositionAndSizeOfCell.call(context, $cell);
+    let positionNSize = Utils.GetPositionAndSizeOfCell($cell);
 
     $cell.before(htmlOfOriginal);
     let $hiddenClone = $cell.prev();
@@ -124,13 +128,15 @@ export class Internal {
 
   SetMouseDownData(mouseEvent, $cell) {
     let context = this.setup.Context;
-    let options = this.setup.Options;
+    let options = this.setup.Options;  
 
-    $cell.data(Constants.DATA_MOUSEDOWN_PAGE_POSITION, {
-      x: mouseEvent.pageX,
-      y: mouseEvent.pageY
+    // compare page with element' offset.
+    let cellOffset = $cell.offset(); 
+
+    $cell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF, {
+      x: mouseEvent.pageX - cellOffset.left,
+      y: mouseEvent.pageY - cellOffset.top
     });
-    $cell.data(Constants.DATA_MOUSEDOWN_CELL_POSITION, options.getAbsolutePositionAndSizeOfCell.call(context, $cell));
   }
 
   MoveDraggedCell (mouseEvent, $cell) {
@@ -138,23 +144,25 @@ export class Internal {
     let context = this.setup.Context;
     let options = this.setup.Options;
     let document = this.setup.Document;
+    let $element = this.setup.$Element;
 
-// TODO MAKE THIS AN EVENT.
-    // user can do something custom for dragging if they want.
-    let callbackResult = options.mouseMoveDragCallback.call(context, $cell, mouseEvent);
-    if (!callbackResult && typeof (callbackResult) === 'boolean') {
+    let mouseDownPositionDifference = $cell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF);
+
+    let absoluteOffset = Utils.GetAbsoluteOffsetForElementFromMouseEvent($cell, mouseEvent, mouseDownPositionDifference);
+
+    let event = $.Event(Constants.EVENT_CELL_DRAG, {
+      left: absoluteOffset.left,
+      top: absoluteOffset.top,
+      target: $cell[0]
+    });
+    $element.trigger(event);
+
+    if (event.isDefaultPrevented()){
       return;
-    }
+    } 
 
-    let originalMouseDownCellPosition = $cell.data(Constants.DATA_MOUSEDOWN_CELL_POSITION);
-    let originalMouseDownScreenPosition = $cell.data(Constants.DATA_MOUSEDOWN_PAGE_POSITION);
-
-    options.setPositionOfDraggedCell.call(
-      context, 
-      originalMouseDownCellPosition, 
-      originalMouseDownScreenPosition, 
-      $cell, 
-      mouseEvent);
+    $cell.css('left', absoluteOffset.left);
+    $cell.css('top', absoluteOffset.top);
 
     //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
     let oldPointerEvents = $cell.css('pointer-events');
@@ -293,8 +301,8 @@ export class Internal {
         if ($targetGridstrap.length) {
           if (options.swapMode) {
 
-            let preDetachPositionTarget = gridstrapContext.options.getAbsolutePositionAndSizeOfCell.call(gridstrapContext, $targetVisibleCell);
-            let preDetachPositionMoving = options.getAbsolutePositionAndSizeOfCell.call(context, $movingVisibleCell);
+            let preDetachPositionTarget = Utils.GetPositionAndSizeOfCell($targetVisibleCell);
+            let preDetachPositionMoving = Utils.GetPositionAndSizeOfCell($movingVisibleCell);
 
             let $detachedTargetOriginalCell = gridstrapContext.detachCell($targetVisibleCell);
             let $detachedMovingOriginalCell = context.detachCell($movingVisibleCell);
@@ -304,7 +312,6 @@ export class Internal {
             }
 
             swapJQueryElements($detachedMovingOriginalCell, $detachedTargetOriginalCell);
-
 
             //re attach in opposing grids.
             let $reattachedMovingCell = gridstrapContext.attachCell($detachedMovingOriginalCell);
@@ -324,15 +331,12 @@ export class Internal {
 
             if (wasDragging) {
               $reattachedMovingCell.addClass(options.dragCellClass);
-            }
-
-            gridstrapContext.updateVisibleCellCoordinates();
-            context.updateVisibleCellCoordinates();
+            } 
 
           } else {
 
             // insert mode.
-            let preDetachPositionMoving = options.getAbsolutePositionAndSizeOfCell.call(context, $movingVisibleCell);
+            let preDetachPositionMoving = Utils.GetPositionAndSizeOfCell( $movingVisibleCell);
 
             let $detachedMovingOriginalCell = context.detachCell($movingVisibleCell);
             let wasDragging = $detachedMovingOriginalCell.hasClass(options.dragCellClass);
@@ -348,18 +352,18 @@ export class Internal {
             // as that should have the css transition animation in it, 
             // and we want to bypass that, set position, then apply it, set position again. 
             $reattachedMovingCell.removeClass(options.visibleCellClass);
-
-            gridstrapContext.setCellAbsolutePositionAndSize($reattachedMovingCell, preDetachPositionMoving);
+ 
+            gridstrapContext.setCellAbsolutePositionAndSize($reattachedMovingCell, preDetachPositionMoving); 
 
             $reattachedMovingCell.addClass(options.visibleCellClass);
 
             if (wasDragging) {
               $reattachedMovingCell.addClass(options.dragCellClass);
             }
+          } 
 
-            gridstrapContext.updateVisibleCellCoordinates();
-            context.updateVisibleCellCoordinates();
-          }
+          gridstrapContext.updateVisibleCellCoordinates();
+          context.updateVisibleCellCoordinates();
         }
       }
     } else {
@@ -423,8 +427,8 @@ export class Internal {
 
   ModifyCellsArray(callback){
     callback(this.cellsArray);
-  }
-  
+  } 
+
 
   get AdditionalGridstrapDragTargetSelector(){
     return this.additionalGridstrapDragTargetSelector;

@@ -6,8 +6,7 @@ exports['default'] = {
   DATA_GRIDSTRAP: 'gridstrap',
   DATA_HIDDEN_CELL: 'gridstrap-hidden-cell',
   DATA_VISIBLE_CELL: 'gridstrap-visible-cell',
-  DATA_MOUSEDOWN_CELL_POSITION: 'gridstrap-mousedown-cell-position',
-  DATA_MOUSEDOWN_PAGE_POSITION: 'gridstrap-mousedown-screen-position',
+  DATA_MOUSEDOWN_POSITION_DIFF: 'gridstrap-mousedown-position-diff',
   DATA_CELL_POSITION_AND_SIZE: 'gridstrap-position-size',
   EVENT_DRAGSTART: 'dragstart',
   EVENT_MOUSEDOWN: 'mousedown',
@@ -16,6 +15,7 @@ exports['default'] = {
   EVENT_MOUSEUP: 'mouseup',
   EVENT_RESIZE: 'resize',
   EVENT_CELL_RESIZE: 'cellresize',
+  EVENT_CELL_DRAG: 'celldrag',
   ERROR_MISSING_JQUERY: 'Requires jQuery v?',
   ERROR_INVALID_ATTACH_ELEMENT: 'Cannot attach element that is not a child of gridstrap parent'
 };
@@ -116,32 +116,8 @@ var _methods = require('./methods');
     visibleCellContainerParentSelector: null, // null by default, use Jquery parent element.
     visibleCellContainerClass: 'gridstrap-container',
     nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous',
-    getAbsolutePositionAndSizeOfCell: function getAbsolutePositionAndSizeOfCell($cell) {
-      if (this.options.debug && !$cell.is(':visible')) {
-        console.log('Grid cell is invisible. Gridstrap should not initialise an invisible grid. (' + this.el.nodeName + ': ' + $cell[0].nodeName + ')');
-      }
-      var position = $cell.position();
-      var w = $cell.outerWidth();
-      var h = $cell.outerHeight();
-      return {
-        x: position.left,
-        y: position.top,
-        w: w,
-        h: h
-      };
-    },
     getHtmlOfSourceCell: function getHtmlOfSourceCell($cell) {
       return $cell[0].outerHTML;
-    },
-    setPositionOfDraggedCell: function setPositionOfDraggedCell(originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent) {
-      var left = mouseEvent.pageX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
-      var top = mouseEvent.pageY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
-      $cell.css('left', left);
-      $cell.css('top', top);
-    },
-    mouseMoveDragCallback: function mouseMoveDragCallback($cell, mouseEvent) {
-      // do whatever you want.
-      // return false to prevent normal operation.
     },
     enableDragging: true,
     rearrangeWhileDragging: true,
@@ -256,9 +232,6 @@ var Handlers = (function () {
 
             this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
 
-            // fix dual broen
-            hrthis.internal.SetMouseDownData(mouseEvent, $draggedCell);
-
             // reset dragged object to mouse pos, not pos of hidden cells.
             this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
           }
@@ -276,11 +249,11 @@ var Handlers = (function () {
     if ($resizedCell.length) {
       // is resizing
 
-      var originalMouseDownCellPosition = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_CELL_POSITION);
-      var originalMouseDownPagePosition = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION);
+      var _originalMouseDownCellPosition = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_CELL_POSITION);
+      var _originalMouseDownPagePosition = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION);
 
-      var newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
-      var newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
+      var newW = _originalMouseDownCellPosition.w + mouseEvent.pageX - _originalMouseDownPagePosition.x;
+      var newH = _originalMouseDownCellPosition.h + mouseEvent.pageY - _originalMouseDownPagePosition.y;
 
       $resizedCell.css('width', newW);
       $resizedCell.css('height', newH);
@@ -302,21 +275,21 @@ var Handlers = (function () {
         var nonContiguousSelector = nonContiguousOptions.selector;
         if (nonContiguousSelector && nonContiguousSelector.length) {
 
-          var $hiddenCells = this.base.getHiddenCells();
+          var $hiddenCells = this.internal.$GetHiddenCellsInElementOrder();
 
-          var lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $hiddenCells.last());
-          var draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+          var lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(context, $hiddenCells.last());
+          var draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(context, $draggedCell);
 
           while (draggedCellPositionAndSize.y + draggedCellPositionAndSize.h > lastHiddenCellPositionAndSize.y) {
             // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
             // insert dummy cells if cursor is beyond where the cells finish.
-            var $insertedCell = this.base.insertCell(nonContiguousOptions.getHtml(), $hiddenCells.length);
+            var $insertedCell = context.insertCell(nonContiguousOptions.getHtml(), $hiddenCells.length);
             $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
             var $insertedHiddenCell = $insertedCell.data(_constants2['default'].DATA_HIDDEN_CELL);
 
             // might have to keep adding them.
-            lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $insertedHiddenCell);
-            draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+            lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(context, $insertedHiddenCell);
+            draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(context, $draggedCell);
 
             $hiddenCells = $hiddenCells.add($insertedHiddenCell);
           }
@@ -327,12 +300,12 @@ var Handlers = (function () {
 
             $hiddenCells = $hiddenCells.not($lastHiddenCell);
 
-            this.base.RemoveCell($lastHiddenCell.data(_constants2['default'].DATA_VISIBLE_CELL));
+            context.RemoveCell($lastHiddenCell.data(_constants2['default'].DATA_VISIBLE_CELL));
 
             $lastHiddenCell = $hiddenCells.last();
 
-            lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $lastHiddenCell);
-            var draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(this.base, $draggedCell);
+            lastHiddenCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(context, $lastHiddenCell);
+            var _draggedCellPositionAndSize = options.getAbsolutePositionAndSizeOfCell.call(context, $draggedCell);
           }
         }
       }
@@ -351,8 +324,7 @@ var Handlers = (function () {
     var $resizedCell = $(this.setup.ResizeCellSelector);
     if (options.resizeHandleSelector && $resizedCell.length) {
       if (!options.resizeOnDrag) {
-        var originalMouseDownCellPosition = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_CELL_POSITION);
-        var originalMouseDownPagePosition = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION);
+        var originalMouseDownDifference = $resizedCell.data(_constants2['default'].DATA_MOUSEDOWN_POSITION_DIFF);
 
         var newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
         var newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
@@ -361,7 +333,7 @@ var Handlers = (function () {
       }
 
       $resizedCell.removeClass(options.resizeCellClass);
-      $resizedCell.removeData(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION);
+      $resizedCell.removeData(_constants2['default'].DATA_MOUSEDOWN_POSITION_DIFF);
 
       return;
     }
@@ -371,7 +343,7 @@ var Handlers = (function () {
 
       // no more dragging.
       $draggedCell.removeClass(options.dragCellClass);
-      $draggedCell.removeData(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION);
+      $draggedCell.removeData(_constants2['default'].DATA_MOUSEDOWN_POSITION_DIFF);
 
       var cellOriginalPosition = $draggedCell.data(_constants2['default'].DATA_CELL_POSITION_AND_SIZE);
       context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
@@ -462,8 +434,12 @@ var Internal = (function () {
     // Treat it as the 'hidden' cell, and turn the original $cell
     // into the visible/absolute cell.
 
+    if (options.debug && !$cell.is(':visible')) {
+      console.log('Grid cell is invisible. Gridstrap should not initialise an invisible grid. (' + this.el.nodeName + '): ' + $cell[0].nodeName + ')');
+    }
+
     var htmlOfOriginal = options.getHtmlOfSourceCell.call(context, $cell);
-    var positionNSize = options.getAbsolutePositionAndSizeOfCell.call(context, $cell);
+    var positionNSize = _utils.Utils.GetPositionAndSizeOfCell($cell);
 
     $cell.before(htmlOfOriginal);
     var $hiddenClone = $cell.prev();
@@ -510,11 +486,13 @@ var Internal = (function () {
     var context = this.setup.Context;
     var options = this.setup.Options;
 
-    $cell.data(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION, {
-      x: mouseEvent.pageX,
-      y: mouseEvent.pageY
+    // compare page with element' offset.
+    var cellOffset = $cell.offset();
+
+    $cell.data(_constants2['default'].DATA_MOUSEDOWN_POSITION_DIFF, {
+      x: mouseEvent.pageX - cellOffset.left,
+      y: mouseEvent.pageY - cellOffset.top
     });
-    $cell.data(_constants2['default'].DATA_MOUSEDOWN_CELL_POSITION, options.getAbsolutePositionAndSizeOfCell.call(context, $cell));
   };
 
   Internal.prototype.MoveDraggedCell = function MoveDraggedCell(mouseEvent, $cell) {
@@ -522,18 +500,25 @@ var Internal = (function () {
     var context = this.setup.Context;
     var options = this.setup.Options;
     var document = this.setup.Document;
+    var $element = this.setup.$Element;
 
-    // TODO MAKE THIS AN EVENT.
-    // user can do something custom for dragging if they want.
-    var callbackResult = options.mouseMoveDragCallback.call(context, $cell, mouseEvent);
-    if (!callbackResult && typeof callbackResult === 'boolean') {
+    var mouseDownPositionDifference = $cell.data(_constants2['default'].DATA_MOUSEDOWN_POSITION_DIFF);
+
+    var absoluteOffset = _utils.Utils.GetAbsoluteOffsetForElementFromMouseEvent($cell, mouseEvent, mouseDownPositionDifference);
+
+    var event = $.Event(_constants2['default'].EVENT_CELL_DRAG, {
+      left: absoluteOffset.left,
+      top: absoluteOffset.top,
+      target: $cell[0]
+    });
+    $element.trigger(event);
+
+    if (event.isDefaultPrevented()) {
       return;
     }
 
-    var originalMouseDownCellPosition = $cell.data(_constants2['default'].DATA_MOUSEDOWN_CELL_POSITION);
-    var originalMouseDownScreenPosition = $cell.data(_constants2['default'].DATA_MOUSEDOWN_PAGE_POSITION);
-
-    options.setPositionOfDraggedCell.call(context, originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent);
+    $cell.css('left', absoluteOffset.left);
+    $cell.css('top', absoluteOffset.top);
 
     //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
     var oldPointerEvents = $cell.css('pointer-events');
@@ -673,8 +658,8 @@ var Internal = (function () {
         if ($targetGridstrap.length) {
           if (options.swapMode) {
 
-            var preDetachPositionTarget = gridstrapContext.options.getAbsolutePositionAndSizeOfCell.call(gridstrapContext, $targetVisibleCell);
-            var preDetachPositionMoving = options.getAbsolutePositionAndSizeOfCell.call(context, $movingVisibleCell);
+            var preDetachPositionTarget = _utils.Utils.GetPositionAndSizeOfCell($targetVisibleCell);
+            var preDetachPositionMoving = _utils.Utils.GetPositionAndSizeOfCell($movingVisibleCell);
 
             var $detachedTargetOriginalCell = gridstrapContext.detachCell($targetVisibleCell);
             var $detachedMovingOriginalCell = context.detachCell($movingVisibleCell);
@@ -704,13 +689,10 @@ var Internal = (function () {
             if (wasDragging) {
               $reattachedMovingCell.addClass(options.dragCellClass);
             }
-
-            gridstrapContext.updateVisibleCellCoordinates();
-            context.updateVisibleCellCoordinates();
           } else {
 
             // insert mode.
-            var preDetachPositionMoving = options.getAbsolutePositionAndSizeOfCell.call(context, $movingVisibleCell);
+            var preDetachPositionMoving = _utils.Utils.GetPositionAndSizeOfCell($movingVisibleCell);
 
             var $detachedMovingOriginalCell = context.detachCell($movingVisibleCell);
             var wasDragging = $detachedMovingOriginalCell.hasClass(options.dragCellClass);
@@ -734,10 +716,10 @@ var Internal = (function () {
             if (wasDragging) {
               $reattachedMovingCell.addClass(options.dragCellClass);
             }
-
-            gridstrapContext.updateVisibleCellCoordinates();
-            context.updateVisibleCellCoordinates();
           }
+
+          gridstrapContext.updateVisibleCellCoordinates();
+          context.updateVisibleCellCoordinates();
         }
       }
     } else {
@@ -848,8 +830,6 @@ var _constants2 = _interopRequireDefault(_constants);
 
 var _utils = require('./utils');
 
-var _utils2 = _interopRequireDefault(_utils);
-
 var Methods = (function () {
   function Methods(setup, internal, handlers) {
     _classCallCheck(this, Methods);
@@ -880,8 +860,8 @@ var Methods = (function () {
     // relied upon when drag-stop.
     $cell.data(_constants2['default'].DATA_CELL_POSITION_AND_SIZE, positionAndSize);
 
-    $cell.css('left', positionAndSize.x);
-    $cell.css('top', positionAndSize.y);
+    $cell.css('left', positionAndSize.left);
+    $cell.css('top', positionAndSize.top);
     $cell.css('width', positionAndSize.w);
     $cell.css('height', positionAndSize.h);
   };
@@ -896,7 +876,7 @@ var Methods = (function () {
 
       var $hiddenClone = $this.data(_constants2['default'].DATA_HIDDEN_CELL);
 
-      var positionNSizeOfHiddenClone = options.getAbsolutePositionAndSizeOfCell.call(context, $hiddenClone);
+      var positionNSizeOfHiddenClone = _utils.Utils.GetPositionAndSizeOfCell($hiddenClone);
 
       this.setCellAbsolutePositionAndSize($this, positionNSizeOfHiddenClone);
     }
@@ -967,10 +947,7 @@ var Methods = (function () {
     var $detachedVisibleCell = cellNIndex.$cell.detach();
 
     // remove 'visible' things, and put the cell back where it came from.
-    $detachedVisibleCell.css('top', '');
-    $detachedVisibleCell.css('left', '');
-    $detachedVisibleCell.css('width', '');
-    $detachedVisibleCell.css('height', '');
+    _utils.Utils.ClearAbsoluteCSS($detachedVisibleCell);
     $detachedVisibleCell.removeData(_constants2['default'].DATA_HIDDEN_CELL);
     $detachedVisibleCell.removeClass(options.visibleCellClass);
 
@@ -1323,6 +1300,44 @@ var Utils = (function () {
     } else {
       $inPlaceElement.after($detachedElement);
     }
+  };
+
+  Utils.ClearAbsoluteCSS = function ClearAbsoluteCSS($element) {
+    $element.css('top', '');
+    $element.css('left', '');
+    $element.css('width', '');
+    $element.css('height', '');
+  };
+
+  Utils.GetAbsoluteOffsetForElementFromMouseEvent = function GetAbsoluteOffsetForElementFromMouseEvent($element, mouseEvent, adjustment) {
+    var $parent = $element.parent();
+    var parentOffset = $parent.offset();
+    var parentPosition = $parent.position();
+
+    var absoluteX = parentOffset.left - parentPosition.left;
+    var absoluteY = parentOffset.top - parentPosition.top;
+
+    var left = mouseEvent.pageX - absoluteX - adjustment.x;
+    var top = mouseEvent.pageY - absoluteY - adjustment.y;
+
+    return {
+      left: left,
+      top: top
+    };
+  };
+
+  Utils.GetPositionAndSizeOfCell = function GetPositionAndSizeOfCell($cell) {
+
+    var position = $cell.position();
+    var w = $cell.outerWidth();
+    var h = $cell.outerHeight();
+
+    return {
+      left: position.left,
+      top: position.top,
+      w: w,
+      h: h
+    };
   };
 
   return Utils;

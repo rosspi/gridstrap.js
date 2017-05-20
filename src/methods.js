@@ -1,5 +1,5 @@
 import Constants from './constants';
-import Utils from './utils';
+import {Utils} from './utils';
 
 export class Methods { 
   constructor(setup, internal, handlers){
@@ -26,13 +26,32 @@ export class Methods {
   }
 
   setCellAbsolutePositionAndSize($cell, positionAndSize){
-    // relied upon when drag-stop. 
+    let $ = this.setup.jQuery;
+    let context = this.setup.Context;
+    let options = this.setup.Options; 
+    let $element = this.setup.$Element;
+
+    let event = $.Event(Constants.EVENT_CELL_REDRAW, {
+      left: positionAndSize.left,
+      top: positionAndSize.top,
+      width: positionAndSize.left,
+      height: positionAndSize.top,
+      target: $cell[0]
+    });
+    $element.trigger(event);
+
+    if (event.isDefaultPrevented()){
+      return;
+    } 
+
+    // data here is relied upon when drag-stop. 
     $cell.data(Constants.DATA_CELL_POSITION_AND_SIZE, positionAndSize);
 
-    $cell.css('left', positionAndSize.x);
-    $cell.css('top', positionAndSize.y);
-    $cell.css('width', positionAndSize.w);
-    $cell.css('height', positionAndSize.h);
+    $cell.css('left', positionAndSize.left);
+    $cell.css('top', positionAndSize.top);
+    $cell.css('width', positionAndSize.width);
+    $cell.css('height', positionAndSize.height);
+
   }
 
   updateVisibleCellCoordinates() {
@@ -45,7 +64,7 @@ export class Methods {
 
       let $hiddenClone = $this.data(Constants.DATA_HIDDEN_CELL);
 
-      let positionNSizeOfHiddenClone = options.getAbsolutePositionAndSizeOfCell.call(context, $hiddenClone);
+      let positionNSizeOfHiddenClone = Utils.GetPositionAndSizeOfCell($hiddenClone);
 
       this.setCellAbsolutePositionAndSize($this, positionNSizeOfHiddenClone);
     }
@@ -116,10 +135,7 @@ export class Methods {
     var $detachedVisibleCell = cellNIndex.$cell.detach();
 
     // remove 'visible' things, and put the cell back where it came from.
-    $detachedVisibleCell.css('top', '');
-    $detachedVisibleCell.css('left', '');
-    $detachedVisibleCell.css('width', '');
-    $detachedVisibleCell.css('height', '');
+    Utils.ClearAbsoluteCSS($detachedVisibleCell);
     $detachedVisibleCell.removeData(Constants.DATA_HIDDEN_CELL);
     $detachedVisibleCell.removeClass(options.visibleCellClass);
 

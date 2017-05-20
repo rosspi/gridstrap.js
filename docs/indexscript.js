@@ -5,12 +5,12 @@ $(function () {
   }
   for (var i = 0; i < 12; i++) {
     if (i === 2) {
-      $('#nested-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"><div class="nested-inner-grid"></div></div></div>');
+      $('#nested-grid').append('<div class="col-xs-4 col-sm-2 cell"><div class="inner"><div class="nested-inner-grid"></div></div></div>');
     } else {
-      $('#nested-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>');
+      $('#nested-grid').append('<div class="col-xs-4 col-sm-2 cell"><div class="inner"></div></div>');
     }
     if (i > 2) {
-      $('.nested-inner-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell nested"><div class="inner nested"></div></div>');
+      $('.nested-inner-grid').append('<div class="col-xs-4 col-sm-2 cell nested"><div class="inner nested"></div></div>');
     }
   }
 

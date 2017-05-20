@@ -95,4 +95,42 @@ export class Utils {
     }
   }
 
+  static ClearAbsoluteCSS($element){
+    $element.css('top', '');
+    $element.css('left', '');
+    $element.css('width', '');
+    $element.css('height', '');
+  }
+
+  static GetAbsoluteOffsetForElementFromMouseEvent($element, mouseEvent, adjustment){
+    let $parent = $element.parent();      
+    let parentOffset = $parent.offset();
+    let parentPosition = $parent.position();
+
+    let absoluteX = parentOffset.left - parentPosition.left;
+    let absoluteY = parentOffset.top - parentPosition.top;
+
+    let left = mouseEvent.pageX - absoluteX - adjustment.x;
+    let top = mouseEvent.pageY - absoluteY - adjustment.y;  
+
+    return {
+      left: left,
+      top: top
+    };
+  }
+
+  static GetPositionAndSizeOfCell($cell){ 
+    
+    var position = $cell.position();
+    var w = $cell.outerWidth();
+    var h = $cell.outerHeight();
+
+    return {
+      left: position.left,
+      top: position.top,
+      width: w,
+      height: h
+    };
+  }
+
 }

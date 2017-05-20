@@ -105,6 +105,44 @@ var Utils = (function () {
     }
   };
 
+  Utils.ClearAbsoluteCSS = function ClearAbsoluteCSS($element) {
+    $element.css('top', '');
+    $element.css('left', '');
+    $element.css('width', '');
+    $element.css('height', '');
+  };
+
+  Utils.GetAbsoluteOffsetForElementFromMouseEvent = function GetAbsoluteOffsetForElementFromMouseEvent($element, mouseEvent, adjustment) {
+    var $parent = $element.parent();
+    var parentOffset = $parent.offset();
+    var parentPosition = $parent.position();
+
+    var absoluteX = parentOffset.left - parentPosition.left;
+    var absoluteY = parentOffset.top - parentPosition.top;
+
+    var left = mouseEvent.pageX - absoluteX - adjustment.x;
+    var top = mouseEvent.pageY - absoluteY - adjustment.y;
+
+    return {
+      left: left,
+      top: top
+    };
+  };
+
+  Utils.GetPositionAndSizeOfCell = function GetPositionAndSizeOfCell($cell) {
+
+    var position = $cell.position();
+    var w = $cell.outerWidth();
+    var h = $cell.outerHeight();
+
+    return {
+      left: position.left,
+      top: position.top,
+      w: w,
+      h: h
+    };
+  };
+
   return Utils;
 })();
 

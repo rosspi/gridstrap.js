@@ -67,34 +67,10 @@ import {Methods} from './methods';
     mouseMoveSelector: 'body', // detect mousemouse and mouseup events within this element.
     visibleCellContainerParentSelector: null, // null by default, use Jquery parent element.
     visibleCellContainerClass: 'gridstrap-container',
-    nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous',
-    getAbsolutePositionAndSizeOfCell: function ($cell) {
-      if (this.options.debug && !$cell.is(':visible')) {
-        console.log('Grid cell is invisible. Gridstrap should not initialise an invisible grid. (' + this.el.nodeName + ': ' + $cell[0].nodeName + ')');
-      }
-      var position = $cell.position();
-      var w = $cell.outerWidth();
-      var h = $cell.outerHeight();
-      return {
-        x: position.left,
-        y: position.top,
-        w: w,
-        h: h
-      };
-    },
+    nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous', 
     getHtmlOfSourceCell: function ($cell) {
       return $cell[0].outerHTML;
-    },
-    setPositionOfDraggedCell: function (originalMouseDownCellPosition, originalMouseDownScreenPosition, $cell, mouseEvent) {
-      var left = mouseEvent.pageX + originalMouseDownCellPosition.x - originalMouseDownScreenPosition.x;
-      var top = mouseEvent.pageY + originalMouseDownCellPosition.y - originalMouseDownScreenPosition.y;
-      $cell.css('left', left);
-      $cell.css('top', top);
-    },
-    mouseMoveDragCallback: function ($cell, mouseEvent) {
-      // do whatever you want.
-      // return false to prevent normal operation.
-    },
+    }, 
     enableDragging: true,
     rearrangeWhileDragging: true,
     swapMode: false,
