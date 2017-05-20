@@ -27,7 +27,7 @@ export class Internal {
 
     let appendNamespace = function(eventName){
       return `${eventName}.gridstrap`;
-    }
+    };
 
     this.HandleCellMouseEvent(
       context, 

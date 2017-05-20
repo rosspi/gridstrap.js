@@ -15,7 +15,7 @@ $(function () {
   }
 
   for (var i = 0; i < 12 * 2; i++) {
-    $('#resize-grid').append('<div class="col-xs-2 cell"><div class="inner">' + i + '<div class="resize"></div></div></div>');
+    $('#resize-grid').append('<div class="col-xs-2 cell"><div class="inner"><div class="resize"></div></div></div>');
   }
 
   for (var i = 0; i < 12; i++) {

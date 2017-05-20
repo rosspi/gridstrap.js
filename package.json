@@ -1,6 +1,6 @@
 {
-  "name": "jquery-boilerplate",
-  "version": "4.1.0",
+  "name": "gridstrap",
+  "version": "0.0.0-development",
   "description": "A jump-start for jQuery plugins development.",
   "keywords": [
     "jquery-plugin",
@@ -8,34 +8,25 @@
     "boilerplate",
     "plugins"
   ],
+  "main": "src/gridstrap.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jquery-boilerplate/jquery-boilerplate.git"
+    "url": "https://github.com/rosspi/gridstrap.js.git"
   },
   "bugs": {
-    "url": "https://github.com/jquery-boilerplate/jquery-boilerplate/issues"
+    "url": "https://github.com/rosspi/gridstrap.js/issues"
   },
   "author": {
-    "name": "Zeno Rocha",
-    "email": "zno.rocha@gmail.com",
-    "url": "https://github.com/zenorocha"
+    "name": "Ross P",
+    "email": "info@rossp.xyz",
+    "url": "https://github.com/rosspi"
   },
   "homepage": "http://jqueryboilerplate.com",
   "contributors": [
     {
-      "name": "Zeno Rocha",
-      "email": "zno.rocha@gmail.com",
-      "url": "https://github.com/zenorocha"
-    },
-    {
-      "name": "Addy Osmani",
-      "email": "addyosmani@gmail.com",
-      "url": "https://github.com/addyosmani"
-    },
-    {
-      "name": "Helder Santana",
-      "email": "heldr@me.com",
-      "url": "https://github.com/heldr"
+      "name": "Ross P",
+      "email": "info@rossp.xyz",
+      "url": "https://github.com/rosspi"
     }
   ],
   "license": "MIT",
@@ -63,10 +54,12 @@
     "phantomjs": "^1.9.18",
     "qunitjs": "^1.19.0",
     "babelify": "^6.1.0",
-        "grunt-browserify": "^3.8.0"
+    "grunt-browserify": "^3.8.0",
+    "semantic-release": "^6.3.6"
   },
   "scripts": {
     "jscs": "jscs src",
-    "test": "npm run jscs && grunt travis --verbose"
+    "test": "npm run jscs && grunt travis --verbose",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   }
 }
