@@ -9,7 +9,7 @@
   pointer-events: none;
 }
 .gridstrap-cell-drag{ 
-  transition: none;
+    transition:width 0.1s, height 0.1s,  left 0.1s, top 0.1s ;
   z-index: 10000;
   /*pointer-events: none;*/
 }

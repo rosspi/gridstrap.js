@@ -1,3 +1,5 @@
+import Constants from './constants';
+
 export class Utils { 
 
   static GenerateRandomId () {
@@ -13,13 +15,13 @@ export class Utils {
     return function () {
       let context = this;
       let args = arguments;
+      let callNow = leading || !milliseconds;
       let later = function () {
         timeout = null;
-        if (!leading) {
+        if (!callNow) {
           callback.apply(context, args);
         }
       };
-      let callNow = leading && !milliseconds;
       clearTimeout(timeout);
       timeout = setTimeout(later, milliseconds);
       if (callNow) {
@@ -100,6 +102,11 @@ export class Utils {
     $element.css('left', '');
     $element.css('width', '');
     $element.css('height', '');
+  }
+
+  static ClearMouseDownData($cell){
+    $cell.removeData(Constants.DATA_MOUSEDOWN_POSITION_DIFF);
+    $cell.removeData(Constants.DATA_MOUSEDOWN_SIZE);
   }
 
   static GetAbsoluteOffsetForElementFromMouseEvent($element, mouseEvent, adjustment){

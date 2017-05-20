@@ -84,6 +84,7 @@ import {Methods} from './methods';
     debug: false,
     dragMouseoverThrottle: 500, //used for detecting which unique element is mouse-over.
     windowResizeDebounce: 50, 
+    mousemoveDebounce: 0,
     resizeHandleSelector: null, // does not resize by default. Relative to cell. 
     resizeOnDrag: true 
   };

@@ -19,7 +19,7 @@ $(function () {
   }
 
   for (var i = 0; i < 12; i++) {
-    $('#noncontiguous-grid').append('<div class="col-xs-' + Math.floor((Math.random() * 3 + 1)).toString() + ' cell"><div class="inner"></div></div>');
+    $('#noncontiguous-grid').append('<div class="col-xs-1 cell"><div class="inner"></div></div>');
   }
 
   for (var i = 0; i < 12 * 2; i++) {
@@ -153,11 +153,14 @@ $(function () {
           return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
         }
       },
+      swapMode: true,
+      mousemoveDebounce: 10
     });
   });
 
   $('a[href="#dual-demo"]').on('shown.bs.tab', function () {
     $('#dual1-grid').gridstrap({
+      swapMode: true
       // additionalDragGridstrapTargetSelector: '#dual2-grid',
       //     visibleCellContainerParentSelector: '#dual-demo'
     });
@@ -185,7 +188,7 @@ $(function () {
     });
   });
 
-  $('#replace-mode').on('change', function () {
+  $('#swap-mode').on('change', function () {
     var data = $('#api-grid').data('gridstrap');
     data.updateOptions({
       swapMode: $(this).is(':checked')
@@ -197,6 +200,17 @@ $(function () {
     data.updateOptions({
       rearrangeWhileDragging: $(this).is(':checked')
     });
+  });
+
+  $('#move').on('click', function(){
+    var data = $('#api-grid').data('gridstrap');
+    var $cells = data.$getCells();
+    var $randomCell = $cells.eq(Math.floor(Math.random() * $cells.length));
+
+    data.moveCell(
+      $randomCell,
+      Math.floor((Math.random() * $cells.length))
+      );
   });
 
 

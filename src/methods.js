@@ -158,12 +158,14 @@ export class Methods {
     this.updateVisibleCellCoordinates();
   }
 
-  moveCell(selector, toIndex, targetGridstrap) {
+  moveCell(selector, toIndex, targetGridstrap) { // targetGridstrap optional..
+    let context = this.setup.Context;
+
     let cellNIndex = this.internal.GetCellAndInternalIndex(selector);
 
     let $existingVisibleCells = this.$getCells();
 
-    this.internal.MoveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex));
+    this.internal.MoveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex), targetGridstrap || context);
     
   }
 

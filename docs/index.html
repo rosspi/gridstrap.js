@@ -175,13 +175,19 @@ Inspired by gridster.js. Built with love.Text can be <strong>bold</strong>, <em>
       <div class="row" id="api-grid">  
       </div>
       <div class="row"> 
-        <div class="col-xs-2">
-          <label>
-            <input type="checkbox" id="replace-mode"/> Replace mode
-          </label>
-          <label>
-            <input type="checkbox" id="rearrange-mode"/> Rearrange
-          </label>
+        <div class="col-xs-6 col-md-4">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="swap-mode"/> Swap mode
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="rearrange-mode" checked="checked"/> Rearrange on drag
+            </label>
+          </div>
+          <button id="move">Move random cell</button>
+          <a href="//">More on github...</a>
         </div>
       </div>
     </div> 

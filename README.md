@@ -144,3 +144,5 @@ Check [Releases](https://github.com/jquery-boilerplate/jquery-boilerplate/releas
 
 [MIT License](http://zenorocha.mit-license.org/) © Zeno Rocha
 >>>>>>> 58c8493d2c12ecbfcb557fe18e3b775f29c15d44
+
+The way non-contiguous mode works is by appending (or removing as needed) placeholder cells to the end of the cell container. These placeholders therefore act dynamically so that the quantity of cells within the grid will be sufficient for whatever is required as if they were 'real' cells. However, because.. somethign about misbehaving with things moving between cells.

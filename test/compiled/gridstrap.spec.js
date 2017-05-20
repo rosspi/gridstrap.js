@@ -2,8 +2,39 @@
 'use strict';
 
 exports.__esModule = true;
+exports['default'] = {
+  DATA_GRIDSTRAP: 'gridstrap',
+  DATA_HIDDEN_CELL: 'gridstrap-hidden-cell',
+  DATA_VISIBLE_CELL: 'gridstrap-visible-cell',
+  DATA_MOUSEDOWN_POSITION_DIFF: 'gridstrap-mousedown-position-diff',
+  DATA_MOUSEDOWN_SIZE: 'gridstrap-mousedown-size',
+  DATA_CELL_POSITION_AND_SIZE: 'gridstrap-position-size',
+  EVENT_DRAGSTART: 'dragstart',
+  EVENT_MOUSEDOWN: 'mousedown',
+  EVENT_MOUSEOVER: 'mouseover',
+  EVENT_MOUSEMOVE: 'mousemove',
+  EVENT_MOUSEUP: 'mouseup',
+  EVENT_RESIZE: 'resize',
+  EVENT_CELL_RESIZE: 'cellresize',
+  EVENT_CELL_DRAG: 'celldrag',
+  EVENT_CELL_REDRAW: 'cellredraw',
+  ERROR_MISSING_JQUERY: 'Requires jQuery v?',
+  ERROR_INVALID_ATTACH_ELEMENT: 'Cannot attach element that is not a child of gridstrap parent'
+};
+module.exports = exports['default'];
+
+},{}],2:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _constants = require('./constants');
+
+var _constants2 = _interopRequireDefault(_constants);
 
 var Utils = (function () {
   function Utils() {
@@ -23,13 +54,13 @@ var Utils = (function () {
     return function () {
       var context = this;
       var args = arguments;
+      var callNow = leading || !milliseconds;
       var later = function later() {
         timeout = null;
-        if (!leading) {
+        if (!callNow) {
           callback.apply(context, args);
         }
       };
-      var callNow = leading && !milliseconds;
       clearTimeout(timeout);
       timeout = setTimeout(later, milliseconds);
       if (callNow) {
@@ -112,6 +143,11 @@ var Utils = (function () {
     $element.css('height', '');
   };
 
+  Utils.ClearMouseDownData = function ClearMouseDownData($cell) {
+    $cell.removeData(_constants2['default'].DATA_MOUSEDOWN_POSITION_DIFF);
+    $cell.removeData(_constants2['default'].DATA_MOUSEDOWN_SIZE);
+  };
+
   Utils.GetAbsoluteOffsetForElementFromMouseEvent = function GetAbsoluteOffsetForElementFromMouseEvent($element, mouseEvent, adjustment) {
     var $parent = $element.parent();
     var parentOffset = $parent.offset();
@@ -138,8 +174,8 @@ var Utils = (function () {
     return {
       left: position.left,
       top: position.top,
-      w: w,
-      h: h
+      width: w,
+      height: h
     };
   };
 
@@ -148,7 +184,7 @@ var Utils = (function () {
 
 exports.Utils = Utils;
 
-},{}],2:[function(require,module,exports){
+},{"./constants":1}],3:[function(require,module,exports){
 "use strict";
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -223,4 +259,4 @@ var _srcUtils2 = _interopRequireDefault(_srcUtils);
 	});
 })(jQuery, QUnit);
 
-},{"../../src/utils":1}]},{},[2]);
+},{"../../src/utils":2}]},{},[3]);

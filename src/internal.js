@@ -50,8 +50,11 @@ export class Internal {
     // it is not appropriate to confine the events to the visible cell wrapper.
     $(options.mouseMoveSelector)
       .on(
-        `${appendNamespace(Constants.EVENT_MOUSEMOVE)}`,  
-        eventHandlers.onMousemove.bind(eventHandlers))
+        `${appendNamespace(Constants.EVENT_MOUSEMOVE)}`, 
+        Utils.Debounce(
+          eventHandlers.onMousemove.bind(eventHandlers),
+          options.mousemoveDebounce
+        ))
       .on(
         `${appendNamespace(Constants.EVENT_MOUSEUP)}`,  
         eventHandlers.onMouseup.bind(eventHandlers));
@@ -61,7 +64,7 @@ export class Internal {
         `${appendNamespace(Constants.EVENT_RESIZE)}`,  
         Utils.Debounce(
           context.updateVisibleCellCoordinates,
-          options.mouseMoveDebounce
+          options.windowResizeDebounce
         ));
     }
   }
@@ -132,10 +135,16 @@ export class Internal {
 
     // compare page with element' offset.
     let cellOffset = $cell.offset(); 
+    var w = $cell.outerWidth();
+    var h = $cell.outerHeight();
 
     $cell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF, {
       x: mouseEvent.pageX - cellOffset.left,
       y: mouseEvent.pageY - cellOffset.top
+    });
+    $cell.data(Constants.DATA_MOUSEDOWN_SIZE, {
+      width: w,
+      height: h
     });
   }
 
@@ -233,14 +242,7 @@ export class Internal {
       }
     }
 
-    return visibleCellAndIndex;
-
-    // I DONT THINK THIS IS NECESSARY?
-    // check if linked hidden element is NOT in parent element.
-    // let $linkedHiddenCell = visibleCellAndIndex.$cell.data(Constants.DATA_HIDDEN_CELL);
-    // if (!$linkedHiddenCell.closest(base.$el).is(base.$el)) {
-    //   return noCell;
-    // }
+    return visibleCellAndIndex; 
   }
 
   $GetClosestGridstrap(element) { // looks up the tree to find the closest instantiated gridstap instance. May not be this one in the case of nested grids.
@@ -311,7 +313,7 @@ export class Internal {
               $detachedMovingOriginalCell.removeClass(options.dragCellClass);
             }
 
-            swapJQueryElements($detachedMovingOriginalCell, $detachedTargetOriginalCell);
+            Utils.SwapJQueryElements($detachedMovingOriginalCell, $detachedTargetOriginalCell);
 
             //re attach in opposing grids.
             let $reattachedMovingCell = gridstrapContext.attachCell($detachedMovingOriginalCell);
@@ -320,14 +322,17 @@ export class Internal {
             // have to remove visibleCellClass that these two would now have
             // as that should have the css transition animation in it, 
             // and we want to bypass that, set position, then apply it, set position again. 
-            $reattachedMovingCell.removeClass(options.visibleCellClass);
-            $reattachedTargetCell.removeClass(options.visibleCellClass);
+            Utils.ClearAbsoluteCSS($reattachedMovingCell);
+            Utils.ClearAbsoluteCSS($reattachedTargetCell); 
+
+            gridstrapContext.setCellAbsolutePositionAndSize($reattachedMovingCell, preDetachPositionMoving);
+            context.setCellAbsolutePositionAndSize($reattachedTargetCell, preDetachPositionTarget);
+
+            // $reattachedMovingCell.addClass(options.visibleCellClass);
+            // $reattachedTargetCell.addClass(options.visibleCellClass);
 
             gridstrapContext.setCellAbsolutePositionAndSize($reattachedMovingCell, preDetachPositionTarget);
             context.setCellAbsolutePositionAndSize($reattachedTargetCell, preDetachPositionMoving);
-
-            $reattachedMovingCell.addClass(options.visibleCellClass);
-            $reattachedTargetCell.addClass(options.visibleCellClass);
 
             if (wasDragging) {
               $reattachedMovingCell.addClass(options.dragCellClass);

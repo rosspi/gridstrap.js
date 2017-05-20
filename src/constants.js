@@ -3,6 +3,7 @@
    DATA_HIDDEN_CELL : 'gridstrap-hidden-cell',
    DATA_VISIBLE_CELL : 'gridstrap-visible-cell', 
    DATA_MOUSEDOWN_POSITION_DIFF : 'gridstrap-mousedown-position-diff',
+   DATA_MOUSEDOWN_SIZE : 'gridstrap-mousedown-size',
    DATA_CELL_POSITION_AND_SIZE : 'gridstrap-position-size',
    EVENT_DRAGSTART : 'dragstart',
    EVENT_MOUSEDOWN : 'mousedown',
