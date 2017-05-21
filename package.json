@@ -10,7 +10,7 @@
   ],
   "main": "dist/jquery-gridstrap.js",
   "repository": {
-    "type": "git",
+    "type": "git", 
     "url": "https://github.com/rosspi/gridstrap.js.git"
   },
   "bugs": {
