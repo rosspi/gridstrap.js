@@ -1,6 +1,4 @@
-//const webpackConfig = require('./webpack.config.js');
- 
-module.exports = function( grunt ) {
+ module.exports = function( grunt ) {
 
 	grunt.initConfig( {
 
@@ -20,26 +18,26 @@ module.exports = function( grunt ) {
 		},
 
 		// Concat definitions
-		concat: {
+		concat: { // just concat banner onto non-minified. Uglify handles that.
 			options: {
 				banner: "<%= meta.banner %>"
 			},
 			dist: {
-				src: [ "src/jquery.boilerplate.js" ],
-				dest: "dist/jquery.boilerplate.js"
+				src: [ "dist/jquery.gridstrap.js" ],
+				dest: "dist/jquery.gridstrap.js"
 			}
 		},
 
 		// Lint definitions
 		jshint: {
-			files: [ "src/jquery.boilerplate.js", "test/**/*" ],
+			files: [ "src/*", "test/spec/*" ],
 			options: {
 				jshintrc: ".jshintrc"
 			}
 		},
 
 		jscs: {
-			src: "src/**/*.js",
+			src: "src/*.js",
 			options: {
 				config: ".jscsrc"
 			}
@@ -48,8 +46,8 @@ module.exports = function( grunt ) {
 		// Minify definitions
 		uglify: {
 			dist: {
-				src: [ "dist/gridstrap.js" ],
-				dest: "dist/gridstrap.min.js"
+				src: [ "dist/jquery.gridstrap.js" ],
+				dest: "dist/jquery.gridstrap.min.js"
 			},
 			options: {
 				banner: "<%= meta.banner %>"
@@ -83,22 +81,12 @@ module.exports = function( grunt ) {
             ]
         },
         files: { 
-            "./dist/gridstrap.js": ["./src/gridstrap.js"],
+            "./dist/jquery.gridstrap.js": ["./src/gridstrap.js"],
             "./test/compiled/gridstrap.spec.js": ["./test/spec/*.js"]
         }
       }
     },
-    // webpacktest: {
-    //   options: {
-    //     stats: !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
-    //   },
-    //   prod: webpackConfig.test,
-    //   dev: webpackConfig.test, //Object.assign({ watch: true }, webpackConfig)
-    // },
-
-		// watch for changes to source
-		// Better than calling grunt a million times
-		// (call 'grunt watch')
+  
 		watch: {
 			files: [ "src/*", "test/spec/*" ],
 			tasks: [ "default" ]
@@ -116,6 +104,6 @@ module.exports = function( grunt ) {
 
 	grunt.registerTask( "travis", [ "jshint", "karma:travis" ] );
 	grunt.registerTask( "lint", [ "jshint", "jscs" ] );
-	grunt.registerTask( "build", [ "concat", "browserify", "uglify" ] );
+	grunt.registerTask( "build", [ "browserify", "uglify", "concat" ] );
 	grunt.registerTask( "default", [ "jshint",  "build", "karma:unit" ] );
 };

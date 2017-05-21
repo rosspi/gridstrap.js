@@ -18,6 +18,7 @@ exports['default'] = {
   EVENT_CELL_RESIZE: 'cellresize',
   EVENT_CELL_DRAG: 'celldrag',
   EVENT_CELL_REDRAW: 'cellredraw',
+  EVENT_NONCONTIGUOUS_CONTAINER_CHANGE: 'noncontiguouschange',
   ERROR_MISSING_JQUERY: 'Requires jQuery v?',
   ERROR_INVALID_ATTACH_ELEMENT: 'Cannot attach element that is not a child of gridstrap parent'
 };

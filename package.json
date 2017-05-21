@@ -1,5 +1,5 @@
 {
-  "name": "gridstrap",
+  "name": "jquery.gridstrap",
   "version": "0.0.0-development",
   "description": "A jump-start for jQuery plugins development.",
   "keywords": [
@@ -8,7 +8,7 @@
     "boilerplate",
     "plugins"
   ],
-  "main": "dist/gridstrap.js",
+  "main": "dist/jquery-gridstrap.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/rosspi/gridstrap.js.git"
