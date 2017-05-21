@@ -1,7 +1,8 @@
 <<<<<<< d5cf1f306b713cff0706bbb8a265ca0161bf54a0
 # gridstrap
 
-blah blah
+blah blah [![Build Status](https://travis-ci.org/rosspi/gridstrap.js.svg?branch=master)](https://travis-ci.org/rosspi/gridstrap.js)
+
 
 [![JIRA sprint completion](https://img.shields.io/jira/sprint/https/jira.spring.io/94.svg)]()
 
