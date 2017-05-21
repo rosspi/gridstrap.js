@@ -1,7 +1,7 @@
 /*
- *  jquery.gridstrap - v0.0.0-semantically-released
- *  A jump-start for jQuery plugins development.
- *  http://jqueryboilerplate.com
+ *  jquery.gridstrap - v{{ include-version }}
+ *  gridstrap.js https://www.npmjs.com/package/jquery.gridstrap
+ *  https://rosspi.github.io/gridstrap.js/
  *
  *  Made by Ross P
  *  Under MIT License
@@ -117,35 +117,36 @@ var _methods = require('./methods');
   };
 
   $.Gridstrap.defaultOptions = {
-    gridCellSelector: '>*', // relative to parent element
-    hiddenCellClass: 'gridstrap-cell-hidden',
-    visibleCellClass: 'gridstrap-cell-visible',
-    dragCellHandleSelector: '*', // relative to and including cell element.
-    dragCellClass: 'gridstrap-cell-drag',
-    resizeCellClass: 'gridstrap-cell-resize',
-    mouseMoveSelector: 'body', // detect mousemouse and mouseup events within this element.
-    visibleCellContainerParentSelector: null, // null by default, use Jquery parent element.
-    visibleCellContainerClass: 'gridstrap-container',
-    nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous',
+    gridCellSelector: '>*', // jQuery selector for grid's cells relative to parent element.
+    hiddenCellClass: 'gridstrap-cell-hidden', // class applied to 'hidden' cells.
+    visibleCellClass: 'gridstrap-cell-visible', // class applied to 'visible' cells.
+    nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous', // class applied to non-contiguous placeholder cells.
+    dragCellClass: 'gridstrap-cell-drag', // class applied to dragging cell.
+    resizeCellClass: 'gridstrap-cell-resize', // class applied to resizing cell.
+    mouseMoveSelector: 'body', // jQuery selector to bind mousemouse and mouseup events.
+    visibleCellContainerParentSelector: null, // jQuery selector to append 'visible' cell container to. Null will use the element the plugin is initialised on.
+    visibleCellContainerClass: 'gridstrap-container', // class applied to the cell container element.
     getHtmlOfSourceCell: function getHtmlOfSourceCell($cell) {
+      // function to return the html of a 'source' cell.
       return $cell[0].outerHTML;
     },
-    enableDragging: true,
-    rearrangeWhileDragging: true,
-    swapMode: false,
-    nonContiguousOptions: {
+    dragCellHandleSelector: '*', // jQuery selector relative to and including cell for drag handling.
+    draggable: true, // toggle mouse dragging.
+    rearrangeOnDrag: true, // toggle the triggering of rearranging cells before mouseup.
+    resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
+    resizeOnDrag: true, // toggle mouse resizing.	
+    swapMode: false, // toggle swap or insert mode when rearranging cells.
+    nonContiguousOptions: { // TODO// TODO// TODO// TODO
       selector: null,
       getHtml: function getHtml() {
         return null;
       }
     },
-    updateCoordinatesOnWindowResize: true,
-    debug: false,
-    dragMouseoverThrottle: 500, //used for detecting which unique element is mouse-over.
-    windowResizeDebounce: 50,
-    mousemoveDebounce: 0,
-    resizeHandleSelector: null, // does not resize by default. Relative to cell.
-    resizeOnDrag: true
+    updateCoordinatesOnWindowResize: true, // enable window resize event handler.
+    debug: false, // toggle console output.
+    dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.
+    windowResizeDebounce: 50, // debounce redraw on window resize.
+    mousemoveDebounce: 0 // debounce mousemove for dragging cells.
   };
 
   $.fn.gridstrap = function (options) {
@@ -878,10 +879,6 @@ var Methods = (function () {
     this.internal = internal;
     this.handlers = handlers;
   }
-
-  // initCellsHiddenCopyAndSetAbsolutePosition($cell){
-
-  // }
 
   Methods.prototype.$getCellOfElement = function $getCellOfElement(element) {
     // could be selector

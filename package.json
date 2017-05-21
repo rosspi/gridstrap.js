@@ -1,7 +1,7 @@
 {
   "name": "jquery.gridstrap",
-  "version": "0.0.0-semantically-released(https://www.npmjs.com/package/jquery.gridstrap)",
-  "description": "A jump-start for jQuery plugins development.",
+  "version": "0.0.0-semantically-released",
+  "description": "gridstrap.js https://www.npmjs.com/package/jquery.gridstrap",
   "keywords": [
     "jquery-plugin",
     "jquery",
@@ -21,7 +21,7 @@
     "email": "info@rossp.xyz",
     "url": "https://github.com/rosspi"
   },
-  "homepage": "http://jqueryboilerplate.com",
+  "homepage": "https://rosspi.github.io/gridstrap.js/",
   "contributors": [
     {
       "name": "Ross P",
@@ -71,10 +71,5 @@
       "dist/jquery.gridstrap.min.css", 
       "dist/jquery.gridstrap.min.js"
       ]
-  },
-  "release" : {
-    "verifyConditions" : {
-
-    }
   }
 }

@@ -8,11 +8,7 @@ export class Methods {
     this.handlers = handlers;
    
   }
-
  
-  // initCellsHiddenCopyAndSetAbsolutePosition($cell){
-
-  // }
   $getCellOfElement(element) { // could be selector
     let $ = this.setup.jQuery;
     let context = this.setup.Context;
