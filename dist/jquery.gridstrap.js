@@ -1041,8 +1041,28 @@ var Methods = (function () {
     this.internal.MoveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex), targetGridstrap || context);
   };
 
-  Methods.prototype.moveCellToCoordinates = function moveCellToCoordinates(selector, x, y, targetGridstrap) {
-    // TODO, use document.getlement at blah
+  Methods.prototype.$getCellFromCoordinates = function $getCellFromCoordinates(clientX, clientY) {
+    var document = this.setup.Document;
+    var $ = this.setup.jQuery;
+
+    var element = document.elementFromPoint(clientX, clientY);
+    var cellAndIndex = this.internal.GetCellAndInternalIndex(element);
+    if (!cellAndIndex) {
+      return $();
+    }
+    return cellAndIndex.$cell;
+  };
+
+  Methods.prototype.getCellIndexFromCoordinates = function getCellIndexFromCoordinates(clientX, clientY) {
+    var document = this.setup.Document;
+    var $ = this.setup.jQuery;
+
+    var element = document.elementFromPoint(clientX, clientY);
+    var cellAndIndex = this.internal.GetCellAndInternalIndex(element);
+    if (!cellAndIndex) {
+      return -1;
+    }
+    return this.$getCells().index(cellAndIndex.$cell);
   };
 
   Methods.prototype.$getCells = function $getCells() {
