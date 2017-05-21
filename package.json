@@ -1,6 +1,6 @@
 {
   "name": "jquery.gridstrap",
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.0-semantically-released(https://www.npmjs.com/package/jquery.gridstrap)",
   "description": "A jump-start for jQuery plugins development.",
   "keywords": [
     "jquery-plugin",
@@ -71,5 +71,10 @@
       "dist/jquery.gridstrap.min.css", 
       "dist/jquery.gridstrap.min.js"
       ]
+  },
+  "release" : {
+    "verifyConditions" : {
+
+    }
   }
 }
