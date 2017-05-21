@@ -39,7 +39,8 @@
 				} 
 			},
 			options: {
-				banner: "<%= meta.banner %>"
+				banner: "<%= meta.banner %>",
+				sourceMap: true
 			}
 		}, 
 

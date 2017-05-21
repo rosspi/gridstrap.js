@@ -3,12 +3,17 @@
 
 blah blah [![Build Status](https://travis-ci.org/rosspi/gridstrap.js.svg?branch=master)](https://travis-ci.org/rosspi/gridstrap.js)
 
+  <a href="https://www.npmjs.com/package/jquery.gridstrap">
+		<img src="https://img.shields.io/npm/v/npm.svg" alt="">
+	</a>
+ 
+ https://img.shields.io/badge/donate%20bitcoin-1Q32bCvaoNPS4GUNxeBbPzkniMguKFVEtf-green.svg
 
-[![JIRA sprint completion](https://img.shields.io/jira/sprint/https/jira.spring.io/94.svg)]()
+[![donate]( https://img.shields.io/badge/donate%20bitcoin-1Q32bCvaoNPS4GUNxeBbPzkniMguKFVEtf-green.svg)]
 
 [![donate](https://img.shields.io/badge/bitcoin-donate-yellow.svg)](www.somewhere.com)
 =======
-# jQuery Boilerplate [![Build Status](https://secure.travis-ci.org/jquery-boilerplate/jquery-boilerplate.svg?branch=master)](https://travis-ci.org/jquery-boilerplate/jquery-boilerplate) ![Bower Version](https://badge.fury.io/bo/jquery-boilerplate.svg)
+# jQuery Boilerplate [![Build Status](https://secure.travis-ci.org/jquery-boilerplate/jquery-boilerplate.svg?branch=master)](https://travis-ci.org/jquery-boilerplate/jquery-boilerplate) 
 
 ### A jump-start for jQuery plugins development
 

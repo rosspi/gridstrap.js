@@ -5,12 +5,14 @@ cache:
 notifications:
   email: false
 node_js:
+  - '6'
   - '7'
 before_install: 
   - npm install -g grunt-cli
 before_script:
   - npm prune
 script:
+  - npm run corp-release
   - npm run test
 after_success:
   - npm run semantic-release
