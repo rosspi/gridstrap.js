@@ -434,7 +434,6 @@ export class Internal {
     callback(this.cellsArray);
   } 
 
-
   get AdditionalGridstrapDragTargetSelector(){
     return this.additionalGridstrapDragTargetSelector;
   }
@@ -451,6 +450,5 @@ export class Internal {
   
   get CellsArray(){
     return this.cellsArray;
-  }
-  
+  }  
 }
