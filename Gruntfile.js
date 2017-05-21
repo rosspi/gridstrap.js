@@ -29,22 +29,7 @@
 					"dist/jquery.gridstrap.min.css": ["dist/jquery.gridstrap.min.css"],
 				} 
 			}
-		},
-
-		// Lint definitions
-		jshint: {
-			files: [ "src/*", "test/spec/*" ],
-			options: {
-				jshintrc: ".jshintrc"
-			}
-		},
-
-		jscs: {
-			src: "src/*.js",
-			options: {
-				config: ".jscsrc"
-			}
-		},
+		}, 
 
 		// Minify definitions
 		uglify: {
@@ -98,7 +83,7 @@
         },
         files: { 
             "./dist/jquery.gridstrap.js": ["./src/gridstrap.js"],
-            "./test/compiled/gridstrap.spec.js": ["./test/spec/*.js"]
+            "./test/compiled/jquery.gridstrap.spec.js": ["./test/spec/*.js"]
         }
       }
     },
@@ -111,16 +96,13 @@
 	} );
 
 	grunt.loadNpmTasks( "grunt-contrib-concat" );
-	grunt.loadNpmTasks( "grunt-contrib-jshint" );
-	grunt.loadNpmTasks( "grunt-jscs" );
 	grunt.loadNpmTasks( "grunt-contrib-uglify" ); 
 	grunt.loadNpmTasks( "grunt-contrib-watch" );
 	grunt.loadNpmTasks( "grunt-karma" );
 	grunt.loadNpmTasks("grunt-browserify");
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 
-	grunt.registerTask( "travis", [ "jshint", "karma:travis" ] );
-	grunt.registerTask( "lint", [ "jshint", "jscs" ] );
 	grunt.registerTask( "build", [ "browserify", "uglify", "cssmin", "concat" ] );
-	grunt.registerTask( "default", [ "jshint",  "build", "karma:unit" ] );
+	grunt.registerTask( "travis", [ "build", "karma:travis" ] ); 
+	grunt.registerTask( "default", [ "build", "karma:unit" ] );
 };

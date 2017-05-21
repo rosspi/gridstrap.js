@@ -200,8 +200,10 @@ var _srcUtils2 = _interopRequireDefault(_srcUtils);
 
 	var $testCanvas = $("#testCanvas");
 	var $fixture = null;
+	var pluginName = 'gridstrap';
+	var pluginDataName = 'gridstrap';
 
-	QUnit.module("jQuery Boilerplate", {
+	QUnit.module("jQuery Gridstrap", {
 		beforeEach: function beforeEach() {
 
 			// fixture is the element where your jQuery plugin will act
@@ -217,47 +219,55 @@ var _srcUtils2 = _interopRequireDefault(_srcUtils);
 	});
 
 	QUnit.test("is inside jQuery library", function (assert) {
-		assert.equal(typeof $.fn.defaultPluginName, "function", "has function inside jquery.fn");
-		assert.equal(typeof $fixture.defaultPluginName, "function", "another way to test it");
+		assert.equal(typeof $.fn[pluginName], "function", "has function inside jquery.fn");
+		assert.equal(typeof $fixture[pluginName], "function", "another way to test it");
 	});
 
 	QUnit.test("returns jQuery functions after called (chaining)", function (assert) {
-		assert.equal(typeof $fixture.defaultPluginName().on, "function", "'on' function must exist after plugin call");
+		assert.equal(typeof $fixture[pluginName]().on, "function", "'on' function must exist after plugin call");
 	});
 
 	QUnit.test("caches plugin instance", function (assert) {
-		$fixture.defaultPluginName();
-		assert.ok($fixture.data("plugin_defaultPluginName"), "has cached it into a jQuery data");
+		$fixture[pluginName]();
+		assert.ok($fixture.data(pluginDataName), "has cached it into a jQuery data");
 	});
 
-	QUnit.test("enable custom config", function (assert) {
-		$fixture.defaultPluginName({
-			foo: "bar"
-		});
+	// QUnit.test( "enable custom config", function( assert ) {
+	// 	$fixture[pluginName]( {
+	// 		foo: "bar"
+	// 	} );
 
-		var pluginData = $fixture.data("plugin_defaultPluginName");
+	// 	var pluginData = $fixture.data( pluginDataName );
 
-		assert.deepEqual(pluginData.settings, {
-			propertyName: "value",
-			foo: "bar"
-		}, "extend plugin settings");
-	});
+	// 	assert.deepEqual(
+	// 		pluginData.settings,
+	// 		{
+	// 			propertyName: "value",
+	// 			foo: "bar"
+	// 		},
+	// 		"extend plugin settings"
+	// 	);
 
-	QUnit.test("changes the element text", function (assert) {
-		$fixture.defaultPluginName();
+	// } );
 
-		assert.equal($fixture.text(), "jQuery Boilerplate");
-	});
+	// QUnit.test( "changes the element text", function( assert ) {
+	// 	$fixture[pluginName]();
 
-	QUnit.test("has #yourOtherFunction working as expected", function (assert) {
-		$fixture.defaultPluginName();
+	// 	assert.equal( $fixture.text(), "jQuery Boilerplate" );
+	// } );
 
-		var instance = $fixture.data("plugin_defaultPluginName"),
-		    expectedText = "foobar";
+	// QUnit.test(
+	// 	"has #yourOtherFunction working as expected",
+	// 	function( assert ) {
+	// 		$fixture[pluginName]();
 
-		instance.yourOtherFunction(expectedText);
-		assert.equal($fixture.text(), expectedText);
-	});
+	// 		var instance = $fixture.data( pluginDataName ),
+	// 			expectedText = "foobar";
+
+	// 		instance.yourOtherFunction( expectedText );
+	// 		assert.equal( $fixture.text(), expectedText );
+	// 	}
+	// );
 })(jQuery, QUnit);
 
 },{"../../src/utils":2}]},{},[3]);

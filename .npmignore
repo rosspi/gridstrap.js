@@ -1,2 +1,6 @@
 .gitignore
 bower_components/
+.DS_Store
+npm-debug.log
+todo.txt
+instructions.txt
