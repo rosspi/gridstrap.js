@@ -1,0 +1,9 @@
+/*
+ *  jquery.gridstrap - v0.1.0-development
+ *  A jump-start for jQuery plugins development.
+ *  http://jqueryboilerplate.com
+ *
+ *  Made by Ross P
+ *  Under MIT License
+ */
+.gridstrap-cell-visible{position:absolute!important;transition:width 1.5s,height .5s,left 1.5s,top 1.5s;transition:width .2s,height .2s,left .2s,top .2s}.gridstrap-cell-hidden{opacity:.1;pointer-events:none}.gridstrap-cell-drag{transition:width .1s,height .1s,left .1s,top .1s;z-index:10000}.gridstrap-cell-resize{transition:none;z-index:10000}.gridstack-noncontiguous{opacity:.02}

@@ -1,6 +1,6 @@
 {
   "name": "jquery.gridstrap",
-  "version": "0.1.0-development",
+  "version": "0.1.0-beta.0",
   "description": "A jump-start for jQuery plugins development.",
   "keywords": [
     "jquery-plugin",
