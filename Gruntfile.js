@@ -18,13 +18,16 @@
 		},
 
 		// Concat definitions
-		concat: { // just concat banner onto non-minified. Uglify handles that.
+		concat: { // just concat banner onto some. Uglify handles minified js.
 			options: {
 				banner: "<%= meta.banner %>"
 			},
 			dist: {
-				src: [ "dist/jquery.gridstrap.js" ],
-				dest: "dist/jquery.gridstrap.js"
+				files: {
+					"dist/jquery.gridstrap.js": ["dist/jquery.gridstrap.js"],
+					"dist/jquery.gridstrap.css": ["src/style.css"],
+					"dist/jquery.gridstrap.min.css": ["dist/jquery.gridstrap.min.css"],
+				} 
 			}
 		},
 
@@ -46,13 +49,26 @@
 		// Minify definitions
 		uglify: {
 			dist: {
-				src: [ "dist/jquery.gridstrap.js" ],
-				dest: "dist/jquery.gridstrap.min.js"
+				files:{
+					"dist/jquery.gridstrap.min.js": [ "dist/jquery.gridstrap.js" ]
+				} 
 			},
 			options: {
 				banner: "<%= meta.banner %>"
 			}
 		}, 
+
+		cssmin: {
+			options: {
+				mergeIntoShorthands: false,
+				roundingPrecision: -1
+			},
+			target: {
+				files: {
+					"dist/jquery.gridstrap.min.css" : ["dist/jquery.gridstrap.css"]
+				}
+			}
+		},
 
 		// karma test runner
 		karma: {
@@ -100,10 +116,11 @@
 	grunt.loadNpmTasks( "grunt-contrib-uglify" ); 
 	grunt.loadNpmTasks( "grunt-contrib-watch" );
 	grunt.loadNpmTasks( "grunt-karma" );
-   grunt.loadNpmTasks("grunt-browserify");
+	grunt.loadNpmTasks("grunt-browserify");
+	grunt.loadNpmTasks('grunt-contrib-cssmin');
 
 	grunt.registerTask( "travis", [ "jshint", "karma:travis" ] );
 	grunt.registerTask( "lint", [ "jshint", "jscs" ] );
-	grunt.registerTask( "build", [ "browserify", "uglify", "concat" ] );
+	grunt.registerTask( "build", [ "browserify", "uglify", "cssmin", "concat" ] );
 	grunt.registerTask( "default", [ "jshint",  "build", "karma:unit" ] );
 };
