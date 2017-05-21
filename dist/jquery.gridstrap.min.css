@@ -1,5 +1,5 @@
 /*
- *  jquery.gridstrap - v0.1.0-development
+ *  jquery.gridstrap - v0.1.0-beta.1
  *  A jump-start for jQuery plugins development.
  *  http://jqueryboilerplate.com
  *
