@@ -6,9 +6,10 @@
 		pkg: grunt.file.readJSON( "package.json" ),
 
 		// Banner definitions
+		// https://www.npmjs.com/package/jquery.gridstrap contains the version numbers built in only due it this being semantically-released.
 		meta: {
 			banner: "/*\n" +
-				" *  <%= pkg.title || pkg.name %> - v{{ include-version }}\n" +
+				" *  <%= pkg.title || pkg.name %> - v{{ include-version }}\n" + 
 				" *  <%= pkg.description %>\n" +
 				" *  <%= pkg.homepage %>\n" +
 				" *\n" +
