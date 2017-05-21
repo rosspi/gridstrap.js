@@ -169,8 +169,28 @@ export class Methods {
     
   }
 
-  moveCellToCoordinates(selector, x, y, targetGridstrap) {
-    // TODO, use document.getlement at blah
+  $getCellFromCoordinates(clientX, clientY) { 
+    let document = this.setup.Document;
+    let $ = this.setup.jQuery;
+
+    let element = document.elementFromPoint(clientX, clientY); 
+    let cellAndIndex = this.internal.GetCellAndInternalIndex(element);
+    if (!cellAndIndex){
+      return $();
+    }
+    return cellAndIndex.$cell;
+  }
+
+  getCellIndexFromCoordinates(clientX, clientY) { 
+    let document = this.setup.Document;
+    let $ = this.setup.jQuery;
+
+    let element = document.elementFromPoint(clientX, clientY); 
+    let cellAndIndex = this.internal.GetCellAndInternalIndex(element);
+    if (!cellAndIndex){
+      return -1;
+    } 
+    return this.$getCells().index(cellAndIndex.$cell);
   }
 
   $getCells() {
