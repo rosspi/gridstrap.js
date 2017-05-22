@@ -902,8 +902,8 @@ var Methods = (function () {
     var event = $.Event(_constants2['default'].EVENT_CELL_REDRAW, {
       left: positionAndSize.left,
       top: positionAndSize.top,
-      width: positionAndSize.left,
-      height: positionAndSize.top,
+      width: positionAndSize.width,
+      height: positionAndSize.height,
       target: $cell[0]
     });
     $element.trigger(event);
@@ -976,26 +976,26 @@ var Methods = (function () {
     return $insertedCell;
   };
 
-  Methods.prototype.attachCell = function attachCell(selector) {
+  Methods.prototype.attachCell = function attachCell(element) {
     var $ = this.setup.jQuery;
     var options = this.setup.Options;
     var $element = this.setup.$Element;
 
-    if (!$(selector).closest($element).is($element)) {
+    if (!$(element).closest($element).is($element)) {
       throw new Error(_constants2['default'].ERROR_INVALID_ATTACH_ELEMENT);
     }
 
-    this.internal.InitCellsHiddenCopyAndSetAbsolutePosition(selector);
+    this.internal.InitCellsHiddenCopyAndSetAbsolutePosition(element);
 
     this.updateVisibleCellCoordinates();
 
-    return $(selector);
+    return $(element);
   };
 
-  Methods.prototype.detachCell = function detachCell(selector) {
+  Methods.prototype.detachCell = function detachCell(element) {
     var options = this.setup.Options;
 
-    var cellNIndex = this.internal.GetCellAndInternalIndex(selector);
+    var cellNIndex = this.internal.GetCellAndInternalIndex(element);
 
     var $hiddenClone = cellNIndex.$cell.data(_constants2['default'].DATA_HIDDEN_CELL);
 
@@ -1016,22 +1016,24 @@ var Methods = (function () {
       return array.splice(cellNIndex.index, 1);
     });
 
+    this.updateVisibleCellCoordinates();
+
     return $reattachedOriginalCell;
   };
 
-  Methods.prototype.removeCell = function removeCell(selector) {
-    var $detachedCell = this.detachCell(selector);
+  Methods.prototype.removeCell = function removeCell(element) {
+    var $detachedCell = this.detachCell(element);
 
     $detachedCell.remove();
 
     this.updateVisibleCellCoordinates();
   };
 
-  Methods.prototype.moveCell = function moveCell(selector, toIndex, targetGridstrap) {
+  Methods.prototype.moveCell = function moveCell(element, toIndex, targetGridstrap) {
     // targetGridstrap optional..
     var context = this.setup.Context;
 
-    var cellNIndex = this.internal.GetCellAndInternalIndex(selector);
+    var cellNIndex = this.internal.GetCellAndInternalIndex(element);
 
     var $existingVisibleCells = this.$getCells();
 
@@ -1079,7 +1081,7 @@ var Methods = (function () {
     return this.internal.$GetHiddenCellsInElementOrder();
   };
 
-  Methods.prototype.getCellContainer = function getCellContainer() {
+  Methods.prototype.$getCellContainer = function $getCellContainer() {
     var $ = this.setup.jQuery;
 
     return $(this.setup.VisibleCellContainerSelector);
@@ -1093,7 +1095,6 @@ var Methods = (function () {
   };
 
   Methods.prototype.getCellIndexOfElement = function getCellIndexOfElement(element) {
-    // could be selector
     var $cell = this.$getCellOfElement(element);
 
     var $cells = this.$getCells();
@@ -1101,7 +1102,7 @@ var Methods = (function () {
     return $cells.index($cell);
   };
 
-  Methods.prototype.setAdditionalGridstrapDragTarget = function setAdditionalGridstrapDragTarget(selector) {
+  Methods.prototype.setAdditionalGridstrapDragTarget = function setAdditionalGridstrapDragTarget(element) {
     var $ = this.setup.jQuery;
     var eventHandlers = this.handlers;
 
@@ -1118,7 +1119,7 @@ var Methods = (function () {
       });
     }
 
-    self.internal.AdditionalGridstrapDragTargetSelector = selector;
+    self.internal.AdditionalGridstrapDragTargetSelector = element;
 
     // handle certain mouse event for potential other gridstraps.
     if (self.internal.AdditionalGridstrapDragTargetSelector) {
