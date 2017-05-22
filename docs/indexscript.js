@@ -1,9 +1,10 @@
 var popGrid = function ($grid, html, quantity) {
-  if (typeof (html) == 'function') {
-    html = html();
-  }
+  var computed = html;
   for (var i = 0; i < quantity; i++) {
-    $($grid).append(html);
+    if (typeof (computed) == 'function') {
+      computed = computed();
+    }
+    $($grid).append(computed);
   }
 };
 
@@ -38,36 +39,8 @@ $(function () {
   });
 
   $('a[href="#nested-demo"]').on('shown.bs.tab', function () {
-    $('#nested-grid').gridstrap({
-
-    });
-    $('.gridstrap-cell-visible .nested-inner-grid').gridstrap({
-      //  visibleCellContainerParentSelector: '#nested-demo',
-      //visibleCellContainerParentSelector: 'body'
-      // getAbsolutePositionAndSizeOfCell: function($cell){
-      //   var $parentCell = $cell.parents('.gridstrap-cell-visible');
-      //   var parentPosition = $parentCell.offset() || {left: 0, top: 0};
-
-      //   var position = $cell.offset();
-      //   var w = $cell.outerWidth();
-      //   var h = $cell.outerHeight();
-      //   return {
-      //     x:  position.left -parentPosition.left ,
-      //     y: position.top -  parentPosition.top,
-      //     w: w,
-      //     h: h
-      //   };
-      // },
-      // setAbsolutePositionAndSizeOfCell: function($cell, positionAndSize){
-      //   var $parentCell = $cell.closest('.gridstrap-cell-visible');
-      //   var parentPosition = $parentCell.offset() || {left: 0, top: 0};
-
-      //   $cell.css('left', positionAndSize.x + parentPosition.left);
-      //   $cell.css('top', positionAndSize.y + parentPosition.top);
-      //   $cell.css('width', positionAndSize.w);
-      //   $cell.css('height', positionAndSize.h);
-      // }
-    });
+    $('#nested-grid').gridstrap();
+    $('.gridstrap-cell-visible .nested-inner-grid').gridstrap();
   });
 
   $('a[href="#resize-demo"]').on('shown.bs.tab', function () {
@@ -121,11 +94,8 @@ $(function () {
   $('a[href="#dual-demo"]').on('shown.bs.tab', function () {
     $('#dual1-grid').gridstrap({
       swapMode: true
-      // additionalDragGridstrapTargetSelector: '#dual2-grid',
-      //     visibleCellContainerParentSelector: '#dual-demo'
     });
     $('#dual2-grid').gridstrap({
-      //   visibleCellContainerParentSelector: '#dual-demo'
     });
 
     $('#dual1-grid').data('gridstrap').setAdditionalGridstrapDragTarget('#dual2-grid');
@@ -133,19 +103,11 @@ $(function () {
   });
 
   $('a[href="#custom-demo"]').on('shown.bs.tab', function () {
-    $('#custom-grid').gridstrap({
-      debug: true,
-      //  visibleCellContainerParentSelector: '#api-demo' // inside a colum its position"relative."
-      //visibleCellContainerParentSelector: "#basic-demo"
-    });
+    $('#custom-grid').gridstrap();
   });
 
   $('a[href="#api-demo"]').on('shown.bs.tab', function () {
-    $('#api-grid').gridstrap({
-      debug: true,
-      //  visibleCellContainerParentSelector: '#api-demo' // inside a colum its position"relative."
-      //visibleCellContainerParentSelector: "#basic-demo"
-    });
+    $('#api-grid').gridstrap();
   });
 
   $('#swap-mode').on('change', function () {
@@ -158,7 +120,7 @@ $(function () {
   $('#rearrange-mode').on('change', function () {
     var data = $('#api-grid').data('gridstrap');
     data.updateOptions({
-      rearrangeWhileDragging: $(this).is(':checked')
+      rearrangeOnDrag: $(this).is(':checked')
     });
   });
 
