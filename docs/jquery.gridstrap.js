@@ -215,7 +215,7 @@ var Handlers = (function () {
       return;
     }
 
-    if (options.enableDragging && !$cell.hasClass(options.dragCellClass)) {
+    if (options.draggable && !$cell.hasClass(options.dragCellClass)) {
 
       this.internal.SetMouseDownData(mouseEvent, $cell);
 
@@ -233,7 +233,7 @@ var Handlers = (function () {
     // clear initially.
     this.internal.LastMouseOverCellTarget = null;
 
-    if (!gridstrapContext.options.enableDragging) {
+    if (!gridstrapContext.options.draggable) {
       return;
     }
 
@@ -364,7 +364,7 @@ var Handlers = (function () {
     var context = this.setup.Context;
     var options = this.setup.Options;
 
-    if (!options.enableDragging) {
+    if (!options.draggable) {
       return;
     }
 

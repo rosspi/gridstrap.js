@@ -37,7 +37,7 @@ export class Handlers {
       return;
     } 
 
-    if (options.enableDragging && !$cell.hasClass(options.dragCellClass)) {
+    if (options.draggable && !$cell.hasClass(options.dragCellClass)) {
 
       this.internal.SetMouseDownData(mouseEvent, $cell);  
 
@@ -55,7 +55,7 @@ export class Handlers {
     // clear initially.
     this.internal.LastMouseOverCellTarget = null;
  
-    if (!gridstrapContext.options.enableDragging) {
+    if (!gridstrapContext.options.draggable) {
       return;
     }
 
@@ -186,7 +186,7 @@ export class Handlers {
     let context = this.setup.Context;
     let options = this.setup.Options;
 
-    if (!options.enableDragging) {
+    if (!options.draggable) {
       return;
     }
 
