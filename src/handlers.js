@@ -71,7 +71,7 @@ export class Handlers {
         if (!Utils.IsElementThrottled($, $cell, options.dragMouseoverThrottle)) {
           // do not move two cells that have recently already moved.
 
-          if (gridstrapContext.options.rearrangeWhileDragging) { 
+          if (gridstrapContext.options.rearrangeOnDrag) { 
 
             this.internal.MoveCell($draggedCell, $cell, gridstrapContext); 
             
@@ -218,7 +218,7 @@ export class Handlers {
       context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
 
       if (this.internal.LastMouseOverCellTarget &&
-        !options.rearrangeWhileDragging) {
+        !options.rearrangeOnDrag) {
         // else just rearrange on mouseup
         this.internal.MoveCell($draggedCell, this.internal.LastMouseOverCellTarget, context);
       }

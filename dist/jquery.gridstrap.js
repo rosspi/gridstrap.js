@@ -241,7 +241,7 @@ var Handlers = (function () {
         if (!_utils.Utils.IsElementThrottled($, $cell, options.dragMouseoverThrottle)) {
           // do not move two cells that have recently already moved.
 
-          if (gridstrapContext.options.rearrangeWhileDragging) {
+          if (gridstrapContext.options.rearrangeOnDrag) {
 
             this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
 
@@ -387,7 +387,7 @@ var Handlers = (function () {
       var cellOriginalPosition = $draggedCell.data(_constants2['default'].DATA_CELL_POSITION_AND_SIZE);
       context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
 
-      if (this.internal.LastMouseOverCellTarget && !options.rearrangeWhileDragging) {
+      if (this.internal.LastMouseOverCellTarget && !options.rearrangeOnDrag) {
         // else just rearrange on mouseup
         this.internal.MoveCell($draggedCell, this.internal.LastMouseOverCellTarget, context);
       }

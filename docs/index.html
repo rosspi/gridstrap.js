@@ -137,14 +137,47 @@ Inspired by gridster.js. Built with love.Text can be <strong>bold</strong>, <em>
       </div>
       <div class="row">
         <div class="col-xs-12">  
-          <pre><code class="language-javascript">&lt;div id=&quot;basic-grid&quot; class=&quot;row&quot;&gt;
-    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
-    &lt;div class=&quot;col-xs-4 col-sm-2 col-md-1&quot;&gt;&lt;/div&gt;
-    ...
+          <pre><code class="language-javascript">&lt;div id="resize-grid" class="row"&gt;
+  &lt;div class="col-xs-2 cell"&gt;&lt;div class="inner"&gt;&lt;div class="resize"&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="col-xs-2 cell"&gt;&lt;div class="inner"&gt;&lt;div class="resize"&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  ...
 &lt;/div&gt;
 
 &lt;script&gt;
-    $('#basic-grid').gridstrap();
+  $('#resize-grid').gridstrap({
+    resizeHandleSelector: '.resize' 
+  });
+  // The above is all you need to do to enable resizing.
+  // The below shows how we can maintain Bootstrap's
+  // grid functionality.
+  var gs = $('#resize-grid').data('gridstrap'); 
+  $('#resize-grid').on('cellresize', function (e) {
+    e.preventDefault(); 
+
+    var index = gs.getCellIndexOfElement(e.target);
+
+    gs.modifyCell(index, function ($getVisibleCell, $getHiddenCell) {
+      var $hiddenCell = $getHiddenCell();
+
+      // Remove Bootstrap's column classes, then add ones appropriate
+      // to the cell's outer width.
+      for (var i = 1; i &lt;= 12; i++) {
+        $hiddenCell.removeClass('col-xs-' + i);
+      }
+
+      $hiddenCell.addClass('col-xs-1');
+
+      var oneWidth = $hiddenCell.outerWidth();
+      for (var i = 2; i &lt;= 12; i++) {
+        if ($hiddenCell.outerWidth() + oneWidth / 2 &lt;= e.width) {
+          $hiddenCell.removeClass('col-xs-' + (i - 1));
+          $hiddenCell.addClass('col-xs-' + i);
+        } else {
+          $hiddenCell.removeClass('col-xs-' + i);
+        }
+      }
+    });
+  });
 &lt;/script&gt;</code></pre> 
         </div> 
       </div>
@@ -165,6 +198,28 @@ Inspired by gridster.js. Built with love.Text can be <strong>bold</strong>, <em>
           <div id="dual2-grid"> 
           </div> 
         </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">  
+          <pre><code class="language-javascript">&lt;div id="dual1-grid" class="row"&gt;
+  &lt;div class="col-xs-2 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="col-xs-2 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt; 
+  ...
+&lt;/div&gt;
+&lt;div id="dual2-grid" class="row"&gt;
+  &lt;div class="col-xs-2 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="col-xs-2 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt; 
+  ...
+&lt;/div&gt;
+
+&lt;script&gt;
+  $('#dual1-grid').gridstrap();
+  $('#dual2-grid').gridstrap();
+
+  $('#dual1-grid').data('gridstrap').setAdditionalGridstrapDragTarget('#dual2-grid');
+  $('#dual2-grid').data('gridstrap').setAdditionalGridstrapDragTarget('#dual1-grid'); 
+&lt;/script&gt;</code></pre> 
+        </div> 
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="custom-demo">
@@ -196,42 +251,7 @@ Inspired by gridster.js. Built with love.Text can be <strong>bold</strong>, <em>
         </div>
       </div>
     </div> 
-  </div>
-
-
-<h2 id="header-2"><a href="#header-2"></a>Header 2</h2>
-
-<blockquote>
-  <p>This is a blockquote following a header.</p>
-
-  <p>When something is important enough, you do it even if the odds are not in your favor.</p>
-</blockquote>
-
-<h3 id="header-3"><a href="#header-3"></a>Header 3</h3>
-
-<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="c1">// Javascript code with syntax highlighting.</span>
-<span class="kd">var</span> <span class="nx">fun</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">lang</span><span class="p">(</span><span class="nx">l</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">dateformat</span><span class="p">.</span><span class="nx">i18n</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'./lang/'</span> <span class="o">+</span> <span class="nx">l</span><span class="p">)</span>
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre>
-</div>
-
-<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="c1"># Ruby code with syntax highlighting</span>
-<span class="no">GitHubPages</span><span class="o">::</span><span class="no">Dependencies</span><span class="p">.</span><span class="nf">gems</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">gem</span><span class="p">,</span> <span class="n">version</span><span class="o">|</span>
-  <span class="n">s</span><span class="p">.</span><span class="nf">add_dependency</span><span class="p">(</span><span class="n">gem</span><span class="p">,</span> <span class="s2">"= </span><span class="si">#{</span><span class="n">version</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">end</span>
-</code></pre>
-</div>
- 
-
-<div class="highlighter-rouge"><pre class="highlight"><code>Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.
-</code></pre>
-</div>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>The final element.
-</code></pre>
-</div>
+  </div> 
 
 
       <footer class="site-footer">

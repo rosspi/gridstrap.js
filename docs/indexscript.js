@@ -1,41 +1,33 @@
+var popGrid = function ($grid, html, quantity) {
+  if (typeof (html) == 'function') {
+    html = html();
+  }
+  for (var i = 0; i < quantity; i++) {
+    $($grid).append(html);
+  }
+};
 
 $(function () {
-  for (var i = 0; i < 12 * 3; i++) {
-    $('#basic-grid').append('<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>');
-  }
-  for (var i = 0; i < 12; i++) {
-    if (i === 2) {
-      $('#nested-grid').append('<div class="col-xs-4 col-sm-2 cell"><div class="inner"><div class="nested-inner-grid"></div></div></div>');
-    } else {
-      $('#nested-grid').append('<div class="col-xs-4 col-sm-2 cell"><div class="inner"></div></div>');
-    }
-    if (i > 2) {
-      $('.nested-inner-grid').append('<div class="col-xs-4 col-sm-2 cell nested"><div class="inner nested"></div></div>');
-    }
-  }
+  popGrid('#basic-grid', '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>', 36);
 
-  for (var i = 0; i < 12 * 2; i++) {
-    $('#resize-grid').append('<div class="col-xs-2 cell"><div class="inner"><div class="resize"></div></div></div>');
-  }
+  popGrid('#nested-grid', '<div class="col-xs-4 col-sm-2 cell"><div class="inner"><div class="nested-inner-grid"></div></div></div>', 1);
+  popGrid('#nested-grid', '<div class="col-xs-4 col-sm-2 cell"><div class="inner"></div></div>', 10);
+  popGrid('.nested-inner-grid', '<div class="col-xs-4 col-sm-2 cell nested"><div class="inner nested"></div></div>', 9);
 
-  for (var i = 0; i < 12; i++) {
-    $('#noncontiguous-grid').append('<div class="col-xs-1 cell"><div class="inner"></div></div>');
-  }
+  popGrid('#resize-grid', '<div class="col-xs-2 cell"><div class="inner"><div class="resize"></div></div></div>', 24);
 
-  for (var i = 0; i < 12 * 2; i++) {
-    $('#dual1-grid').append('<div class="col-xs-1 cell"><div class="inner"></div></div>');
-  }
-  for (var i = 0; i < 12; i++) {
-    $('#dual2-grid').append('<div class="col-xs-2 cell"><div class="inner"></div></div>');
-  }
+  popGrid('#noncontiguous-grid', '<div class="col-xs-1 cell"><div class="inner"></div></div>', 12);
 
-  for (var i = 0; i < 12 * 2; i++) {
-    $('#api-grid').append('<div class="col-xs-' + Math.floor((Math.random() * 4 + 1)).toString() + ' cell"><div class="inner"></div></div>');
-  }
+  popGrid('#dual1-grid', '<div class="col-xs-1 cell"><div class="inner"></div></div>', 24);
+  popGrid('#dual2-grid', '<div class="col-xs-2 cell"><div class="inner"></div></div>', 12);
 
-  for (var i = 0; i < 12 * 3; i++) {
-    $('#custom-grid').append('<div style="width:' + (Math.random() * 120) + 'px; height:75px; background-color:#' + Math.floor(Math.random() * 0xFFFFFF).toString(16) + ';"></div>');
-  }
+  popGrid('#api-grid', function () {
+    return '<div class="col-xs-' + Math.floor((Math.random() * 4 + 1)).toString() + ' cell"><div class="inner"></div></div>';
+  }, 24);
+
+  popGrid('#custom-grid', function () {
+    return '<div style="width:' + (Math.random() * 120) + 'px; height:75px; background-color:#' + Math.floor(Math.random() * 0xFFFFFF).toString(16) + ';"></div>';
+  }, 36);
 
   $('#basic-grid').gridstrap({
 
@@ -80,52 +72,25 @@ $(function () {
 
   $('a[href="#resize-demo"]').on('shown.bs.tab', function () {
     $('#resize-grid').gridstrap({
-      resizeHandleSelector: '.resize',
-      resizeOnDrag: true,
-      debug: true,
-      // onResizeCell: function ($cell, width, height) {
-
-      //   var $hiddenCell = $cell.data('gridstrap-hidden-cell');
-      //   //var $tempCell = $('<div></div>').appendTo($hiddenCell.parent());
-      //   for (var i = 1; i <= 12; i++) {
-      //     $hiddenCell.removeClass('col-xs-' + i);
-      //   }
-
-      //   //$hiddenCell.addClass('col-xs-1');
-      //   // if (!$hiddenCell.filter('[class*="col-xs"]').length){
-      //   $hiddenCell.addClass('col-xs-1');
-      //   //   }
-      //   var oneWidth = $hiddenCell.outerWidth();
-      //   for (var i = 2; i <= 12; i++) {
-      //     if ($hiddenCell.outerWidth() + oneWidth / 2 <= width) {
-      //       $hiddenCell.removeClass('col-xs-' + (i - 1));
-      //       $hiddenCell.addClass('col-xs-' + i);
-      //     } else {
-      //       $hiddenCell.removeClass('col-xs-' + (i));
-      //     }
-      //   }
-
-
-      //   this.updateVisibleCellCoordinates();
-      // }
+      resizeHandleSelector: '.resize' 
     });
 
     var gridstrap = $('#resize-grid').data('gridstrap');
-     $('#resize-grid').off(gridstrap.constants.EVENT_CELL_RESIZE);
-    $('#resize-grid').on(gridstrap.constants.EVENT_CELL_RESIZE, function(e){
+    $('#resize-grid').off(gridstrap.constants.EVENT_CELL_RESIZE);
+    $('#resize-grid').on(gridstrap.constants.EVENT_CELL_RESIZE, function (e) {
       e.preventDefault();
 
       var gs = $(this).data('gridstrap');
-      var index = gs.getCellIndexOfElement(e.target); 
+      var index = gs.getCellIndexOfElement(e.target);
 
-      gs.modifyCell(index, function ($getVisibleCell, $getHiddenCell) { 
-        var $hiddenCell = $getHiddenCell(); 
+      gs.modifyCell(index, function ($getVisibleCell, $getHiddenCell) {
+        var $hiddenCell = $getHiddenCell();
 
         for (var i = 1; i <= 12; i++) {
           $hiddenCell.removeClass('col-xs-' + i);
-        } 
+        }
 
-        $hiddenCell.addClass('col-xs-1'); 
+        $hiddenCell.addClass('col-xs-1');
 
         var oneWidth = $hiddenCell.outerWidth();
         for (var i = 2; i <= 12; i++) {
@@ -138,11 +103,6 @@ $(function () {
         }
       });
     });
-
-    // gridstrap.modifyCell(2, function (getVisibleCell, getHiddenCell) {
-    //   var $visibleCell = getVisibleCell();
-    //   var $hiddenCell = getHiddenCell();
-    // });
   });
 
   $('a[href="#noncontiguous-demo"]').on('shown.bs.tab', function () {
@@ -202,7 +162,7 @@ $(function () {
     });
   });
 
-  $('#move').on('click', function(){
+  $('#move').on('click', function () {
     var data = $('#api-grid').data('gridstrap');
     var $cells = data.$getCells();
     var $randomCell = $cells.eq(Math.floor(Math.random() * $cells.length));
@@ -210,7 +170,7 @@ $(function () {
     data.moveCell(
       $randomCell,
       Math.floor((Math.random() * $cells.length))
-      );
+    );
   });
 
 
