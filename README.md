@@ -93,23 +93,17 @@ $.Gridstrap.defaultOptions = {
 ```
 ### Plugin's methods
 
-#### [.render](index.js#L60)
-
-Process the given Lo-dash `template` string, passing a `comments` object as context.
+#### [.$getCellOfElement](methods.js) 
 
 **Params**
 
-* `comments` **{Array}**: Array of comment objects.
-* `template` **{String}**: The lo-dash template to use.
-* `returns` **{String}**
+* `element` **{jQuery/String/Element}**: Html element. 
 
-**Example**
+**Returns**
 
-```js
-comments.render(obj, options);
-```
+A jQuery object selection of the closest visible cell from the element.
 
-#### [.renderFile](index.js#L120)
+#### [.setCellAbsolutePositionAndSize](methods.js)
 
 Write markdown API documentation to the given `dest` from the code
 comments in the given JavaScript `src` file.
@@ -130,10 +124,6 @@ When you initialise gridstrap on a element within which there are elements, thos
 * Source cells: The source cells are the html elements that become another kind before initialisation.
 * Visible cells: Visible cells are what the source cells are turned into. They are moved inside a container div, and then the visibleCellClass is added to them. By default this gives them an absolute position, and their coordinates are a
 ``` 
-
-## Contributing
-
-Check [CONTRIBUTING.md](https://github.com/jquery-boilerplate/boilerplate/blob/master/CONTRIBUTING.md) for more information.
 
 ## History
 
