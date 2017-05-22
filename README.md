@@ -95,6 +95,8 @@ $.Gridstrap.defaultOptions = {
 
 #### [.$getCellOfElement](methods.js) 
 
+Get jQuery object selection of the .closest() visible cell from the element.
+
 **Params**
 
 * `element` **{jQuery/String/Element}**: Html element. 
@@ -105,15 +107,12 @@ A jQuery object selection of the closest visible cell from the element.
 
 #### [.setCellAbsolutePositionAndSize](methods.js)
 
-Write markdown API documentation to the given `dest` from the code
-comments in the given JavaScript `src` file.
+Set a visible cell's position and size. This will also trigger the 'cellredraw' event.
 
 **Params**
 
-* `src` **{String}**: Source file path.
-* `dest` **{String}**: Destination file path.
-* `options` **{Object}**
-* `returns` **{String}**: API documentation
+* `$cell` **{jQuery/String/Element}**: Visible cell Html element.
+* `positionAndSize` **{Object}**: {left, top, width, height}. 
 
 ## Notes
 
