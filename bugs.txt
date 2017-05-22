@@ -1,5 +1,0 @@
-
-2. maybe an issue with detaching then necessary reordering... ? yes some issue not sure if real issue or some trivial thing.
-3. fix window resize debounce or something
-4. make z-index fade out somehow, maybe with transition when releas of drag. SHouldnt underlap so quik.
-5. contiggous removal fucked abit, just while maths wrong - also.. needs to ... when draging to place where cells werne't before- then create e dumy cell where it used to be too. This whole system really onwt work wellunless original grid is all same sized stuff. Maybe implement a max-dummy grid thing... count..... nah... not sure.
