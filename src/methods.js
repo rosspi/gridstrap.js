@@ -30,8 +30,8 @@ export class Methods {
     let event = $.Event(Constants.EVENT_CELL_REDRAW, {
       left: positionAndSize.left,
       top: positionAndSize.top,
-      width: positionAndSize.left,
-      height: positionAndSize.top,
+      width: positionAndSize.width,
+      height: positionAndSize.height,
       target: $cell[0]
     });
     $element.trigger(event);
@@ -105,26 +105,26 @@ export class Methods {
     return $insertedCell;
   }
 
-  attachCell(selector) {
+  attachCell(element) {
     let $ = this.setup.jQuery;
     let options = this.setup.Options;
     let $element = this.setup.$Element;
 
-    if (!$(selector).closest($element).is($element)) {
+    if (!$(element).closest($element).is($element)) {
       throw new Error(Constants.ERROR_INVALID_ATTACH_ELEMENT);
     }
 
-    this.internal.InitCellsHiddenCopyAndSetAbsolutePosition(selector);
+    this.internal.InitCellsHiddenCopyAndSetAbsolutePosition(element);
 
     this.updateVisibleCellCoordinates();
 
-    return $(selector);
+    return $(element);
   }
 
-  detachCell(selector) {
+  detachCell(element) {
     let options = this.setup.Options;
 
-    var cellNIndex = this.internal.GetCellAndInternalIndex(selector);
+    var cellNIndex = this.internal.GetCellAndInternalIndex(element);
 
     var $hiddenClone = cellNIndex.$cell.data(Constants.DATA_HIDDEN_CELL);
 
@@ -143,21 +143,23 @@ export class Methods {
     // finally remove from managed array
     this.internal.ModifyCellsArray((array) => array.splice(cellNIndex.index, 1)); 
 
+    this.updateVisibleCellCoordinates();
+
     return $reattachedOriginalCell;
   }
 
-  removeCell(selector) {
-    let $detachedCell = this.detachCell(selector);
+  removeCell(element) {
+    let $detachedCell = this.detachCell(element);
 
     $detachedCell.remove();
 
     this.updateVisibleCellCoordinates();
   }
 
-  moveCell(selector, toIndex, targetGridstrap) { // targetGridstrap optional..
+  moveCell(element, toIndex, targetGridstrap) { // targetGridstrap optional..
     let context = this.setup.Context;
 
-    let cellNIndex = this.internal.GetCellAndInternalIndex(selector);
+    let cellNIndex = this.internal.GetCellAndInternalIndex(element);
 
     let $existingVisibleCells = this.$getCells();
 
@@ -206,7 +208,7 @@ export class Methods {
     return this.internal.$GetHiddenCellsInElementOrder();
   }
 
-  getCellContainer() {
+  $getCellContainer() {
     let $ = this.setup.jQuery;
 
     return $(this.setup.VisibleCellContainerSelector);
@@ -219,7 +221,7 @@ export class Methods {
     this.setup.Options = $.extend({}, options, newOptions);
   }
 
-  getCellIndexOfElement(element) { // could be selector
+  getCellIndexOfElement(element) { 
     var $cell = this.$getCellOfElement(element);
 
     var $cells = this.$getCells();
@@ -227,7 +229,7 @@ export class Methods {
     return $cells.index($cell);
   }
 
-  setAdditionalGridstrapDragTarget(selector) {
+  setAdditionalGridstrapDragTarget(element) {
     let $ = this.setup.jQuery;
     let eventHandlers = this.handlers;
 
@@ -244,7 +246,7 @@ export class Methods {
       });
     }
 
-    self.internal.AdditionalGridstrapDragTargetSelector = selector;
+    self.internal.AdditionalGridstrapDragTargetSelector = element;
 
     // handle certain mouse event for potential other gridstraps.
     if (self.internal.AdditionalGridstrapDragTargetSelector) {

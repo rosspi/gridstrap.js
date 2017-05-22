@@ -118,8 +118,8 @@ $(function () {
       var gs = $(this).data('gridstrap');
       var index = gs.getCellIndexOfElement(e.target); 
 
-      gs.modifyCell(index, function (getVisibleCell, getHiddenCell) { 
-        var $hiddenCell = getHiddenCell(); 
+      gs.modifyCell(index, function ($getVisibleCell, $getHiddenCell) { 
+        var $hiddenCell = $getHiddenCell(); 
 
         for (var i = 1; i <= 12; i++) {
           $hiddenCell.removeClass('col-xs-' + i);

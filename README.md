@@ -48,6 +48,8 @@ gridstrap.js is a jQuery plugin designed to take [Bootstrap's CSS grid system](h
 		```
 * NPM:
 
+**Download from NPM to have version details affixed to distributables. Using semantic-release means this info won't be in the distributables on GitHub.**
+
 	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap) 
 
 	```bash
@@ -91,9 +93,100 @@ $.Gridstrap.defaultOptions = {
 	mousemoveDebounce: 0 // debounce mousemove for dragging cells.
 };
 ```
+
 ### Plugin's methods
 
-#### [.$getCellOfElement](methods.js) 
+
+#### [.attachCell](src/methods.js) 
+
+Attach an existing html element to the grid. Will create a hidden cell and convert existing source cell to a visible cell.
+
+**Params**
+
+* `element` **{jQuery/String/Element}**: Existing html element to attach to grid. Element must be within the grid's element itself.
+* `index` **{Number}**: Index within the existing ordered visible cell to attach the cell.
+
+**Returns**
+
+A jQuery object of the attached visible cell.
+
+#### [.detachCell](src/methods.js) 
+
+Detach an existing cell from the grid. Will delete hidden cell and convert visible cell to its original state.
+
+**Params**
+
+* `element` **{jQuery/String/Element}**: Existing cell element to detach from grid.
+
+**Returns**
+
+A jQuery object of the detached source cell.
+
+#### [.$getCellContainer](src/methods.js) 
+
+Get the div that contains the visible cells. It exists within the gridstrap element by default.
+
+**Params**
+
+None.
+
+**Returns**
+
+jQuery object of all visible cell container.
+
+#### [.$getCellFromCoordinates](src/methods.js) 
+
+Get the visible cell at certain coordinates.
+
+**Params**
+
+* `clientX` **{Number}**: Coordinate used in a `document.elementFromPoint(clientX, clientY);` call.
+* `clientY` **{Number}**: Coordinate used in a `document.elementFromPoint(clientX, clientY);` call.
+
+**Returns**
+
+jQuery object of a visible cell.
+
+
+
+#### [.getCellIndexFromCoordinates](src/methods.js) 
+
+Get the index/order position of the visible cell at certain coordinates.
+
+**Params**
+
+* `clientX` **{Number}**: Coordinate used in a `document.elementFromPoint(clientX, clientY);` call.
+* `clientY` **{Number}**: Coordinate used in a `document.elementFromPoint(clientX, clientY);` call.
+
+**Returns**
+
+0-based index or -1 if cannot find.
+
+#### [.getCellIndexOfElement](src/methods.js) 
+
+Get the index/order position of the visible cell.
+
+**Params**
+
+* `element` **{jQuery/String/Element}**: Visible cell element to retrieve index of.
+
+**Returns**
+
+0-based index or -1 if cannot find.
+
+#### [.$getCells](src/methods.js) 
+
+Get the visible cells in their current order.
+
+**Params**
+
+None.
+
+**Returns**
+
+jQuery object of all ordered visible cells.
+
+#### [.$getCellOfElement](src/methods.js) 
 
 Get jQuery object selection of the .closest() visible cell from the element.
 
@@ -105,24 +198,189 @@ Get jQuery object selection of the .closest() visible cell from the element.
 
 A jQuery object selection of the closest visible cell from the element.
 
-#### [.setCellAbsolutePositionAndSize](methods.js)
+#### [.$getHiddenCells](src/methods.js) 
+
+Get the hidden cells in their current order.
+
+**Params**
+
+None.
+
+**Returns**
+
+jQuery object of all ordered hidden cells.
+
+#### [.insertCell](src/methods.js) 
+
+Create a new cell from a html string and attach to grid. Converts a html string to a hidden and visible cell.
+
+**Params**
+
+* `cellHtml` **{String}**: Html to create a new cell. 
+* `index` **{Number}**: Index within the existing ordered visible cell to insert the html.
+
+**Returns**
+
+A jQuery object of the new created visible cell.
+
+
+#### [.modifyCell](src/methods.js) 
+
+Modify an existing visible and/or hidden cell. Provides an easy way to modify an existing cell without breaking gridstrap's management of them.
+
+**Params**
+
+* `cellIndex` **{Number}**: Index of visible to modify.
+* `callback` **{Function}**: Provide a function with two function parameters for getting the visible and then hidden cell. E.g. `function ($getVisibleCell, $getHiddenCell) { var $hiddenCell = $getHiddenCell();  }`. A call to the first function to retrieve the visible cell will later cause its html to be copied into the hidden cell. Modify the visible cell if the goal is to modify the appearance of the cell. Modify the hidden cell if the goal is to resize or reposition the cell in some way outside of what gridstrap's API provides.
+
+**Returns**
+
+Nothing.
+
+
+#### [.moveCell](src/methods.js) 
+
+Move a cell within the grid.
+
+**Params**
+
+* `element` **{jQuery/String/Element}**: Existing visible cell element to move.
+* `toIndex` **{Number}**: Index within visible cells to move the element to.
+* `targetGridstrap` **{Gridstrap}** *Optional*: Instance of a different gridstrap (retrievable from `$().data('gridstrap');`) to move cell to. Instance must be one that has been previously referenced via `setAdditionalGridstrapDragTarget()`.
+
+**Returns**
+
+Nothing.
+
+
+#### [.removeCell](src/methods.js) 
+
+Detach an existing cell from the grid and then removes it from the DOM.  
+
+**Params**
+
+* `element` **{jQuery/String/Element}**: Existing cell element to detach from grid.
+
+**Returns**
+
+Nothing.
+
+
+#### [.setAdditionalGridstrapDragTarget](src/methods.js) 
+
+Enable another gridstrap instance to be targetable for drag and moveCell calls.
+
+**Params**
+
+* `element` **{jQuery/String/Element}**: Another gridstrap instance.
+
+**Returns**
+
+Nothing.
+
+
+#### [.setCellAbsolutePositionAndSize](src/methods.js)
 
 Set a visible cell's position and size. This will also trigger the 'cellredraw' event.
 
 **Params**
 
 * `$cell` **{jQuery/String/Element}**: Visible cell Html element.
-* `positionAndSize` **{Object}**: {left, top, width, height}. 
+* `positionAndSize` **{Object}**: {left:left, top:top, width:width, height:height}. 
+
+**Returns**
+
+Nothing.
+
+#### [.updateOptions](src/methods.js) 
+
+Get the div that contains the visible cells. It exists within the gridstrap element by default.
+
+**Params**
+
+* `newOptions` **{Object}**: Options to replace existing ones.
+
+**Returns**
+
+Nothing.
+
+
+#### [.updateVisibleCellCoordinates](src/methods.js)
+
+Manually trigger a repositioning of the visible cell coordinates to match their respective hidden cells.
+
+**Params**
+
+None.
+
+**Returns**
+
+Nothing.
+
+
+### Plugin's events
+
+#### [celldrag](src/constants.js)
+
+Triggered when a cell is being dragged during mousemove. Can be prevented.
+
+**Event data**
+
+* `left` **{Number}**: Left offset of mousedown cursor position relative to cell.
+* `top` **{Number}**: Top offset of mousedown cursor position relative to cell.
+* `target` **{Element}**: Visible cell being dragged.
+
+
+#### [cellredraw](src/constants.js)
+
+Triggered when a visible cell is being repositioned or redrawn. Can be prevented.
+
+**Event data**
+
+* `left` **{Number}**: Left absolute position of cell.
+* `top` **{Number}**: Top absolute position of cell.
+* `width` **{Number}**: Width of cell.
+* `height` **{Number}**: Height of cell.
+* `target` **{Element}**: Visible cell being redrawn.
+
+#### [cellresize](src/constants.js)
+
+Triggered when a visible cell is being resized. Can be prevented.
+
+**Event data**
+
+* `width` **{Number}**: Width of cell.
+* `height` **{Number}**: Height of cell.
+* `target` **{Element}**: Visible cell being resized.
+
+#### [noncontiguouschange](src/constants.js)
+
+Triggered when the quantity of non-contiguous placeholder elements change. Can be prevented.
+
+**Event data**
+TODO
+
+
+
+
 
 ## Notes
 
 Below is some explanation of how certain things work.
 
 ### Cell types
-When you initialise gridstrap on a element within which there are elements, those elements then become known as 'cells'. There are four kinds of cells.
+When gridstrap is initialised on a element, its child elements will become 'cells'. There are four kinds of cells.
+
 * Source cells: The source cells are the html elements that become another kind before initialisation.
-* Visible cells: Visible cells are what the source cells are turned into. They are moved inside a container div, and then the visibleCellClass is added to them. By default this gives them an absolute position, and their coordinates are a
-``` 
+* Visible cells: Visible cells are what the source cells are turned into. They are moved inside a container div, and then the `visibleCellClass` is added to them. By default this gives them an absolute position, and their coordinates and width have a css transition applied. They are tracked against their respective hidden cells.
+* Hidden cells: Upon initialisation, all the source cells are cloned into hidden cells. These then take the place in the DOM of the source cells and serve to act like the original html did. The visible cells should follow their respective hidden cells. The hidden cells are called so because of the `hiddenCellClass` applied which by default sets their opacity to 0.
+
+### Resizing
+As the aim of the extension was to easily enable draggable bootstrap grids, making them resizable doesn't really fit the Bootstrap grid design. However they will behave as expected upon resizing them. To make the cells resizable to always fit within Bootstrap's grid system, check out the example at https://rosspi.github.io/gridstrap.js/ .
+
+### Non-contiguous
+Non-contiguous mode allows the ability to move cells to anywhere within the grid area, rather than just in place of existing cells. It can create the illusion of there being no backing static/relative grid like there is with Bootstrap's grid system. The way the plugin pulls this off is by appended new cells on the fly as needed upon dragging or performing cell operations beyond the existing cell count, and applying the `nonContiguousPlaceholderCellClass` class to them to set their opacity to 0 by default. Once created, the placeholder cells can serve as hidden cells for other regular hidden cells to move around. This implementation will not work well with cells that are of a different size. But of course, this extension will work with any kind of html layout.
+
 
 ## History
 
