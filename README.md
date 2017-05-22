@@ -48,13 +48,14 @@ gridstrap.js is a jQuery plugin designed to take [Bootstrap's CSS grid system](h
 		```
 * NPM:
 
-**Download from NPM to have version details affixed to distributables. Using semantic-release means this info won't be in the distributables on GitHub.**
+	**Download from NPM to have version details affixed to distributables. Using semantic-release means this info won't be in the distributables on GitHub.**
 
 	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap) 
-
+	
 	```bash
 	$ npm install jquery.gridstrap
 	``` 
+
 
 ## API
 
