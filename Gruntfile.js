@@ -26,7 +26,9 @@
 			dist: {
 				files: {
 					"dist/jquery.gridstrap.js": ["dist/jquery.gridstrap.js"],
+					"docs/jquery.gridstrap.js": ["dist/jquery.gridstrap.js"],
 					"dist/jquery.gridstrap.css": ["src/style.css"],
+					"docs/jquery.gridstrap.css": ["src/style.css"],
 					"dist/jquery.gridstrap.min.css": ["dist/jquery.gridstrap.min.css"],
 				} 
 			}

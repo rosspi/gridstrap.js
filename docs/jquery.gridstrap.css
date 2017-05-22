@@ -1,0 +1,31 @@
+/*
+ *  jquery.gridstrap - v{{ include-version }}
+ *  gridstrap.js https://www.npmjs.com/package/jquery.gridstrap
+ *  https://rosspi.github.io/gridstrap.js/
+ *
+ *  Made by Ross P
+ *  Under MIT License
+ */
+ 
+.gridstrap-cell-visible{
+  position: absolute !important;
+    transition:width 1.5s, height 0.5s,  left 1.5s, top 1.5s ;
+    transition:width 0.2s, height 0.2s,  left 0.2s, top 0.2s ;
+}
+.gridstrap-cell-hidden{ 
+  opacity: 0.1; 
+  pointer-events: none;
+}
+.gridstrap-cell-drag{ 
+    transition:width 0.1s, height 0.1s,  left 0.1s, top 0.1s ;
+  z-index: 10000;
+  /*pointer-events: none;*/
+}
+.gridstrap-cell-resize{
+  transition: none;
+  z-index: 10000;
+
+}
+.gridstack-noncontiguous{
+  opacity: 0.02; 
+}
