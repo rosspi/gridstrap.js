@@ -95,6 +95,21 @@
 		watch: {
 			files: [ "src/*", "test/spec/*" ],
 			tasks: [ "default" ]
+		},
+
+		'string-replace' : {
+			dist: {
+				files: {
+					'docs/index.html': 'docs/indexLocal.html',
+					'docs/responsive.html': 'docs/responsiveLocal.html',
+				},
+				options: {
+					replacements: [{
+						pattern: /"http:\/\//ig,
+						replacement: '"//'
+					}]
+				}
+			}
 		}
 
 	} );
@@ -105,8 +120,9 @@
 	grunt.loadNpmTasks( "grunt-karma" );
 	grunt.loadNpmTasks("grunt-browserify");
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
+	grunt.loadNpmTasks('grunt-string-replace');
 
-	grunt.registerTask( "build", [ "browserify", "uglify", "cssmin", "concat" ] );
+	grunt.registerTask( "build", [ "browserify", "uglify", "cssmin", "concat", "string-replace" ] );
 	grunt.registerTask( "travis", [ "build", "karma:travis" ] ); 
 	grunt.registerTask( "default", [ "build", "karma:unit" ] );
 };

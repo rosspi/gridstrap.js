@@ -56,6 +56,7 @@ export class Utils {
     let getInPlaceFunction = function ($element) {
       let $other = $a.is($element) ? $b : $a;
       let $next = $element.next();
+      let $nextNext = $next.next();
       let $prev = $element.prev();
       let $parent = $element.parent();
       // cannot swap a with b exactly if there are no other siblings.
@@ -66,6 +67,14 @@ export class Utils {
       } else if ($prev.length > 0 && !$prev.is($other)) {
         return function ($newElement) {
           $prev.after($newElement);
+        }
+      }
+      // if the 'next next' element is the 'other' element
+      // then it can be used to insert before it because 
+      // we know the 'other' element will be removed too.
+      else if ($nextNext.length > 0 && $next.is($other)) {
+        return function ($newElement) {
+          $nextNext.before($newElement);
         }
       } else {
         // no siblings, so can just use append

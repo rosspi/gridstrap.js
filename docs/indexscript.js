@@ -1,8 +1,8 @@
 var popGrid = function ($grid, html, quantity) {
   var computed = html;
   for (var i = 0; i < quantity; i++) {
-    if (typeof (computed) == 'function') {
-      computed = computed();
+    if (typeof (html) == 'function') {
+      computed = html();
     }
     $($grid).append(computed);
   }
