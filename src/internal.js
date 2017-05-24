@@ -148,6 +148,26 @@ export class Internal {
     });
   }
 
+  $GetNonDraggedCellFromPoint($draggedCell, mouseEvent) {
+    let document = this.setup.Document;
+    let $ = this.setup.jQuery;
+
+    //remove mouse events from dragged cell, because we need to test for overlap of underneath things.
+    let oldPointerEvents = $draggedCell.css('pointer-events');
+    $draggedCell.css('pointer-events', 'none');
+
+    let element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+    let cellAndIndex = this.GetCellAndInternalIndex(element);
+
+    // restore pointer-events css.
+    $draggedCell.css('pointer-events', oldPointerEvents);
+
+    if (!cellAndIndex){
+      return $();
+    }
+    return cellAndIndex.$cell;
+  }
+
   MoveDraggedCell (mouseEvent, $cell) {
     let $ = this.setup.jQuery;
     let context = this.setup.Context;
@@ -171,11 +191,7 @@ export class Internal {
     } 
 
     $cell.css('left', absoluteOffset.left);
-    $cell.css('top', absoluteOffset.top);
-
-    //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
-    let oldPointerEvents = $cell.css('pointer-events');
-    $cell.css('pointer-events', 'none');
+    $cell.css('top', absoluteOffset.top); 
 
     let triggerMouseOverEvent = function ($element) {
       $element.trigger(
@@ -185,14 +201,17 @@ export class Internal {
           target: $element[0]
         }));
     };
-    let element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-    let cellAndIndex = this.GetCellAndInternalIndex(element);
-    if (cellAndIndex) {
+
+    let $overlappedCell = this.$GetNonDraggedCellFromPoint($cell, mouseEvent);
+    
+    if ($overlappedCell.length) {
       // have to create event here like this other mouse coords are missing.
-      triggerMouseOverEvent(cellAndIndex.$cell);
+      triggerMouseOverEvent($overlappedCell);
+
     } else {
-      // have dragged over non-managed cell.
-      // might be from a linked 'additional' gridstrap.
+
+      // have possibly dragged over non-managed cell.
+      // it might be from a linked 'additional' gridstrap.
       if (this.AdditionalGridstrapDragTargetSelector) {
         $(this.AdditionalGridstrapDragTargetSelector).each(function () {
           
@@ -208,9 +227,6 @@ export class Internal {
         });
       }
     }
-
-    // restore pointer-events css.
-    $cell.css('pointer-events', oldPointerEvents);
   }
 
   GetCellAndInternalIndex (element) { // element or jquery selector, child of cell or cell itself.
@@ -408,13 +424,11 @@ export class Internal {
 
   $GetHiddenCellsInElementOrder () {
     let $ = this.setup.jQuery;
+    let options = this.setup.Options;
     let $element = this.setup.$Element;
-    let self = this;
+    let self = this; 
 
-    // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order. 
-
-    // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
-    let $attachedHiddenCells = $element.find('*').filter(function () {
+    let $attachedHiddenCells = $element.find(this.setup.HiddenCellSelector).filter(function () {
       let $linkedVisibleCell = $(this).data(Constants.DATA_VISIBLE_CELL);
       if (!$linkedVisibleCell || !$linkedVisibleCell.length) {
         return false;
@@ -425,7 +439,7 @@ export class Internal {
         }
       }
       return false;
-    });
+    }); 
 
     return $attachedHiddenCells;
   } 
@@ -433,6 +447,78 @@ export class Internal {
   ModifyCellsArray(callback){
     callback(this.cellsArray);
   } 
+
+  UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent){
+    let draggedCellPositionAndSize = Utils.GetPositionAndSizeOfCell($draggedCell);
+
+    let changed = this.AppendOrRemoveNonContiguousCellsWhile(($hiddenCells, appending) => {
+      let lastHiddenCellPositionAndSize = Utils.GetPositionAndSizeOfCell( $hiddenCells.last());
+ 
+      if (appending){
+        // if making new placeholder cells, then a whole row of extra cells should exist.
+        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top < draggedCellPositionAndSize.height * 2;
+      } else {
+        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top > draggedCellPositionAndSize.height * 2;
+      }
+      
+    }); 
+
+    if (changed){
+      // insert/remove triggers a repositioning, so have to set dragged cell to mousepos again.
+      this.MoveDraggedCell(mouseEvent, $draggedCell);
+    }  
+  }
+
+  AppendOrRemoveNonContiguousCellsWhile(appendWhilePredicate){     
+    let $ = this.setup.jQuery;    
+    let options = this.setup.Options;
+    let context = this.setup.Context;
+
+    let $hiddenCells = this.$GetHiddenCellsInElementOrder(); 
+    let changed = false;
+
+    // remove cells at end when we have too much.          
+    let $lastHiddenCell = $hiddenCells.last();
+    let $bottomRowHiddenCells = null;
+    let $getBottomRowHiddenCells = () => {
+      $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter((i,e) => {
+        return Utils.GetPositionAndSizeOfCell($(e)).top === Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
+      });
+      return $bottomRowHiddenCells;
+    };   
+
+    while (appendWhilePredicate($hiddenCells, true)) {
+      // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
+      // insert dummy cells if cursor is beyond where the cells finish.
+      let $insertedCell = context.insertCell(
+        options.nonContiguousCellHtml,
+        $hiddenCells.length
+      );
+      $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
+      let $insertedHiddenCell = $insertedCell.data(Constants.DATA_HIDDEN_CELL);
+
+      $hiddenCells = $hiddenCells.add($insertedHiddenCell);
+      
+      changed = true;
+    } 
+    
+    while (appendWhilePredicate($hiddenCells, false) &&
+      $getBottomRowHiddenCells().filter((i,e) => $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass)).length === $getBottomRowHiddenCells().length) {
+
+      context.removeCell($lastHiddenCell.data(Constants.DATA_VISIBLE_CELL));
+      $hiddenCells = $hiddenCells.not($lastHiddenCell);
+
+      // update new last hidden cell.
+      $lastHiddenCell = $hiddenCells.last(); 
+
+      $bottomRowHiddenCells = null; // force refilter.
+
+      changed = true;
+    } 
+
+    return changed;
+  }
+
 
   get AdditionalGridstrapDragTargetSelector(){
     return this.additionalGridstrapDragTargetSelector;

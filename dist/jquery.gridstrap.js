@@ -136,12 +136,7 @@ var _methods = require('./methods');
     resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
     resizeOnDrag: true, // toggle mouse resizing.	
     swapMode: false, // toggle swap or insert mode when rearranging cells.
-    nonContiguousOptions: { // TODO// TODO// TODO// TODO
-      selector: null,
-      getHtml: function getHtml() {
-        return null;
-      }
-    },
+    nonContiguousCellHtml: null, // enable non-contiguous mode using this html for a placeholder cell.
     updateCoordinatesOnWindowResize: true, // enable window resize event handler.
     debug: false, // toggle console output.
     dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.
@@ -193,6 +188,10 @@ var Handlers = (function () {
     var options = this.setup.Options;
 
     if (gridstrapContext !== context) {
+      return;
+    }
+
+    if ($cell.hasClass(options.nonContiguousPlaceholderCellClass)) {
       return;
     }
 
@@ -254,8 +253,6 @@ var Handlers = (function () {
   };
 
   Handlers.prototype.onMousemove = function onMousemove(mouseEvent) {
-    var _this = this;
-
     var $ = this.setup.jQuery;
     var context = this.setup.Context;
     var options = this.setup.Options;
@@ -289,63 +286,8 @@ var Handlers = (function () {
 
         this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
 
-        // ATTEMPT TO GET NONCONTIG WOKING...
-        ////////not overlapping any existing managed cell while dragging.
-        var nonContiguousOptions = options.nonContiguousOptions;
-        var nonContiguousSelector = nonContiguousOptions.selector;
-        if (nonContiguousSelector && nonContiguousSelector.length) {
-          (function () {
-
-            var $hiddenCells = _this.internal.$GetHiddenCellsInElementOrder();
-
-            var lastHiddenCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($hiddenCells.last());
-            var draggedCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($draggedCell);
-
-            while (draggedCellPositionAndSize.top + draggedCellPositionAndSize.height > lastHiddenCellPositionAndSize.top) {
-              // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
-              // insert dummy cells if cursor is beyond where the cells finish.
-              var $insertedCell = context.insertCell(nonContiguousOptions.getHtml(), $hiddenCells.length);
-              $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
-              var $insertedHiddenCell = $insertedCell.data(_constants2['default'].DATA_HIDDEN_CELL);
-
-              // might have to keep adding them.
-              lastHiddenCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($insertedHiddenCell);
-
-              $hiddenCells = $hiddenCells.add($insertedHiddenCell);
-
-              // inserting cells trigers a repositioning.
-              _this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
-              draggedCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($draggedCell);
-            }
-
-            // remove ones at end when we have too much.         
-            var $lastHiddenCell = $hiddenCells.last();
-            var $bottomRowHiddenCells = null;
-            var $getBottomRowHiddenCells = function $getBottomRowHiddenCells() {
-              $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter(function (i, e) {
-                return _utils.Utils.GetPositionAndSizeOfCell($(e)).top === _utils.Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
-              });
-              return $bottomRowHiddenCells;
-            };
-            while (draggedCellPositionAndSize.top + draggedCellPositionAndSize.height < lastHiddenCellPositionAndSize.top && $getBottomRowHiddenCells().filter(function (i, e) {
-              return $(e).data(_constants2['default'].DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
-            }).length === $getBottomRowHiddenCells().length) {
-
-              $hiddenCells = $hiddenCells.not($lastHiddenCell);
-
-              context.removeCell($lastHiddenCell.data(_constants2['default'].DATA_VISIBLE_CELL));
-
-              $lastHiddenCell = $hiddenCells.last();
-
-              lastHiddenCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($lastHiddenCell);
-
-              // removing cells triggers redraw.
-              _this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
-              draggedCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($draggedCell);
-
-              $bottomRowHiddenCells = null;
-            }
-          })();
+        if (options.nonContiguousCellHtml && options.rearrangeOnDrag) {
+          this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
         }
       }
     }
@@ -355,6 +297,8 @@ var Handlers = (function () {
     var $ = this.setup.jQuery;
     var context = this.setup.Context;
     var options = this.setup.Options;
+    var $element = this.setup.$Element;
+    var document = this.setup.Document;
 
     if (!options.draggable) {
       return;
@@ -380,6 +324,19 @@ var Handlers = (function () {
     var $draggedCell = this.internal.$GetDraggingCell();
     if ($draggedCell.length > 0) {
 
+      if (options.nonContiguousCellHtml && !options.rearrangeOnDrag) {
+        this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
+
+        // mouse event may be over a new placeholder cell now.
+        var $overlappedCell = this.internal.$GetNonDraggedCellFromPoint($draggedCell, mouseEvent);
+
+        if ($overlappedCell.length) {
+          this.internal.LastMouseOverCellTarget = $overlappedCell;
+        } else {
+          this.internal.LastMouseOverCellTarget = null;
+        }
+      }
+
       // no more dragging.
       $draggedCell.removeClass(options.dragCellClass);
       _utils.Utils.ClearMouseDownData($resizedCell);
@@ -388,7 +345,8 @@ var Handlers = (function () {
       context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
 
       if (this.internal.LastMouseOverCellTarget && !options.rearrangeOnDrag) {
-        // else just rearrange on mouseup
+
+        // rearrange on mouseup
         this.internal.MoveCell($draggedCell, this.internal.LastMouseOverCellTarget, context);
       }
     }
@@ -540,6 +498,26 @@ var Internal = (function () {
     });
   };
 
+  Internal.prototype.$GetNonDraggedCellFromPoint = function $GetNonDraggedCellFromPoint($draggedCell, mouseEvent) {
+    var document = this.setup.Document;
+    var $ = this.setup.jQuery;
+
+    //remove mouse events from dragged cell, because we need to test for overlap of underneath things.
+    var oldPointerEvents = $draggedCell.css('pointer-events');
+    $draggedCell.css('pointer-events', 'none');
+
+    var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+    var cellAndIndex = this.GetCellAndInternalIndex(element);
+
+    // restore pointer-events css.
+    $draggedCell.css('pointer-events', oldPointerEvents);
+
+    if (!cellAndIndex) {
+      return $();
+    }
+    return cellAndIndex.$cell;
+  };
+
   Internal.prototype.MoveDraggedCell = function MoveDraggedCell(mouseEvent, $cell) {
     var $ = this.setup.jQuery;
     var context = this.setup.Context;
@@ -565,10 +543,6 @@ var Internal = (function () {
     $cell.css('left', absoluteOffset.left);
     $cell.css('top', absoluteOffset.top);
 
-    //now remove mouse events from dragged cell, because we need to test for overlap of underneath things.
-    var oldPointerEvents = $cell.css('pointer-events');
-    $cell.css('pointer-events', 'none');
-
     var triggerMouseOverEvent = function triggerMouseOverEvent($element) {
       $element.trigger($.Event(_constants2['default'].EVENT_MOUSEOVER, {
         pageX: mouseEvent.pageX,
@@ -576,14 +550,16 @@ var Internal = (function () {
         target: $element[0]
       }));
     };
-    var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-    var cellAndIndex = this.GetCellAndInternalIndex(element);
-    if (cellAndIndex) {
+
+    var $overlappedCell = this.$GetNonDraggedCellFromPoint($cell, mouseEvent);
+
+    if ($overlappedCell.length) {
       // have to create event here like this other mouse coords are missing.
-      triggerMouseOverEvent(cellAndIndex.$cell);
+      triggerMouseOverEvent($overlappedCell);
     } else {
-      // have dragged over non-managed cell.
-      // might be from a linked 'additional' gridstrap.
+
+      // have possibly dragged over non-managed cell.
+      // it might be from a linked 'additional' gridstrap.
       if (this.AdditionalGridstrapDragTargetSelector) {
         $(this.AdditionalGridstrapDragTargetSelector).each(function () {
 
@@ -599,9 +575,6 @@ var Internal = (function () {
         });
       }
     }
-
-    // restore pointer-events css.
-    $cell.css('pointer-events', oldPointerEvents);
   };
 
   Internal.prototype.GetCellAndInternalIndex = function GetCellAndInternalIndex(element) {
@@ -802,13 +775,11 @@ var Internal = (function () {
 
   Internal.prototype.$GetHiddenCellsInElementOrder = function $GetHiddenCellsInElementOrder() {
     var $ = this.setup.jQuery;
+    var options = this.setup.Options;
     var $element = this.setup.$Element;
     var self = this;
 
-    // Get all hidden cloned cells, then see if their linked visible cells are managed. Base their returned order off hidden cell html order.
-
-    // just find all children and work from there, can't rely on selcting via base.hiddenCellClass because later elements may have been added.
-    var $attachedHiddenCells = $element.find('*').filter(function () {
+    var $attachedHiddenCells = $element.find(this.setup.HiddenCellSelector).filter(function () {
       var $linkedVisibleCell = $(this).data(_constants2['default'].DATA_VISIBLE_CELL);
       if (!$linkedVisibleCell || !$linkedVisibleCell.length) {
         return false;
@@ -826,6 +797,74 @@ var Internal = (function () {
 
   Internal.prototype.ModifyCellsArray = function ModifyCellsArray(callback) {
     callback(this.cellsArray);
+  };
+
+  Internal.prototype.UpdateNonContiguousCellsForDrag = function UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent) {
+    var draggedCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($draggedCell);
+
+    var changed = this.AppendOrRemoveNonContiguousCellsWhile(function ($hiddenCells, appending) {
+      var lastHiddenCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($hiddenCells.last());
+
+      if (appending) {
+        // if making new placeholder cells, then a whole row of extra cells should exist.
+        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top < draggedCellPositionAndSize.height * 2;
+      } else {
+        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top > draggedCellPositionAndSize.height * 2;
+      }
+    });
+
+    if (changed) {
+      // insert/remove triggers a repositioning, so have to set dragged cell to mousepos again.
+      this.MoveDraggedCell(mouseEvent, $draggedCell);
+    }
+  };
+
+  Internal.prototype.AppendOrRemoveNonContiguousCellsWhile = function AppendOrRemoveNonContiguousCellsWhile(appendWhilePredicate) {
+    var $ = this.setup.jQuery;
+    var options = this.setup.Options;
+    var context = this.setup.Context;
+
+    var $hiddenCells = this.$GetHiddenCellsInElementOrder();
+    var changed = false;
+
+    // remove cells at end when we have too much.         
+    var $lastHiddenCell = $hiddenCells.last();
+    var $bottomRowHiddenCells = null;
+    var $getBottomRowHiddenCells = function $getBottomRowHiddenCells() {
+      $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter(function (i, e) {
+        return _utils.Utils.GetPositionAndSizeOfCell($(e)).top === _utils.Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
+      });
+      return $bottomRowHiddenCells;
+    };
+
+    while (appendWhilePredicate($hiddenCells, true)) {
+      // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
+      // insert dummy cells if cursor is beyond where the cells finish.
+      var $insertedCell = context.insertCell(options.nonContiguousCellHtml, $hiddenCells.length);
+      $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
+      var $insertedHiddenCell = $insertedCell.data(_constants2['default'].DATA_HIDDEN_CELL);
+
+      $hiddenCells = $hiddenCells.add($insertedHiddenCell);
+
+      changed = true;
+    }
+
+    while (appendWhilePredicate($hiddenCells, false) && $getBottomRowHiddenCells().filter(function (i, e) {
+      return $(e).data(_constants2['default'].DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
+    }).length === $getBottomRowHiddenCells().length) {
+
+      context.removeCell($lastHiddenCell.data(_constants2['default'].DATA_VISIBLE_CELL));
+      $hiddenCells = $hiddenCells.not($lastHiddenCell);
+
+      // update new last hidden cell.
+      $lastHiddenCell = $hiddenCells.last();
+
+      $bottomRowHiddenCells = null; // force refilter.
+
+      changed = true;
+    }
+
+    return changed;
   };
 
   _createClass(Internal, [{
@@ -1155,6 +1194,19 @@ var Methods = (function () {
     this.updateVisibleCellCoordinates();
   };
 
+  Methods.prototype.padWithNonContiguousCells = function padWithNonContiguousCells(callback) {
+    var $ = this.setup.jQuery;
+    var options = this.setup.Options;
+
+    var $attachedHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
+
+    this.internal.AppendOrRemoveNonContiguousCellsWhile(function ($hiddenCells, appending) {
+      return callback($hiddenCells.length, $hiddenCells.filter(function (i, e) {
+        return $(e).data(_constants2['default'].DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
+      }).length, appending);
+    });
+  };
+
   return Methods;
 })();
 
@@ -1190,6 +1242,7 @@ var Setup = (function () {
     this.resizeCellSelector = this.visibleCellContainerSelector + ' ' + _utils.Utils.ConvertCssClassToJQuerySelector(options.resizeCellClass) + ':first';
     // visibleCellContainerClassSelector just contains a .class selector, dont prfix with id. Important. Refactor this.
     this.visibleCellContainerClassSelector = _utils.Utils.ConvertCssClassToJQuerySelector(options.visibleCellContainerClass) + ':first';
+    this.hiddenCellSelector = _utils.Utils.ConvertCssClassToJQuerySelector(options.hiddenCellClass);
 
     // if option not specified, use JQuery element as parent for wrapper.
     options.visibleCellContainerParentSelector = options.visibleCellContainerParentSelector || $el;
@@ -1266,6 +1319,11 @@ var Setup = (function () {
     key: 'VisibleCellContainerClassSelector',
     get: function get() {
       return this.visibleCellContainerClassSelector;
+    }
+  }, {
+    key: 'HiddenCellSelector',
+    get: function get() {
+      return this.hiddenCellSelector;
     }
   }]);
 
@@ -1346,7 +1404,6 @@ var Utils = (function () {
     var getInPlaceFunction = function getInPlaceFunction($element) {
       var $other = $a.is($element) ? $b : $a;
       var $next = $element.next();
-      var $nextNext = $next.next();
       var $prev = $element.prev();
       var $parent = $element.parent();
       // cannot swap a with b exactly if there are no other siblings.
@@ -1359,12 +1416,12 @@ var Utils = (function () {
           $prev.after($newElement);
         };
       }
-      // if the 'next next' element is the 'other' element
-      // then it can be used to insert before it because
-      // we know the 'other' element will be removed too.
-      else if ($nextNext.length > 0 && $next.is($other)) {
+      // if neither $next nor $prev is appropriate,
+      // and $next is $other, then can make assumption
+      // that we're moving $a to $b and $a is first element.
+      else if ($next.length > 0 && $next.is($other)) {
           return function ($newElement) {
-            $nextNext.before($newElement);
+            $parent.prepend($newElement);
           };
         } else {
           // no siblings, so can just use append

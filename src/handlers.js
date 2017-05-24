@@ -25,6 +25,10 @@ export class Handlers {
       return;
     }
 
+    if ($cell.hasClass(options.nonContiguousPlaceholderCellClass)){
+      return;
+    }
+
     if (options.resizeHandleSelector &&
       $(mouseEvent.target).closest(options.resizeHandleSelector).length) {
       // is resizing, not dragging.
@@ -117,66 +121,11 @@ export class Handlers {
 
         this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
 
-
-        // ATTEMPT TO GET NONCONTIG WOKING...
-        ////////not overlapping any existing managed cell while dragging.
-        let nonContiguousOptions = options.nonContiguousOptions;
-        let nonContiguousSelector = nonContiguousOptions.selector;
-        if (nonContiguousSelector &&
-          nonContiguousSelector.length) {
-
-          let $hiddenCells = this.internal.$GetHiddenCellsInElementOrder();
-
-          let lastHiddenCellPositionAndSize = Utils.GetPositionAndSizeOfCell( $hiddenCells.last());
-          let draggedCellPositionAndSize = Utils.GetPositionAndSizeOfCell($draggedCell);
-
-          while (draggedCellPositionAndSize.top + draggedCellPositionAndSize.height > lastHiddenCellPositionAndSize.top) {
-            // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
-            // insert dummy cells if cursor is beyond where the cells finish.
-            let $insertedCell = context.insertCell(
-              nonContiguousOptions.getHtml(),
-              $hiddenCells.length
-            );
-            $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
-            let $insertedHiddenCell = $insertedCell.data(Constants.DATA_HIDDEN_CELL);
-
-            // might have to keep adding them.
-            lastHiddenCellPositionAndSize = Utils.GetPositionAndSizeOfCell($insertedHiddenCell);
-
-            $hiddenCells = $hiddenCells.add($insertedHiddenCell);
-
-            // inserting cells trigers a repositioning.
-            this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
-            draggedCellPositionAndSize = Utils.GetPositionAndSizeOfCell($draggedCell);
-          }
-
-          // remove ones at end when we have too much.          
-          let $lastHiddenCell = $hiddenCells.last();
-          let $bottomRowHiddenCells = null;
-          let $getBottomRowHiddenCells = () => {
-            $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter((i,e) => {
-              return Utils.GetPositionAndSizeOfCell($(e)).top === Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
-            });
-            return $bottomRowHiddenCells;
-          };
-          while (draggedCellPositionAndSize.top + draggedCellPositionAndSize.height < lastHiddenCellPositionAndSize.top &&
-            $getBottomRowHiddenCells().filter((i,e) => $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass)).length === $getBottomRowHiddenCells().length) {
-
-            $hiddenCells = $hiddenCells.not($lastHiddenCell);
-
-            context.removeCell($lastHiddenCell.data(Constants.DATA_VISIBLE_CELL));
-
-            $lastHiddenCell = $hiddenCells.last();
-
-            lastHiddenCellPositionAndSize = Utils.GetPositionAndSizeOfCell($lastHiddenCell);
-
-            // removing cells triggers redraw.
-            this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
-            draggedCellPositionAndSize = Utils.GetPositionAndSizeOfCell($draggedCell);
-
-            $bottomRowHiddenCells = null;
-          }
-        }
+        if (options.nonContiguousCellHtml && 
+          options.rearrangeOnDrag && 
+          options.autoPadNonContiguousCells){
+          this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
+        } 
       }
     }
   }
@@ -185,6 +134,8 @@ export class Handlers {
     let $ = this.setup.jQuery;
     let context = this.setup.Context;
     let options = this.setup.Options;
+    let $element = this.setup.$Element;
+    let document = this.setup.Document;
 
     if (!options.draggable) {
       return;
@@ -210,6 +161,21 @@ export class Handlers {
     let $draggedCell = this.internal.$GetDraggingCell();
     if ($draggedCell.length > 0) {
 
+      if (options.nonContiguousCellHtml && 
+        !options.rearrangeOnDrag &&
+        options.autoPadNonContiguousCells){
+        this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
+
+        // mouse event may be over a new placeholder cell now.
+        let $overlappedCell = this.internal.$GetNonDraggedCellFromPoint($draggedCell, mouseEvent);
+
+        if ($overlappedCell.length){
+          this.internal.LastMouseOverCellTarget = $overlappedCell;
+        } else {
+          this.internal.LastMouseOverCellTarget = null;
+        }
+      }
+
       // no more dragging.
       $draggedCell.removeClass(options.dragCellClass);
       Utils.ClearMouseDownData($resizedCell);
@@ -217,9 +183,9 @@ export class Handlers {
       let cellOriginalPosition = $draggedCell.data(Constants.DATA_CELL_POSITION_AND_SIZE);
       context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
 
-      if (this.internal.LastMouseOverCellTarget &&
-        !options.rearrangeOnDrag) {
-        // else just rearrange on mouseup
+      if (this.internal.LastMouseOverCellTarget && !options.rearrangeOnDrag) { 
+
+        // rearrange on mouseup
         this.internal.MoveCell($draggedCell, this.internal.LastMouseOverCellTarget, context);
       }
     }

@@ -76,12 +76,8 @@ import {Methods} from './methods';
     resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
     resizeOnDrag: true, // toggle mouse resizing.	
     swapMode: false, // toggle swap or insert mode when rearranging cells.
-    nonContiguousOptions: { // TODO// TODO// TODO// TODO
-      selector: null,
-      getHtml: function () {
-        return null;
-      }
-    },
+    nonContiguousCellHtml: null, // html to use for non-contiguous placeholder cells.
+    autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as needed.
     updateCoordinatesOnWindowResize: true, // enable window resize event handler.
     debug: false, // toggle console output.
     dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.

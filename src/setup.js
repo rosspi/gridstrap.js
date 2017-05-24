@@ -17,6 +17,7 @@ export class Setup {
     this.resizeCellSelector = this.visibleCellContainerSelector + ' ' + Utils.ConvertCssClassToJQuerySelector(options.resizeCellClass) + ':first';
     // visibleCellContainerClassSelector just contains a .class selector, dont prfix with id. Important. Refactor this.
     this.visibleCellContainerClassSelector = Utils.ConvertCssClassToJQuerySelector(options.visibleCellContainerClass) + ':first';
+    this.hiddenCellSelector = Utils.ConvertCssClassToJQuerySelector(options.hiddenCellClass);
 
     // if option not specified, use JQuery element as parent for wrapper.
     options.visibleCellContainerParentSelector = options.visibleCellContainerParentSelector || $el;
@@ -79,5 +80,9 @@ export class Setup {
 
   get VisibleCellContainerClassSelector(){
     return this.visibleCellContainerClassSelector;
+  } 
+
+  get HiddenCellSelector(){
+    return this.hiddenCellSelector;
   }  
 }

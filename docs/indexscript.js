@@ -80,14 +80,20 @@ $(function () {
 
   $('a[href="#noncontiguous-demo"]').on('shown.bs.tab', function () {
     $('#noncontiguous-grid').gridstrap({
-      nonContiguousOptions: {
-        selector: '#gwgwe',
-        getHtml: function () {
-          return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
-        }
-      },
+      // nonContiguousOptions: {
+      //   selector: '#gwgwe',
+      //   getHtml: function () {
+      //     return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
+      //   }
+      // },
+      nonContiguousCellHtml: '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>',
       swapMode: true,
-      mousemoveDebounce: 10
+      rearrangeOnDrag: false
+     // mousemoveDebounce: 10
+    });
+
+    $('#noncontiguous-grid').data('gridstrap').padWithNonContiguousCells(function(cellCount, nonContiguousCellCount, appending) {
+      return appending && nonContiguousCellCount < 30;
     });
   });
 

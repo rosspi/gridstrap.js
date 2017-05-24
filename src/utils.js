@@ -55,8 +55,7 @@ export class Utils {
   static SwapJQueryElements($a, $b){
     let getInPlaceFunction = function ($element) {
       let $other = $a.is($element) ? $b : $a;
-      let $next = $element.next();
-      let $nextNext = $next.next();
+      let $next = $element.next(); 
       let $prev = $element.prev();
       let $parent = $element.parent();
       // cannot swap a with b exactly if there are no other siblings.
@@ -69,12 +68,12 @@ export class Utils {
           $prev.after($newElement);
         }
       }
-      // if the 'next next' element is the 'other' element
-      // then it can be used to insert before it because 
-      // we know the 'other' element will be removed too.
-      else if ($nextNext.length > 0 && $next.is($other)) {
+      // if neither $next nor $prev is appropriate, 
+      // and $next is $other, then can make assumption
+      // that we're moving $a to $b and $a is first element.
+      else if ($next.length > 0 && $next.is($other)) {
         return function ($newElement) {
-          $nextNext.before($newElement);
+          $parent.prepend($newElement);
         }
       } else {
         // no siblings, so can just use append

@@ -96,7 +96,6 @@ var Utils = (function () {
     var getInPlaceFunction = function getInPlaceFunction($element) {
       var $other = $a.is($element) ? $b : $a;
       var $next = $element.next();
-      var $nextNext = $next.next();
       var $prev = $element.prev();
       var $parent = $element.parent();
       // cannot swap a with b exactly if there are no other siblings.
@@ -109,12 +108,12 @@ var Utils = (function () {
           $prev.after($newElement);
         };
       }
-      // if the 'next next' element is the 'other' element
-      // then it can be used to insert before it because
-      // we know the 'other' element will be removed too.
-      else if ($nextNext.length > 0 && $next.is($other)) {
+      // if neither $next nor $prev is appropriate,
+      // and $next is $other, then can make assumption
+      // that we're moving $a to $b and $a is first element.
+      else if ($next.length > 0 && $next.is($other)) {
           return function ($newElement) {
-            $nextNext.before($newElement);
+            $parent.prepend($newElement);
           };
         } else {
           // no siblings, so can just use append

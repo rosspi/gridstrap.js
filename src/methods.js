@@ -285,4 +285,20 @@ export class Methods {
     this.updateVisibleCellCoordinates();
   }
 
+  padWithNonContiguousCells(callback){
+    let $ = this.setup.jQuery;
+    let options = this.setup.Options;
+    
+    let $attachedHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
+
+    this.internal.AppendOrRemoveNonContiguousCellsWhile(($hiddenCells, appending) => {
+      return callback(
+        $hiddenCells.length, 
+        $hiddenCells.filter((i, e) => {
+          return $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
+        }).length, 
+        appending);
+    });
+  }
+
 }
