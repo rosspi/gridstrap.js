@@ -336,9 +336,8 @@ margin:0px;
 
 .site-footer-credits { color: #819198; }
 
-#basic-grid{
-  margin-top:15px;
-  margin-bottom:15px;
+.tab-content>.tab-pane{
+  padding-top:15px;
 }
 
 .cell{
@@ -391,13 +390,7 @@ margin:0px;
 iframe{
   border: none;
   height:500px;
-}
-
-#noncontiguous-grid{
-  height:400px;
-  pointer-events: all;
-  background-color: orange;
-}
+} 
 
 #custom-grid>div{ 
   float:left;

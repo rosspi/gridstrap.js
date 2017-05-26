@@ -181,6 +181,47 @@
     <div role="tabpanel" class="tab-pane" id="noncontiguous-demo">
       <div id="noncontiguous-grid"> 
       </div> 
+      <div class="row">
+        <div class="col-xs-12">  
+          <pre><code class="language-javascript">&lt;div id="noncontiguous-grid"&gt;
+  &lt;div class="col-xs-4 col-sm-2 col-md-1 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="col-xs-4 col-sm-2 col-md-1 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt; 
+  ...
+&lt;/div&gt; 
+
+&lt;script&gt;
+  $('#noncontiguous-grid').gridstrap({
+    nonContiguousCellHtml: '&lt;div class="col-xs-4 col-sm-2 col-md-1 cell"&gt;&lt;div class="inner"&gt;&lt;/div&gt;&lt;/div&gt;',
+    swapMode: true,
+    rearrangeOnDrag: false,
+    autoPadNonContiguousCells: false // We will explicitly init non-contiguous cells below.
+  });
+
+  var ncg = $('#noncontiguous-grid').data('gridstrap');
+  var $cells = ncg.$getCells(); 
+  var finalCellCount = 5 * 12; // 5 rows
+
+  // Create non-contiguous cells until the condition is met.
+  ncg.padWithNonContiguousCells(function(cellCount, nonContiguousCellCount) {
+    return cellCount &lt; finalCellCount;
+  });
+
+  var moveRandomCell = function(){
+    var $cellToMove = $cells.eq(Math.floor(Math.random() * $cells.length));
+    var moveToIndex = Math.floor(Math.random() * finalCellCount);
+
+    ncg.moveCell($cellToMove, moveToIndex);
+  };
+
+  // Move some cells around to demonstrate effect.
+  moveRandomCell();
+  moveRandomCell();
+  moveRandomCell();
+  moveRandomCell();
+  moveRandomCell();
+&lt;/script&gt;</code></pre> 
+        </div> 
+      </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="dual-demo">
        <div class="row">

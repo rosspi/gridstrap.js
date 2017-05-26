@@ -81,11 +81,30 @@ export class Methods {
   // index is optional.
   insertCell (cellHtml, index) {
     let $ = this.setup.jQuery;
-    let $element = this.setup.$Element;
+    let options = this.setup.Options;
+    let $element = this.setup.$Element; 
 
     var $existingHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
     if (typeof(index) === 'undefined') {
       index = $existingHiddenCells.length; // insert at end.
+    }
+
+    if (index > $existingHiddenCells.length && 
+      options.nonContiguousCellHtml && 
+      options.autoPadNonContiguousCells) {
+      
+      this.internal.AppendOrRemoveNonContiguousCellsWhile(($hiddenCells, appending) => {
+
+        if (!appending){
+          // do not remove when trying to remove.
+          return false; 
+        }
+        // insert placeholders until quantity of cells is index -1.
+        return $hiddenCells.length < index;
+      });
+
+      // update these.
+      $existingHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
     }
 
     var $insertedCell;
@@ -157,11 +176,30 @@ export class Methods {
   }
 
   moveCell(element, toIndex, targetGridstrap) { // targetGridstrap optional..
+    let options = this.setup.Options;
     let context = this.setup.Context;
 
-    let cellNIndex = this.internal.GetCellAndInternalIndex(element);
-
     let $existingVisibleCells = this.$getCells();
+
+    if (toIndex > $existingVisibleCells.length && 
+      options.nonContiguousCellHtml && 
+      options.autoPadNonContiguousCells) {
+      
+      this.internal.AppendOrRemoveNonContiguousCellsWhile(($hiddenCells, appending) => {
+
+        if (!appending){
+          // do not remove when trying to remove.
+          return false; 
+        }
+        // insert placeholders until quantity of cells is index -1.
+        return $hiddenCells.length <= toIndex;
+      });
+
+      // update these.
+      $existingVisibleCells = this.$getCells();
+    }
+
+    let cellNIndex = this.internal.GetCellAndInternalIndex(element);
 
     this.internal.MoveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex), targetGridstrap || context);
     
@@ -289,15 +327,25 @@ export class Methods {
     let $ = this.setup.jQuery;
     let options = this.setup.Options;
     
+    if (!options.nonContiguousCellHtml){
+      throw new Error(Constants.ERROR_NONCONTIGUOUS_HTML_UNDEFINED);
+    }
+    
     let $attachedHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
 
     this.internal.AppendOrRemoveNonContiguousCellsWhile(($hiddenCells, appending) => {
-      return callback(
-        $hiddenCells.length, 
-        $hiddenCells.filter((i, e) => {
-          return $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
-        }).length, 
-        appending);
+
+      if (!appending){
+        // do not remove, when trying to remove.
+        // only append/pad.
+        return false; 
+      }
+      let cellCount = $hiddenCells.length;
+      let placeHolderCount = $hiddenCells.filter((i, e) => {
+        return $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
+      }).length;
+
+      return callback(cellCount, placeHolderCount);
     });
   }
 

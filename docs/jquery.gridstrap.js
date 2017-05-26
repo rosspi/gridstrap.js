@@ -34,9 +34,9 @@ exports['default'] = {
   EVENT_CELL_RESIZE: 'cellresize',
   EVENT_CELL_DRAG: 'celldrag',
   EVENT_CELL_REDRAW: 'cellredraw',
-  EVENT_NONCONTIGUOUS_CONTAINER_CHANGE: 'noncontiguouschange',
-  ERROR_MISSING_JQUERY: 'Requires jQuery v?',
-  ERROR_INVALID_ATTACH_ELEMENT: 'Cannot attach element that is not a child of gridstrap parent'
+  ERROR_MISSING_JQUERY: 'Requires jQuery v?', //TODO
+  ERROR_INVALID_ATTACH_ELEMENT: 'Cannot attach element that is not a child of gridstrap parent.',
+  ERROR_NONCONTIGUOUS_HTML_UNDEFINED: 'nonContiguousCellHtml option cannot be null.'
 };
 module.exports = exports['default'];
 
@@ -144,7 +144,8 @@ var _methods = require('./methods');
     resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
     resizeOnDrag: true, // toggle mouse resizing.	
     swapMode: false, // toggle swap or insert mode when rearranging cells.
-    nonContiguousCellHtml: null, // enable non-contiguous mode using this html for a placeholder cell.
+    nonContiguousCellHtml: null, // html to use for non-contiguous placeholder cells.
+    autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as needed.
     updateCoordinatesOnWindowResize: true, // enable window resize event handler.
     debug: false, // toggle console output.
     dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.
@@ -294,7 +295,7 @@ var Handlers = (function () {
 
         this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
 
-        if (options.nonContiguousCellHtml && options.rearrangeOnDrag) {
+        if (options.nonContiguousCellHtml && options.rearrangeOnDrag && options.autoPadNonContiguousCells) {
           this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
         }
       }
@@ -332,7 +333,8 @@ var Handlers = (function () {
     var $draggedCell = this.internal.$GetDraggingCell();
     if ($draggedCell.length > 0) {
 
-      if (options.nonContiguousCellHtml && !options.rearrangeOnDrag) {
+      if (options.nonContiguousCellHtml && !options.rearrangeOnDrag && options.autoPadNonContiguousCells) {
+
         this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
 
         // mouse event may be over a new placeholder cell now.
@@ -808,21 +810,38 @@ var Internal = (function () {
   };
 
   Internal.prototype.UpdateNonContiguousCellsForDrag = function UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent) {
-    var draggedCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($draggedCell);
+    var $ = this.setup.jQuery;
+    var options = this.setup.Options;
+
+    var furthestVisibleCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($draggedCell);
+
+    var compare = function compare(positionAndSize) {
+      return positionAndSize.left + positionAndSize.width + (positionAndSize.top + positionAndSize.height) * 100000;
+    };
+    var $hiddenCells = this.$GetHiddenCellsInElementOrder();
+    $hiddenCells.each(function (i, e) {
+      if (!$(e).data(_constants2['default'].DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass)) {
+        var positionAndSize = _utils.Utils.GetPositionAndSizeOfCell($(e));
+
+        if (compare(positionAndSize) > compare(furthestVisibleCellPositionAndSize)) {
+          furthestVisibleCellPositionAndSize = positionAndSize;
+        }
+      }
+    });
 
     var changed = this.AppendOrRemoveNonContiguousCellsWhile(function ($hiddenCells, appending) {
       var lastHiddenCellPositionAndSize = _utils.Utils.GetPositionAndSizeOfCell($hiddenCells.last());
 
+      // A whole row of extra cells should exist.
       if (appending) {
-        // if making new placeholder cells, then a whole row of extra cells should exist.
-        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top < draggedCellPositionAndSize.height * 2;
+        // need at least 2* cell height worht of space at bottom of grid.
+        return lastHiddenCellPositionAndSize.top - furthestVisibleCellPositionAndSize.top < furthestVisibleCellPositionAndSize.height * 2;
       } else {
-        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top > draggedCellPositionAndSize.height * 2;
+        return lastHiddenCellPositionAndSize.top - furthestVisibleCellPositionAndSize.top > furthestVisibleCellPositionAndSize.height * 2;
       }
     });
 
     if (changed) {
-      // insert/remove triggers a repositioning, so have to set dragged cell to mousepos again.
       this.MoveDraggedCell(mouseEvent, $draggedCell);
     }
   };
@@ -832,18 +851,9 @@ var Internal = (function () {
     var options = this.setup.Options;
     var context = this.setup.Context;
 
-    var $hiddenCells = this.$GetHiddenCellsInElementOrder();
     var changed = false;
 
-    // remove cells at end when we have too much.         
-    var $lastHiddenCell = $hiddenCells.last();
-    var $bottomRowHiddenCells = null;
-    var $getBottomRowHiddenCells = function $getBottomRowHiddenCells() {
-      $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter(function (i, e) {
-        return _utils.Utils.GetPositionAndSizeOfCell($(e)).top === _utils.Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
-      });
-      return $bottomRowHiddenCells;
-    };
+    var $hiddenCells = this.$GetHiddenCellsInElementOrder();
 
     while (appendWhilePredicate($hiddenCells, true)) {
       // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
@@ -857,9 +867,21 @@ var Internal = (function () {
       changed = true;
     }
 
+    // remove cells at end when we have too much.         
+    var $lastHiddenCell = $hiddenCells.last();
+    var $bottomRowHiddenCells = null;
+    var $getBottomRowHiddenCells = function $getBottomRowHiddenCells() {
+      $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter(function (i, e) {
+        return _utils.Utils.GetPositionAndSizeOfCell($(e)).top === _utils.Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
+      });
+      return $bottomRowHiddenCells;
+    };
+
+    // remove all non-contiguous bottom row cells.
     while (appendWhilePredicate($hiddenCells, false) && $getBottomRowHiddenCells().filter(function (i, e) {
       return $(e).data(_constants2['default'].DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
-    }).length === $getBottomRowHiddenCells().length) {
+    }).length === $getBottomRowHiddenCells().length && $getBottomRowHiddenCells().length > 0) {
+      // while all bottom row cells are placeholders.
 
       context.removeCell($lastHiddenCell.data(_constants2['default'].DATA_VISIBLE_CELL));
       $hiddenCells = $hiddenCells.not($lastHiddenCell);
@@ -999,11 +1021,28 @@ var Methods = (function () {
 
   Methods.prototype.insertCell = function insertCell(cellHtml, index) {
     var $ = this.setup.jQuery;
+    var options = this.setup.Options;
     var $element = this.setup.$Element;
 
     var $existingHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
     if (typeof index === 'undefined') {
       index = $existingHiddenCells.length; // insert at end.
+    }
+
+    if (index > $existingHiddenCells.length && options.nonContiguousCellHtml && options.autoPadNonContiguousCells) {
+
+      this.internal.AppendOrRemoveNonContiguousCellsWhile(function ($hiddenCells, appending) {
+
+        if (!appending) {
+          // do not remove when trying to remove.
+          return false;
+        }
+        // insert placeholders until quantity of cells is index -1.
+        return $hiddenCells.length < index;
+      });
+
+      // update these.
+      $existingHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
     }
 
     var $insertedCell;
@@ -1078,11 +1117,28 @@ var Methods = (function () {
 
   Methods.prototype.moveCell = function moveCell(element, toIndex, targetGridstrap) {
     // targetGridstrap optional..
+    var options = this.setup.Options;
     var context = this.setup.Context;
 
-    var cellNIndex = this.internal.GetCellAndInternalIndex(element);
-
     var $existingVisibleCells = this.$getCells();
+
+    if (toIndex > $existingVisibleCells.length && options.nonContiguousCellHtml && options.autoPadNonContiguousCells) {
+
+      this.internal.AppendOrRemoveNonContiguousCellsWhile(function ($hiddenCells, appending) {
+
+        if (!appending) {
+          // do not remove when trying to remove.
+          return false;
+        }
+        // insert placeholders until quantity of cells is index -1.
+        return $hiddenCells.length <= toIndex;
+      });
+
+      // update these.
+      $existingVisibleCells = this.$getCells();
+    }
+
+    var cellNIndex = this.internal.GetCellAndInternalIndex(element);
 
     this.internal.MoveCell(cellNIndex.$cell, $existingVisibleCells.eq(toIndex), targetGridstrap || context);
   };
@@ -1206,12 +1262,25 @@ var Methods = (function () {
     var $ = this.setup.jQuery;
     var options = this.setup.Options;
 
+    if (!options.nonContiguousCellHtml) {
+      throw new Error(_constants2['default'].ERROR_NONCONTIGUOUS_HTML_UNDEFINED);
+    }
+
     var $attachedHiddenCells = this.internal.$GetHiddenCellsInElementOrder();
 
     this.internal.AppendOrRemoveNonContiguousCellsWhile(function ($hiddenCells, appending) {
-      return callback($hiddenCells.length, $hiddenCells.filter(function (i, e) {
+
+      if (!appending) {
+        // do not remove, when trying to remove.
+        // only append/pad.
+        return false;
+      }
+      var cellCount = $hiddenCells.length;
+      var placeHolderCount = $hiddenCells.filter(function (i, e) {
         return $(e).data(_constants2['default'].DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
-      }).length, appending);
+      }).length;
+
+      return callback(cellCount, placeHolderCount);
     });
   };
 

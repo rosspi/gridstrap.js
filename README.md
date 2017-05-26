@@ -81,12 +81,8 @@ $.Gridstrap.defaultOptions = {
 	resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
 	resizeOnDrag: true, // toggle mouse resizing.	
 	swapMode: false, // toggle swap or insert mode when rearranging cells.
-	nonContiguousOptions: { // TODO// TODO// TODO// TODO
-		selector: null,
-		getHtml: function () {
-			return null;
-		}
-	},
+	nonContiguousCellHtml: null, // html to use for non-contiguous placeholder cells.
+	autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as otherwise needed.
 	updateCoordinatesOnWindowResize: true, // enable window resize event handler.
 	debug: false, // toggle console output.
 	dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.
@@ -254,6 +250,19 @@ Move a cell within the grid.
 Nothing.
 
 
+#### [.padWithNonContiguousCells](src/methods.js) 
+
+Explicitly append non-contiguous cells to set of current cells. These cells are added automatically as required if the `autoPadNonContiguousCells` option is enabled, but for performance and behaviour reasons it may be better to setup a grid using this method.
+
+**Params**
+
+* `callback` **{Function}**: Provide a function with two Number parameters, `cellCount` and `nonContiguousCellCount`. Return `true` to append a new non-contiguous cell to the grid. The function will be continuously be called until `false` is returned.
+
+**Returns**
+
+Nothing.
+
+
 #### [.removeCell](src/methods.js) 
 
 Detach an existing cell from the grid and then removes it from the DOM.  
@@ -352,16 +361,7 @@ Triggered when a visible cell is being resized. Can be prevented.
 
 * `width` **{Number}**: Width of cell.
 * `height` **{Number}**: Height of cell.
-* `target` **{Element}**: Visible cell being resized.
-
-#### [noncontiguouschange](src/constants.js)
-
-Triggered when the quantity of non-contiguous placeholder elements change. Can be prevented.
-
-**Event data**
-TODO
-
-
+* `target` **{Element}**: Visible cell being resized. 
 
 
 

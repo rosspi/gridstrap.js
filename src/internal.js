@@ -449,24 +449,41 @@ export class Internal {
   } 
 
   UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent){
-    let draggedCellPositionAndSize = Utils.GetPositionAndSizeOfCell($draggedCell);
+    let $ = this.setup.jQuery; 
+    let options = this.setup.Options;   
+
+    let furthestVisibleCellPositionAndSize = Utils.GetPositionAndSizeOfCell($draggedCell);
+
+    let compare = (positionAndSize) => {
+      return positionAndSize.left + positionAndSize.width +  
+        (positionAndSize.top + positionAndSize.height) * 100000
+    };
+    let $hiddenCells = this.$GetHiddenCellsInElementOrder(); 
+    $hiddenCells.each((i, e) => {
+      if (!$(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass)){
+        let positionAndSize = Utils.GetPositionAndSizeOfCell($(e));
+
+        if (compare(positionAndSize) > compare(furthestVisibleCellPositionAndSize)){
+          furthestVisibleCellPositionAndSize = positionAndSize;
+        }
+      }
+    });
 
     let changed = this.AppendOrRemoveNonContiguousCellsWhile(($hiddenCells, appending) => {
       let lastHiddenCellPositionAndSize = Utils.GetPositionAndSizeOfCell( $hiddenCells.last());
  
+      // A whole row of extra cells should exist.
       if (appending){
-        // if making new placeholder cells, then a whole row of extra cells should exist.
-        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top < draggedCellPositionAndSize.height * 2;
+        // need at least 2* cell height worht of space at bottom of grid.
+        return lastHiddenCellPositionAndSize.top - furthestVisibleCellPositionAndSize.top < furthestVisibleCellPositionAndSize.height * 2;     
       } else {
-        return lastHiddenCellPositionAndSize.top - draggedCellPositionAndSize.top > draggedCellPositionAndSize.height * 2;
-      }
-      
-    }); 
+        return lastHiddenCellPositionAndSize.top - furthestVisibleCellPositionAndSize.top > furthestVisibleCellPositionAndSize.height * 2;
+      }     
+    });  
 
     if (changed){
-      // insert/remove triggers a repositioning, so have to set dragged cell to mousepos again.
-      this.MoveDraggedCell(mouseEvent, $draggedCell);
-    }  
+      this.MoveDraggedCell(mouseEvent, $draggedCell); 
+    }
   }
 
   AppendOrRemoveNonContiguousCellsWhile(appendWhilePredicate){     
@@ -474,18 +491,9 @@ export class Internal {
     let options = this.setup.Options;
     let context = this.setup.Context;
 
-    let $hiddenCells = this.$GetHiddenCellsInElementOrder(); 
     let changed = false;
 
-    // remove cells at end when we have too much.          
-    let $lastHiddenCell = $hiddenCells.last();
-    let $bottomRowHiddenCells = null;
-    let $getBottomRowHiddenCells = () => {
-      $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter((i,e) => {
-        return Utils.GetPositionAndSizeOfCell($(e)).top === Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
-      });
-      return $bottomRowHiddenCells;
-    };   
+    let $hiddenCells = this.$GetHiddenCellsInElementOrder();  
 
     while (appendWhilePredicate($hiddenCells, true)) {
       // if mouse beyond or getting near end of static hidden element, then make some placeholder ones.
@@ -497,13 +505,28 @@ export class Internal {
       $insertedCell.addClass(options.nonContiguousPlaceholderCellClass);
       let $insertedHiddenCell = $insertedCell.data(Constants.DATA_HIDDEN_CELL);
 
-      $hiddenCells = $hiddenCells.add($insertedHiddenCell);
-      
+      $hiddenCells = $hiddenCells.add($insertedHiddenCell); 
+
       changed = true;
     } 
+
+    // remove cells at end when we have too much.          
+    let $lastHiddenCell = $hiddenCells.last();
+    let $bottomRowHiddenCells = null;
+    let $getBottomRowHiddenCells = () => {
+      $bottomRowHiddenCells = $bottomRowHiddenCells || $hiddenCells.filter((i,e) => {
+        return Utils.GetPositionAndSizeOfCell($(e)).top === Utils.GetPositionAndSizeOfCell($lastHiddenCell).top;
+      });
+      return $bottomRowHiddenCells;
+    };   
     
+    // remove all non-contiguous bottom row cells.
     while (appendWhilePredicate($hiddenCells, false) &&
-      $getBottomRowHiddenCells().filter((i,e) => $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass)).length === $getBottomRowHiddenCells().length) {
+      $getBottomRowHiddenCells().filter((i,e) => {
+        return $(e).data(Constants.DATA_VISIBLE_CELL).hasClass(options.nonContiguousPlaceholderCellClass);
+      }).length === $getBottomRowHiddenCells().length && 
+      $getBottomRowHiddenCells().length > 0) {
+      // while all bottom row cells are placeholders.
 
       context.removeCell($lastHiddenCell.data(Constants.DATA_VISIBLE_CELL));
       $hiddenCells = $hiddenCells.not($lastHiddenCell);
@@ -511,10 +534,10 @@ export class Internal {
       // update new last hidden cell.
       $lastHiddenCell = $hiddenCells.last(); 
 
-      $bottomRowHiddenCells = null; // force refilter.
+      $bottomRowHiddenCells = null; // force refilter. 
 
       changed = true;
-    } 
+    }  
 
     return changed;
   }

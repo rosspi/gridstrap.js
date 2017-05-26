@@ -164,6 +164,7 @@ export class Handlers {
       if (options.nonContiguousCellHtml && 
         !options.rearrangeOnDrag &&
         options.autoPadNonContiguousCells){
+          
         this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
 
         // mouse event may be over a new placeholder cell now.

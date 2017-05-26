@@ -80,21 +80,33 @@ $(function () {
 
   $('a[href="#noncontiguous-demo"]').on('shown.bs.tab', function () {
     $('#noncontiguous-grid').gridstrap({
-      // nonContiguousOptions: {
-      //   selector: '#gwgwe',
-      //   getHtml: function () {
-      //     return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
-      //   }
-      // },
       nonContiguousCellHtml: '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>',
       swapMode: true,
-      rearrangeOnDrag: false
+      rearrangeOnDrag: false,
+      autoPadNonContiguousCells: false
      // mousemoveDebounce: 10
     });
 
-    $('#noncontiguous-grid').data('gridstrap').padWithNonContiguousCells(function(cellCount, nonContiguousCellCount, appending) {
-      return appending && nonContiguousCellCount < 30;
+    var ncg = $('#noncontiguous-grid').data('gridstrap');
+    var $cells = ncg.$getCells(); 
+    var finalCellCount = 5 * 12;
+
+    ncg.padWithNonContiguousCells(function(cellCount, nonContiguousCellCount) {
+      return cellCount < finalCellCount;
     });
+
+    var moveRandomCell = function(){
+      var $cellToMove = $cells.eq(Math.floor(Math.random() * $cells.length));
+      var moveToIndex = Math.floor(Math.random() * finalCellCount);
+
+      ncg.moveCell($cellToMove, moveToIndex);
+    };
+
+    moveRandomCell();
+    moveRandomCell();
+    moveRandomCell();
+    moveRandomCell();
+    moveRandomCell();
   });
 
   $('a[href="#dual-demo"]').on('shown.bs.tab', function () {
