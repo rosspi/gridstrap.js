@@ -10,48 +10,45 @@ export class Utils {
     return cssClass.replace(/(^ *| +)/g, '.');
   }
 
-  static Debounce(callback, milliseconds, leading){
-    let timeout;
+  static Debounce(callback, milliseconds, leading, timeout){
+    if (typeof(timeout) === 'undefined'){
+      timeout = null;
+    }
     return function () {
       let context = this;
       let args = arguments;
-      let callNow = leading || !milliseconds;
       let later = function () {
         timeout = null;
-        if (!callNow) {
+        if (!leading) {
           callback.apply(context, args);
         }
       };
+      let callNow = leading && !timeout;
+      
+      if (milliseconds == 500)
+        console.log('callNow: ' + callNow);
+      
       clearTimeout(timeout);
       timeout = setTimeout(later, milliseconds);
       if (callNow) {
         callback.apply(context, args);
       }
+
+      return timeout;
     };
   }
 
-  static IsElementThrottled($, element, milliseconds){
-
-    Utils.recentDragMouseOvers = Utils.recentDragMouseOvers || [];
-
+  static Limit(callback, milliseconds) { 
     let d = new Date();
     let n = d.getTime();
-    for (let i = 0; i < Utils.recentDragMouseOvers.length; i++) {
-      if (Utils.recentDragMouseOvers[i].n + milliseconds < n) {
-        // expired.
-        Utils.recentDragMouseOvers.splice(i, 1);
-      }
-      if (i < Utils.recentDragMouseOvers.length && $(Utils.recentDragMouseOvers[i].e).is(element)) {
-        return true;
-      }
-    }
-    Utils.recentDragMouseOvers.push({
-      n: n,
-      e: element
-    });
-    return false;
-  }
+    if (n - (Utils.limit || 0) > milliseconds){
 
+      callback();
+
+      Utils.limit = n;
+    } 
+  } 
+  
   static SwapJQueryElements($a, $b){
     let getInPlaceFunction = function ($element) {
       let $other = $a.is($element) ? $b : $a;
@@ -146,6 +143,22 @@ export class Utils {
       width: w,
       height: h
     };
+  }
+
+  static ConvertTouchToMouseEvent(touchEvent){
+    let touch = null;
+    for (var i = 0; !touch && i < touchEvent.changedTouches.length; i++){
+      if (touchEvent.changedTouches[i].identifier === 0){
+        touch = touchEvent.changedTouches[i];
+      }
+    } 
+    
+    touchEvent.pageX = touch.pageX;
+    touchEvent.pageY = touch.pageY;
+    touchEvent.clientX = touch.clientX;
+    touchEvent.clientY = touch.clientY;
+    
+    return touchEvent;
   }
 
 }

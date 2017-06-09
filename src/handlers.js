@@ -16,6 +16,20 @@ export class Handlers {
     }
   }
 
+  onTouchStart (touchEvent, $cell, gridstrapContext){
+    let $ = this.setup.jQuery;
+    let options = this.setup.Options;
+
+    touchEvent.preventDefault(); 
+
+    if (touchEvent.touches.length){
+      this.onMousedown(
+        Utils.ConvertTouchToMouseEvent(touchEvent), 
+        $cell, 
+        gridstrapContext);
+    }
+  }
+
   onMousedown (mouseEvent, $cell, gridstrapContext) {
     let $ = this.setup.jQuery;
     let context = this.setup.Context;
@@ -49,7 +63,7 @@ export class Handlers {
 
       this.internal.MoveDraggedCell(mouseEvent, $cell);
     }
-  }
+  } 
 
   onMouseover(mouseEvent, $cell, gridstrapContext) {
     let $ = this.setup.jQuery;
@@ -70,11 +84,9 @@ export class Handlers {
         // make sure you're not mouseover-ing the dragged cell itself.
         // css' 'pointer-events', 'none' should do this job, but this double checks.
 
-        this.internal.LastMouseOverCellTarget = $cell;
+        this.internal.LastMouseOverCellTarget = $cell; 
 
-        if (!Utils.IsElementThrottled($, $cell, options.dragMouseoverThrottle)) {
-          // do not move two cells that have recently already moved.
-
+        Utils.Limit(() => {
           if (gridstrapContext.options.rearrangeOnDrag) { 
 
             this.internal.MoveCell($draggedCell, $cell, gridstrapContext); 
@@ -82,9 +94,14 @@ export class Handlers {
             // reset dragged object to mouse pos, not pos of hidden cells. 
             this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
           }
-        }
+        }, options.dragMouseoverThrottle); 
       }
     }
+  }
+
+  onTouchmove (touchEvent) {
+
+    this.onMousemove(Utils.ConvertTouchToMouseEvent(touchEvent));
   }
 
   onMousemove (mouseEvent) {
@@ -128,6 +145,11 @@ export class Handlers {
         } 
       }
     }
+  }
+
+  onTouchend(touchEvent){
+    // don't convert to mouseEVent becuase there are no touches.
+    this.onMouseup(touchEvent);
   }
 
   onMouseup (mouseEvent) {

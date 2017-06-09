@@ -13,6 +13,7 @@
 .gridstrap-cell-hidden{ 
   opacity: 0; 
   pointer-events: none;
+  touch-action: none;
 }
 .gridstrap-cell-drag{ 
   transition:width 0.05s, height 0.05s,  left 0.05s, top 0.05s ;

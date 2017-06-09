@@ -80,7 +80,7 @@ import {Methods} from './methods';
     autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as needed.
     updateCoordinatesOnWindowResize: true, // enable window resize event handler.
     debug: false, // toggle console output.
-    dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.
+    dragMouseoverThrottle: 150, // throttle cell mouseover events for rearranging.
     windowResizeDebounce: 50,  // debounce redraw on window resize.
     mousemoveDebounce: 0 // debounce mousemove for dragging cells.
   };

@@ -22,6 +22,9 @@ exports['default'] = {
   EVENT_MOUSEOVER: 'mouseover',
   EVENT_MOUSEMOVE: 'mousemove',
   EVENT_MOUSEUP: 'mouseup',
+  EVENT_TOUCHSTART: 'touchstart',
+  EVENT_TOUCHMOVE: 'touchmove',
+  EVENT_TOUCHEND: 'touchend',
   EVENT_RESIZE: 'resize',
   EVENT_CELL_RESIZE: 'cellresize',
   EVENT_CELL_DRAG: 'celldrag',
@@ -140,7 +143,7 @@ var _methods = require('./methods');
     autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as needed.
     updateCoordinatesOnWindowResize: true, // enable window resize event handler.
     debug: false, // toggle console output.
-    dragMouseoverThrottle: 500, // throttle cell mouseover events for rearranging.
+    dragMouseoverThrottle: 150, // throttle cell mouseover events for rearranging.
     windowResizeDebounce: 50, // debounce redraw on window resize.
     mousemoveDebounce: 0 // debounce mousemove for dragging cells.
   };
@@ -183,6 +186,17 @@ var Handlers = (function () {
     }
   };
 
+  Handlers.prototype.onTouchStart = function onTouchStart(touchEvent, $cell, gridstrapContext) {
+    var $ = this.setup.jQuery;
+    var options = this.setup.Options;
+
+    touchEvent.preventDefault();
+
+    if (touchEvent.touches.length) {
+      this.onMousedown(_utils.Utils.ConvertTouchToMouseEvent(touchEvent), $cell, gridstrapContext);
+    }
+  };
+
   Handlers.prototype.onMousedown = function onMousedown(mouseEvent, $cell, gridstrapContext) {
     var $ = this.setup.jQuery;
     var context = this.setup.Context;
@@ -218,6 +232,8 @@ var Handlers = (function () {
   };
 
   Handlers.prototype.onMouseover = function onMouseover(mouseEvent, $cell, gridstrapContext) {
+    var _this = this;
+
     var $ = this.setup.jQuery;
     var context = this.setup.Context;
     var options = this.setup.Options;
@@ -238,19 +254,22 @@ var Handlers = (function () {
 
         this.internal.LastMouseOverCellTarget = $cell;
 
-        if (!_utils.Utils.IsElementThrottled($, $cell, options.dragMouseoverThrottle)) {
-          // do not move two cells that have recently already moved.
-
+        _utils.Utils.Limit(function () {
           if (gridstrapContext.options.rearrangeOnDrag) {
 
-            this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
+            _this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
 
             // reset dragged object to mouse pos, not pos of hidden cells.
-            this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
+            _this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
           }
-        }
+        }, options.dragMouseoverThrottle);
       }
     }
+  };
+
+  Handlers.prototype.onTouchmove = function onTouchmove(touchEvent) {
+
+    this.onMousemove(_utils.Utils.ConvertTouchToMouseEvent(touchEvent));
   };
 
   Handlers.prototype.onMousemove = function onMousemove(mouseEvent) {
@@ -292,6 +311,11 @@ var Handlers = (function () {
         }
       }
     }
+  };
+
+  Handlers.prototype.onTouchend = function onTouchend(touchEvent) {
+    // don't convert to mouseEVent becuase there are no touches.
+    this.onMouseup(touchEvent);
   };
 
   Handlers.prototype.onMouseup = function onMouseup(mouseEvent) {
@@ -409,11 +433,14 @@ var Internal = (function () {
     this.HandleCellMouseEvent(context, '' + appendNamespace(_constants2['default'].EVENT_DRAGSTART), true, eventHandlers.onDragstart.bind(eventHandlers));
 
     this.HandleCellMouseEvent(context, '' + appendNamespace(_constants2['default'].EVENT_MOUSEDOWN), true, eventHandlers.onMousedown.bind(eventHandlers));
+
+    this.HandleCellMouseEvent(context, '' + appendNamespace(_constants2['default'].EVENT_TOUCHSTART), true, eventHandlers.onTouchStart.bind(eventHandlers));
+
     // pass false as param because we need to do non-contiguous stuff in there.
     this.HandleCellMouseEvent(context, '' + appendNamespace(_constants2['default'].EVENT_MOUSEOVER), false, eventHandlers.onMouseover.bind(eventHandlers));
 
     // it is not appropriate to confine the events to the visible cell wrapper.
-    $(options.mouseMoveSelector).on('' + appendNamespace(_constants2['default'].EVENT_MOUSEMOVE), _utils.Utils.Debounce(eventHandlers.onMousemove.bind(eventHandlers), options.mousemoveDebounce)).on('' + appendNamespace(_constants2['default'].EVENT_MOUSEUP), eventHandlers.onMouseup.bind(eventHandlers));
+    $(options.mouseMoveSelector).on('' + appendNamespace(_constants2['default'].EVENT_MOUSEMOVE), _utils.Utils.Debounce(eventHandlers.onMousemove.bind(eventHandlers), options.mousemoveDebounce)).on('' + appendNamespace(_constants2['default'].EVENT_TOUCHMOVE), _utils.Utils.Debounce(eventHandlers.onTouchmove.bind(eventHandlers), options.mousemoveDebounce)).on('' + appendNamespace(_constants2['default'].EVENT_MOUSEUP), eventHandlers.onMouseup.bind(eventHandlers)).on('' + appendNamespace(_constants2['default'].EVENT_TOUCHEND), eventHandlers.onTouchend.bind(eventHandlers));
 
     if (options.updateCoordinatesOnWindowResize) {
       $(window).on('' + appendNamespace(_constants2['default'].EVENT_RESIZE), _utils.Utils.Debounce(context.updateVisibleCellCoordinates, options.windowResizeDebounce));
@@ -500,24 +527,23 @@ var Internal = (function () {
     });
   };
 
-  Internal.prototype.$GetNonDraggedCellFromPoint = function $GetNonDraggedCellFromPoint($draggedCell, mouseEvent) {
+  Internal.prototype.GetNonDraggedElementFromPoint = function GetNonDraggedElementFromPoint($draggedCell, mouseEvent) {
     var document = this.setup.Document;
     var $ = this.setup.jQuery;
 
     //remove mouse events from dragged cell, because we need to test for overlap of underneath things.
     var oldPointerEvents = $draggedCell.css('pointer-events');
+    var oldTouchAction = $draggedCell.css('touch-action');
     $draggedCell.css('pointer-events', 'none');
+    $draggedCell.css('touch-action', 'none');
 
     var element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-    var cellAndIndex = this.GetCellAndInternalIndex(element);
 
     // restore pointer-events css.
     $draggedCell.css('pointer-events', oldPointerEvents);
+    $draggedCell.css('touch-action', oldTouchAction);
 
-    if (!cellAndIndex) {
-      return $();
-    }
-    return cellAndIndex.$cell;
+    return element;
   };
 
   Internal.prototype.MoveDraggedCell = function MoveDraggedCell(mouseEvent, $cell) {
@@ -553,7 +579,8 @@ var Internal = (function () {
       }));
     };
 
-    var $overlappedCell = this.$GetNonDraggedCellFromPoint($cell, mouseEvent);
+    var overlappedElement = this.GetNonDraggedElementFromPoint($cell, mouseEvent);
+    var $overlappedCell = context.$getCellOfElement(overlappedElement);
 
     if ($overlappedCell.length) {
       // have to create event here like this other mouse coords are missing.
@@ -568,7 +595,7 @@ var Internal = (function () {
           var additionalContext = $(this).data(_constants2['default'].DATA_GRIDSTRAP);
           if (additionalContext) {
             // $getCellOfElement is a 'public' method.
-            var $additionalContextCell = additionalContext.$getCellOfElement(element);
+            var $additionalContextCell = additionalContext.$getCellOfElement(overlappedElement);
             if ($additionalContextCell.length) {
               // have to create event here like this other mouse coords are missing.
               triggerMouseOverEvent($additionalContextCell);
@@ -1427,46 +1454,42 @@ var Utils = (function () {
     return cssClass.replace(/(^ *| +)/g, '.');
   };
 
-  Utils.Debounce = function Debounce(callback, milliseconds, leading) {
-    var timeout = undefined;
+  Utils.Debounce = function Debounce(callback, milliseconds, leading, timeout) {
+    if (typeof timeout === 'undefined') {
+      timeout = null;
+    }
     return function () {
       var context = this;
       var args = arguments;
-      var callNow = leading || !milliseconds;
       var later = function later() {
         timeout = null;
-        if (!callNow) {
+        if (!leading) {
           callback.apply(context, args);
         }
       };
+      var callNow = leading && !timeout;
+
+      if (milliseconds == 500) console.log('callNow: ' + callNow);
+
       clearTimeout(timeout);
       timeout = setTimeout(later, milliseconds);
       if (callNow) {
         callback.apply(context, args);
       }
+
+      return timeout;
     };
   };
 
-  Utils.IsElementThrottled = function IsElementThrottled($, element, milliseconds) {
-
-    Utils.recentDragMouseOvers = Utils.recentDragMouseOvers || [];
-
+  Utils.Limit = function Limit(callback, milliseconds) {
     var d = new Date();
     var n = d.getTime();
-    for (var i = 0; i < Utils.recentDragMouseOvers.length; i++) {
-      if (Utils.recentDragMouseOvers[i].n + milliseconds < n) {
-        // expired.
-        Utils.recentDragMouseOvers.splice(i, 1);
-      }
-      if (i < Utils.recentDragMouseOvers.length && $(Utils.recentDragMouseOvers[i].e).is(element)) {
-        return true;
-      }
+    if (n - (Utils.limit || 0) > milliseconds) {
+
+      callback();
+
+      Utils.limit = n;
     }
-    Utils.recentDragMouseOvers.push({
-      n: n,
-      e: element
-    });
-    return false;
   };
 
   Utils.SwapJQueryElements = function SwapJQueryElements($a, $b) {
@@ -1563,6 +1586,22 @@ var Utils = (function () {
       width: w,
       height: h
     };
+  };
+
+  Utils.ConvertTouchToMouseEvent = function ConvertTouchToMouseEvent(touchEvent) {
+    var touch = null;
+    for (var i = 0; !touch && i < touchEvent.changedTouches.length; i++) {
+      if (touchEvent.changedTouches[i].identifier === 0) {
+        touch = touchEvent.changedTouches[i];
+      }
+    }
+
+    touchEvent.pageX = touch.pageX;
+    touchEvent.pageY = touch.pageY;
+    touchEvent.clientX = touch.clientX;
+    touchEvent.clientY = touch.clientY;
+
+    return touchEvent;
   };
 
   return Utils;

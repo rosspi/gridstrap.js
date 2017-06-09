@@ -2,14 +2,16 @@ var popGrid = function ($grid, html, quantity) {
   var computed = html;
   for (var i = 0; i < quantity; i++) {
     if (typeof (html) == 'function') {
-      computed = html();
+      computed = html(i);
     }
     $($grid).append(computed);
   }
 };
 
 $(function () {
-  popGrid('#basic-grid', '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>', 36);
+  popGrid('#basic-grid', function (i) {
+    return '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>';
+  }, 36);
 
   popGrid('#nested-grid', '<div class="col-xs-4 col-sm-2 cell"><div class="inner"><div class="nested-inner-grid"></div></div></div>', 1);
   popGrid('#nested-grid', '<div class="col-xs-4 col-sm-2 cell"><div class="inner"></div></div>', 10);
@@ -17,7 +19,7 @@ $(function () {
 
   popGrid('#resize-grid', '<div class="col-xs-2 cell"><div class="inner"><div class="resize"></div></div></div>', 24);
 
-  popGrid('#noncontiguous-grid', '<div class="col-xs-1 cell"><div class="inner"></div></div>', 12);
+  popGrid('#noncontiguous-grid', '<div class="col-xs-4 col-sm-2 col-md-1 cell"><div class="inner"></div></div>', 12);
 
   popGrid('#dual1-grid', '<div class="col-xs-1 cell"><div class="inner"></div></div>', 24);
   popGrid('#dual2-grid', '<div class="col-xs-2 cell"><div class="inner"></div></div>', 12);
@@ -31,7 +33,8 @@ $(function () {
   }, 36);
 
   $('#basic-grid').gridstrap({
-
+dragMouseoverThrottle: 150,
+//swapMode: true
   });
 
   $('a[href="#responsive-demo"]').on('shown.bs.tab', function () {

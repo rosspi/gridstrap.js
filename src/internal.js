@@ -40,12 +40,19 @@ export class Internal {
       `${appendNamespace(Constants.EVENT_MOUSEDOWN)}`, 
       true, 
       eventHandlers.onMousedown.bind(eventHandlers));
+
+    this.HandleCellMouseEvent(
+      context, 
+      `${appendNamespace(Constants.EVENT_TOUCHSTART)}`, 
+      true, 
+      eventHandlers.onTouchStart.bind(eventHandlers));
+
     // pass false as param because we need to do non-contiguous stuff in there.
     this.HandleCellMouseEvent(
       context, 
       `${appendNamespace(Constants.EVENT_MOUSEOVER)}`, 
       false, 
-      eventHandlers.onMouseover.bind(eventHandlers));
+      eventHandlers.onMouseover.bind(eventHandlers)); 
 
     // it is not appropriate to confine the events to the visible cell wrapper.
     $(options.mouseMoveSelector)
@@ -54,10 +61,19 @@ export class Internal {
         Utils.Debounce(
           eventHandlers.onMousemove.bind(eventHandlers),
           options.mousemoveDebounce
-        ))
+        )) 
+      .on(
+        `${appendNamespace(Constants.EVENT_TOUCHMOVE)}`, 
+        Utils.Debounce(
+          eventHandlers.onTouchmove.bind(eventHandlers),
+          options.mousemoveDebounce
+      ))
       .on(
         `${appendNamespace(Constants.EVENT_MOUSEUP)}`,  
-        eventHandlers.onMouseup.bind(eventHandlers));
+        eventHandlers.onMouseup.bind(eventHandlers))
+      .on(
+        `${appendNamespace(Constants.EVENT_TOUCHEND)}`,  
+        eventHandlers.onTouchend.bind(eventHandlers));
 
     if (options.updateCoordinatesOnWindowResize) {
       $(window).on(
@@ -148,24 +164,23 @@ export class Internal {
     });
   }
 
-  $GetNonDraggedCellFromPoint($draggedCell, mouseEvent) {
+  GetNonDraggedElementFromPoint($draggedCell, mouseEvent) {
     let document = this.setup.Document;
     let $ = this.setup.jQuery;
 
     //remove mouse events from dragged cell, because we need to test for overlap of underneath things.
     let oldPointerEvents = $draggedCell.css('pointer-events');
+    let oldTouchAction = $draggedCell.css('touch-action');
     $draggedCell.css('pointer-events', 'none');
+    $draggedCell.css('touch-action', 'none');
 
-    let element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-    let cellAndIndex = this.GetCellAndInternalIndex(element);
+    let element = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY); 
 
     // restore pointer-events css.
     $draggedCell.css('pointer-events', oldPointerEvents);
+    $draggedCell.css('touch-action', oldTouchAction); 
 
-    if (!cellAndIndex){
-      return $();
-    }
-    return cellAndIndex.$cell;
+    return element; 
   }
 
   MoveDraggedCell (mouseEvent, $cell) {
@@ -202,7 +217,8 @@ export class Internal {
         }));
     };
 
-    let $overlappedCell = this.$GetNonDraggedCellFromPoint($cell, mouseEvent);
+    let overlappedElement = this.GetNonDraggedElementFromPoint($cell, mouseEvent);
+    let $overlappedCell = context.$getCellOfElement(overlappedElement);
     
     if ($overlappedCell.length) {
       // have to create event here like this other mouse coords are missing.
@@ -218,7 +234,7 @@ export class Internal {
           let additionalContext = $(this).data(Constants.DATA_GRIDSTRAP);
           if (additionalContext) {
             // $getCellOfElement is a 'public' method.
-            let $additionalContextCell = additionalContext.$getCellOfElement(element);
+            let $additionalContextCell = additionalContext.$getCellOfElement(overlappedElement);
             if ($additionalContextCell.length) {
               // have to create event here like this other mouse coords are missing.
               triggerMouseOverEvent($additionalContextCell);
