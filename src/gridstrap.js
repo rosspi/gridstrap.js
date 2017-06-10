@@ -8,7 +8,10 @@ import {Methods} from './methods';
 (function ($, window, document) {
   $.Gridstrap = function (el, options) {
 
-    if (typeof(jQuery) == 'undefined'){
+    if (
+      typeof(jQuery) == 'undefined' || 
+      !jQuery.Event ||
+      !jQuery.Event.prototype.hasOwnProperty('changedTouches')){
       throw new Error(Constants.ERROR_MISSING_JQUERY);
     }  
 
