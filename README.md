@@ -10,7 +10,7 @@ I made this plugin to fill a gap that existed for easily creating Bootstrap-base
 Both gridster.js and gridstack.js inspired this jQuery plugin, however both have their own grid systems that don't play nicely with Bootstrap out of the box.
 
 ## Demo 
-[https://rosspi.github.io/gridstrap.js/](https://rosspi.github.io/gridstrap.js/){:target="_blank"}
+[https://rosspi.github.io/gridstrap.js/](https://rosspi.github.io/gridstrap.js/)
 
  
 
@@ -52,7 +52,7 @@ Both gridster.js and gridstack.js inspired this jQuery plugin, however both have
 
 	**Download from NPM to have version details affixed to distributables. Using semantic-release means this info won't be in the distributables on GitHub.**
 
-	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap){:target="_blank"}
+	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap)
 	
 	```bash
 	$ npm install jquery.gridstrap
