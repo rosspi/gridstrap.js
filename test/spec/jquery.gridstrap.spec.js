@@ -4,23 +4,23 @@ import Utils from '../../src/utils';
 ( function( $, QUnit ) {
 
 	"use strict";
-
-	var $testCanvas = $( "#testCanvas" );
-	var $fixture = null;
+ 
+	let $fixture;
 	let pluginName = 'gridstrap';
 	let pluginDataName = 'gridstrap';
+	let pluginOptionsName = 'Gridstrap';
 
 	QUnit.module( "jQuery Gridstrap", {
 		beforeEach: function() {
 
 			// fixture is the element where your jQuery plugin will act
-			$fixture = $( "<div/>" );
-
-			$testCanvas.append( $fixture );
+			$fixture = $( "#testGrid" ); 
 		},
 		afterEach: function() {
 
 			// we remove the element to reset our plugin job :)
+		},
+		after: function(){
 			$fixture.remove();
 		}
 	} );
@@ -39,11 +39,23 @@ import Utils from '../../src/utils';
 
 	QUnit.test( "caches plugin instance", function( assert ) {
 		$fixture[pluginName]();
+		
 		assert.ok(
 			$fixture.data( pluginDataName ),
 			"has cached it into a jQuery data"
 		);
-	} );
+	});
+
+	QUnit.test('expected defaultOptions', function( assert ) {
+		var defaultOptions = $[pluginOptionsName].defaultOptions;
+		
+		assert.equal(
+			JSON.stringify(defaultOptions),
+			'{"gridCellSelector":">*","hiddenCellClass":"gridstrap-cell-hidden","visibleCellClass":"gridstrap-cell-visible","nonContiguousPlaceholderCellClass":"gridstack-noncontiguous","dragCellClass":"gridstrap-cell-drag","resizeCellClass":"gridstrap-cell-resize","mouseMoveSelector":"body","visibleCellContainerParentSelector":null,"visibleCellContainerClass":"gridstrap-container","dragCellHandleSelector":"*","draggable":true,"rearrangeOnDrag":true,"resizeHandleSelector":null,"resizeOnDrag":true,"swapMode":false,"nonContiguousCellHtml":null,"autoPadNonContiguousCells":true,"updateCoordinatesOnWindowResize":true,"debug":false,"dragMouseoverThrottle":150,"windowResizeDebounce":50,"mousemoveDebounce":0}',
+			
+			"default options has changed, breaking change"
+		);
+	});
 
 	// QUnit.test( "enable custom config", function( assert ) {
 	// 	$fixture[pluginName]( {

@@ -55,27 +55,30 @@ export class Methods {
     let context = this.setup.Context;
     let options = this.setup.Options;
 
+    
+    let $draggedCell = this.internal.$GetDraggingCell();
+
     for (var i = 0; i < this.internal.CellsArray.length; i++) {
-      let $this = this.internal.CellsArray[i];
+      let $this = this.internal.CellsArray[i]; 
 
       let $hiddenClone = $this.data(Constants.DATA_HIDDEN_CELL);
 
       let positionNSizeOfHiddenClone = Utils.GetPositionAndSizeOfCell($hiddenClone);
 
-      this.setCellAbsolutePositionAndSize($this, positionNSizeOfHiddenClone);
+      this.setCellAbsolutePositionAndSize($this, positionNSizeOfHiddenClone); 
     }
+
     // need to also update the first child gristrap - one that might exist within this one - it is then obviously recursive.
     for (var i = 0; i < this.internal.CellsArray.length; i++) {
       var $nestedGridstrap = this.internal.CellsArray[i].find('*').filter(function () {
         return !!$(this).data(Constants.DATA_GRIDSTRAP);
       });
 
-      if ($nestedGridstrap.length) {
-        $nestedGridstrap.first().data(Constants.DATA_GRIDSTRAP).updateVisibleCellCoordinates();
-      }
+      $nestedGridstrap.each(function(){
+        $(this).data(Constants.DATA_GRIDSTRAP).updateVisibleCellCoordinates();
+      }); 
     }
-  }
- 
+  } 
 
   // returns jquery object of new cell.
   // index is optional.

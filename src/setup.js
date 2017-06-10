@@ -12,7 +12,7 @@ export class Setup {
     let wrapperGeneratedId = 'gridstrap-' + this.idPrefix;
     this.visibleCellContainerSelector = '#' + wrapperGeneratedId;
 
-    // drag selector must be within wrapper div. Turn class name/list into selector.
+    // drag selector must be within wrapper div. Turn class name/list into selector. 
     this.dragCellSelector = this.visibleCellContainerSelector + ' ' + Utils.ConvertCssClassToJQuerySelector(options.dragCellClass) + ':first';
     this.resizeCellSelector = this.visibleCellContainerSelector + ' ' + Utils.ConvertCssClassToJQuerySelector(options.resizeCellClass) + ':first';
     // visibleCellContainerClassSelector just contains a .class selector, dont prfix with id. Important. Refactor this.

@@ -6,9 +6,11 @@
 ![donate](https://img.shields.io/badge/donate%20bitcoin-1Q32bCvaoNPS4GUNxeBbPzkniMguKFVEtf-green.svg)
  
 gridstrap.js is a jQuery plugin designed to take [Bootstrap's CSS grid system](https://getbootstrap.com/css/#grid) and turn it into a managed draggable and resizeable grid while truely maintaining its responsive behaviour. It will also work with any kind of CSS-driven layout.
+I made this plugin to fill a gap that existed for easily creating Bootstrap-based drag 'n' drop grid responsive interfaces. 
+Both gridster.js and gridstack.js inspired this jQuery plugin, however both have their own grid systems that don't play nicely with Bootstrap out of the box.
 
 ## Demo 
-[https://rosspi.github.io/gridstrap.js/](https://rosspi.github.io/gridstrap.js/)
+[https://rosspi.github.io/gridstrap.js/](https://rosspi.github.io/gridstrap.js/){:target="_blank"}
 
  
 
@@ -18,7 +20,7 @@ gridstrap.js is a jQuery plugin designed to take [Bootstrap's CSS grid system](h
 	1. Include jQuery:
 
 		```html
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script src="//code.jquery.com/jquery-1.12.4.js"></script>
 		```
 
 	2. Include plugin's code:
@@ -50,7 +52,7 @@ gridstrap.js is a jQuery plugin designed to take [Bootstrap's CSS grid system](h
 
 	**Download from NPM to have version details affixed to distributables. Using semantic-release means this info won't be in the distributables on GitHub.**
 
-	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap) 
+	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap){:target="_blank"}
 	
 	```bash
 	$ npm install jquery.gridstrap
@@ -380,7 +382,7 @@ When gridstrap is initialised on a element, its child elements will become 'cell
 As the aim of the extension was to easily enable draggable bootstrap grids, making them resizable doesn't really fit the Bootstrap grid design. However they will behave as expected upon resizing them. To make the cells resizable to always fit within Bootstrap's grid system, check out the example at https://rosspi.github.io/gridstrap.js/ .
 
 ### Non-contiguous
-Non-contiguous mode allows the ability to move cells to anywhere within the grid area, rather than just in place of existing cells. It can create the illusion of there being no backing static/relative grid like there is with Bootstrap's grid system. The way the plugin pulls this off is by appended new cells on the fly as needed upon dragging or performing cell operations beyond the existing cell count, and applying the `nonContiguousPlaceholderCellClass` class to them to set their opacity to 0 by default. Once created, the placeholder cells can serve as hidden cells for other regular hidden cells to move around. This implementation will not work well with cells that are of a different size. But of course, this extension will work with any kind of html layout.
+Non-contiguous mode grants the ability to move cells to anywhere within the grid area, rather than just in place of existing cells. It can create the illusion of there being no backing static/relative grid like there is with Bootstrap's grid system. The way this is pulled off is by appended new cells on the fly as needed upon dragging or performing cell operations beyond the existing cell count, and applying the `nonContiguousPlaceholderCellClass` class to them to set their opacity to 0 by default. Once created, the placeholder cells can serve as hidden cells for other regular hidden cells to move around. This implementation will not work well with cells that are of a different size. But of course, this extension will work with any kind of html layout.
 
 
 ## History
@@ -390,5 +392,3 @@ Check [Releases](https://github.com/rosspi/gridstrap.js/releases) for detailed c
 ## License
 
 [MIT License](http://mit-license.org/) © Ross P
-
-The way non-contiguous mode works is by appending (or removing as needed) placeholder cells to the end of the cell container. These placeholders therefore act dynamically so that the quantity of cells within the grid will be sufficient for whatever is required as if they were 'real' cells. However, because.. somethign about misbehaving with things moving between cells.

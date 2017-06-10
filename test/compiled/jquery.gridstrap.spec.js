@@ -209,9 +209,9 @@ var Utils = (function () {
 exports.Utils = Utils;
 
 },{"./constants":1}],3:[function(require,module,exports){
-"use strict";
+'use strict';
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 var _srcUtils = require('../../src/utils');
 
@@ -221,22 +221,22 @@ var _srcUtils2 = _interopRequireDefault(_srcUtils);
 
 	"use strict";
 
-	var $testCanvas = $("#testCanvas");
-	var $fixture = null;
+	var $fixture = undefined;
 	var pluginName = 'gridstrap';
 	var pluginDataName = 'gridstrap';
+	var pluginOptionsName = 'Gridstrap';
 
 	QUnit.module("jQuery Gridstrap", {
 		beforeEach: function beforeEach() {
 
 			// fixture is the element where your jQuery plugin will act
-			$fixture = $("<div/>");
-
-			$testCanvas.append($fixture);
+			$fixture = $("#testGrid");
 		},
 		afterEach: function afterEach() {
 
 			// we remove the element to reset our plugin job :)
+		},
+		after: function after() {
 			$fixture.remove();
 		}
 	});
@@ -252,7 +252,14 @@ var _srcUtils2 = _interopRequireDefault(_srcUtils);
 
 	QUnit.test("caches plugin instance", function (assert) {
 		$fixture[pluginName]();
+
 		assert.ok($fixture.data(pluginDataName), "has cached it into a jQuery data");
+	});
+
+	QUnit.test('expected defaultOptions', function (assert) {
+		var defaultOptions = $[pluginOptionsName].defaultOptions;
+
+		assert.equal(JSON.stringify(defaultOptions), '{"gridCellSelector":">*","hiddenCellClass":"gridstrap-cell-hidden","visibleCellClass":"gridstrap-cell-visible","nonContiguousPlaceholderCellClass":"gridstack-noncontiguous","dragCellClass":"gridstrap-cell-drag","resizeCellClass":"gridstrap-cell-resize","mouseMoveSelector":"body","visibleCellContainerParentSelector":null,"visibleCellContainerClass":"gridstrap-container","dragCellHandleSelector":"*","draggable":true,"rearrangeOnDrag":true,"resizeHandleSelector":null,"resizeOnDrag":true,"swapMode":false,"nonContiguousCellHtml":null,"autoPadNonContiguousCells":true,"updateCoordinatesOnWindowResize":true,"debug":false,"dragMouseoverThrottle":150,"windowResizeDebounce":50,"mousemoveDebounce":0}', "default options has changed, breaking change");
 	});
 
 	// QUnit.test( "enable custom config", function( assert ) {

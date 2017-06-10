@@ -183,7 +183,7 @@ export class Internal {
     return element; 
   }
 
-  MoveDraggedCell (mouseEvent, $cell) {
+  MoveDraggedCell (mouseEvent, $cell, dontLookForOverlappedCell /*optional*/) {
     let $ = this.setup.jQuery;
     let context = this.setup.Context;
     let options = this.setup.Options;
@@ -207,6 +207,10 @@ export class Internal {
 
     $cell.css('left', absoluteOffset.left);
     $cell.css('top', absoluteOffset.top); 
+
+    if (dontLookForOverlappedCell){
+      return;
+    }
 
     let triggerMouseOverEvent = function ($element) {
       $element.trigger(

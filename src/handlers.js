@@ -92,7 +92,8 @@ export class Handlers {
             this.internal.MoveCell($draggedCell, $cell, gridstrapContext); 
             
             // reset dragged object to mouse pos, not pos of hidden cells. 
-            this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
+            // do not trigger overlapping now.
+            this.internal.MoveDraggedCell(mouseEvent, $draggedCell, true);
           }
         }, options.dragMouseoverThrottle); 
       }

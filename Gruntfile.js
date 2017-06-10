@@ -11,6 +11,7 @@
 			banner: "/*\n" +
 				" *  <%= pkg.title || pkg.name %> - v{{ include-version }}\n" + 
 				" *  <%= pkg.description %>\n" +
+				" *  <%= pkg.message %>\n" +
 				" *  <%= pkg.homepage %>\n" +
 				" *\n" +
 				" *  Made by <%= pkg.author.name %>\n" +
@@ -25,10 +26,10 @@
 			},
 			dist: {
 				files: {
-					"dist/jquery.gridstrap.js": ["dist/jquery.gridstrap.js"],
 					"docs/jquery.gridstrap.js": ["dist/jquery.gridstrap.js"],
-					"dist/jquery.gridstrap.css": ["src/style.css"],
+					"dist/jquery.gridstrap.js": ["dist/jquery.gridstrap.js"],
 					"docs/jquery.gridstrap.css": ["src/style.css"],
+					"dist/jquery.gridstrap.css": ["src/style.css"],
 					"dist/jquery.gridstrap.min.css": ["dist/jquery.gridstrap.min.css"],
 				} 
 			}
@@ -62,10 +63,9 @@
 		// karma test runner
 		karma: {
 			unit: {
-				configFile: "karma.conf.js",
-				background: true,
+				configFile: "karma.conf.js", 
 				singleRun: false,
-				browsers: [ "PhantomJS", "Firefox" ]
+				browsers: [ "PhantomJS" ]
 			},
 
 			//continuous integration mode: run tests once in PhantomJS browser.
@@ -107,6 +107,10 @@
 					replacements: [{
 						pattern: /"http:\/\//ig,
 						replacement: '"//'
+					},
+					{
+						pattern: /responsiveLocal/ig,
+						replacement: 'responsive'
 					}]
 				}
 			}

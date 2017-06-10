@@ -1,14 +1,7 @@
 /*
  *  jquery.gridstrap - v{{ include-version }}
- *  gridstrap.js https://www.npmjs.com/package/jquery.gridstrap
- *  https://rosspi.github.io/gridstrap.js/
- *
- *  Made by Ross P
- *  Under MIT License
- */
-/*
- *  jquery.gridstrap - v{{ include-version }}
- *  gridstrap.js https://www.npmjs.com/package/jquery.gridstrap
+ *  gridstrap.js
+ *  Use https://www.npmjs.com/package/jquery.gridstrap for version information, semantically-released.
  *  https://rosspi.github.io/gridstrap.js/
  *
  *  Made by Ross P
@@ -268,7 +261,8 @@ var Handlers = (function () {
             _this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
 
             // reset dragged object to mouse pos, not pos of hidden cells.
-            _this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
+            // do not trigger overlapping now.
+            _this.internal.MoveDraggedCell(mouseEvent, $draggedCell, true);
           }
         }, options.dragMouseoverThrottle);
       }
@@ -554,7 +548,7 @@ var Internal = (function () {
     return element;
   };
 
-  Internal.prototype.MoveDraggedCell = function MoveDraggedCell(mouseEvent, $cell) {
+  Internal.prototype.MoveDraggedCell = function MoveDraggedCell(mouseEvent, $cell, dontLookForOverlappedCell /*optional*/) {
     var $ = this.setup.jQuery;
     var context = this.setup.Context;
     var options = this.setup.Options;
@@ -578,6 +572,10 @@ var Internal = (function () {
 
     $cell.css('left', absoluteOffset.left);
     $cell.css('top', absoluteOffset.top);
+
+    if (dontLookForOverlappedCell) {
+      return;
+    }
 
     var triggerMouseOverEvent = function triggerMouseOverEvent($element) {
       $element.trigger($.Event(_constants2['default'].EVENT_MOUSEOVER, {
@@ -1022,6 +1020,8 @@ var Methods = (function () {
     var context = this.setup.Context;
     var options = this.setup.Options;
 
+    var $draggedCell = this.internal.$GetDraggingCell();
+
     for (var i = 0; i < this.internal.CellsArray.length; i++) {
       var $this = this.internal.CellsArray[i];
 
@@ -1031,15 +1031,16 @@ var Methods = (function () {
 
       this.setCellAbsolutePositionAndSize($this, positionNSizeOfHiddenClone);
     }
+
     // need to also update the first child gristrap - one that might exist within this one - it is then obviously recursive.
     for (var i = 0; i < this.internal.CellsArray.length; i++) {
       var $nestedGridstrap = this.internal.CellsArray[i].find('*').filter(function () {
         return !!$(this).data(_constants2['default'].DATA_GRIDSTRAP);
       });
 
-      if ($nestedGridstrap.length) {
-        $nestedGridstrap.first().data(_constants2['default'].DATA_GRIDSTRAP).updateVisibleCellCoordinates();
-      }
+      $nestedGridstrap.each(function () {
+        $(this).data(_constants2['default'].DATA_GRIDSTRAP).updateVisibleCellCoordinates();
+      });
     }
   };
 

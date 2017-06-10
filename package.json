@@ -1,7 +1,8 @@
 {
   "name": "jquery.gridstrap",
   "version": "0.0.0-semantically-released",
-  "description": "gridstrap.js https://www.npmjs.com/package/jquery.gridstrap",
+  "description": "gridstrap.js",
+  "message": "Use https://www.npmjs.com/package/jquery.gridstrap for version information, semantically-released.",
   "keywords": [
     "gridster",
     "gridstrap",
@@ -10,9 +11,12 @@
     "jquery-plugin",
     "jquery",
     "jquery plugin",
-    "plugins"
+    "plugins",
+    "drag",
+    "drop",
+    "draggable"
   ],
-  "main": "dist/jquery-gridstrap.js",
+  "main": "dist/jquery.gridstrap.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/rosspi/gridstrap.js.git"
@@ -35,7 +39,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "jquery": ">=1.5.1"
+    "jquery": ">=1.9.1 < 4.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.24.1",
@@ -59,7 +63,8 @@
     "karma-qunit": "^1.2.1",
     "phantomjs": "^1.9.18",
     "qunitjs": "^1.19.0",
-    "semantic-release": "^6.3.6"
+    "semantic-release": "^6.3.6",
+    "jquery": ">=1.9.1 < 4.0.0" 
   },
   "scripts": {
     "commit": "git-cz",
