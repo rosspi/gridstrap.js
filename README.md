@@ -20,7 +20,7 @@ Both gridster.js and gridstack.js inspired this jQuery plugin, however both have
 	1. Include jQuery:
 
 		```html
-		<script src="//code.jquery.com/jquery-1.12.4.js"></script>
+		<script src="//code.jquery.com/jquery-3.2.1.js"></script>
 		```
 
 	2. Include plugin's code:
