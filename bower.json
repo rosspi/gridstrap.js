@@ -1,21 +1,27 @@
 {
-  "name": "jquery-boilerplate",
+  "name": "jquery.gridstrap",
   "license": "MIT",
   "authors": [
-    "Zeno Rocha <hi@zenorocha.com>"
+    "Ross P <info@rossp.email>"
   ],
-  "description": "A jump-start for jQuery plugins development.",
-  "homepage": "http://jqueryboilerplate.com",
+  "description": "gridstrap.js",
+  "homepage": "https://rosspi.github.io/gridstrap.js/",
   "keywords": [
-    "jquery",
-    "plugin",
-    "boilerplate",
+    "gridster",
+    "gridstrap",
+    "bootstrap",
+    "gridstack",
     "jquery-plugin",
-    "jquery-boilerplate"
+    "jquery",
+    "jquery plugin",
+    "plugins",
+    "drag",
+    "drop",
+    "draggable"
   ],
-  "main": "src/jquery.boilerplate.js",
+  "main": "dist/jquery.gridstrap.js",
   "dependencies": {
-    "jquery": "1"
+    "jquery": ">=3.2.1 < 4.0.0"
   },
   "ignore": [
     "npm-debug.log",
