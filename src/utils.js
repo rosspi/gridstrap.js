@@ -23,15 +23,15 @@ export class Utils {
           callback.apply(context, args);
         }
       };
-      let callNow = leading && !timeout;
       
-      if (milliseconds == 500)
-        console.log('callNow: ' + callNow);
+      let callNow = !milliseconds || (leading && !timeout);
       
       clearTimeout(timeout);
-      timeout = setTimeout(later, milliseconds);
+      
       if (callNow) {
         callback.apply(context, args);
+      } else {
+        timeout = setTimeout(later, milliseconds);
       }
 
       return timeout;

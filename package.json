@@ -26,14 +26,12 @@
   },
   "author": {
     "name": "Ross P",
-    "email": "info@rossp.email",
     "url": "https://github.com/rosspi"
   },
   "homepage": "https://rosspi.github.io/gridstrap.js/",
   "contributors": [
     {
       "name": "Ross P",
-      "email": "info@rossp.email",
       "url": "https://github.com/rosspi"
     }
   ],
@@ -45,7 +43,7 @@
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
     "babelify": "^6.1.0",
-    "commitizen": "2.9.6",
+    "commitizen": "4.0.3",
     "cz-conventional-changelog": "2.0.0",
     "grunt": "^0.4.5",
     "grunt-browserify": "^3.8.0",
