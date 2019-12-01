@@ -6,8 +6,7 @@ cache:
 notifications:
   email: false
 node_js:
-  - '6'
-  - '7'
+  - '10'
 before_install: 
   - npm install -g grunt-cli
 before_script:
