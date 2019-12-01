@@ -65,33 +65,31 @@
 			unit: {
 				configFile: "karma.conf.js", 
 				singleRun: false,
-				browsers: [ "PhantomJS" ]
+				browsers: [ "ChromeHeadless" ],
+				background: false
 			},
 
-			//continuous integration mode: run tests once in PhantomJS browser.
+			//continuous integration mode 
 			travis: {
 				configFile: "karma.conf.js",
 				singleRun: true,
-				browsers: [ "PhantomJS" ]
+				browsers: [ "ChromeHeadless" ],
+				background: false
 			}
 		},
 
-    browserify: {
-      dist: {
-        options: {
-            transform: [
-              ["babelify", {
-                  loose: "all"
-              }]
-            ]
-        },
-        files: { 
-            "./dist/jquery.gridstrap.js": ["./src/gridstrap.js"],
-            "./test/compiled/jquery.gridstrap.spec.js": ["./test/spec/*.js"]
-        }
-      }
-    },
-  
+		browserify: {
+			dist: {
+				options: {
+					transform: [["babelify", { "presets": ["@babel/preset-env"]}]]
+				},
+				files: { 
+					"./dist/jquery.gridstrap.js": ["./src/gridstrap.js"],
+					"./test/compiled/jquery.gridstrap.spec.js": ["./test/spec/*.js"]
+				}
+			}
+		},
+	
 		watch: {
 			files: [ "src/*", "test/spec/*" ],
 			tasks: [ "default" ]
@@ -126,7 +124,7 @@
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-string-replace');
 
-	grunt.registerTask( "build", [ "browserify", "uglify", "cssmin", "concat", "string-replace" ] );
-	grunt.registerTask( "travis", [ "build", "karma:travis" ] ); 
+	grunt.registerTask( "build", [ "browserify", "uglify", "cssmin", "concat", "string-replace" ] );	
+	grunt.registerTask( "travis", [ "build", "karma:travis" ] );
 	grunt.registerTask( "default", [ "build", "karma:unit" ] );
 };
