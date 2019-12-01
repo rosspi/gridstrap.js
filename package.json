@@ -1,6 +1,6 @@
 {
   "name": "jquery.gridstrap",
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.0-development",
   "description": "gridstrap.js",
   "message": "Use https://www.npmjs.com/package/jquery.gridstrap for version information, semantically-released.",
   "keywords": [
@@ -60,12 +60,12 @@
     "karma-chrome-launcher": "2.2.0",
     "karma-qunit": "^1.2.1",
     "qunitjs": "^1.19.0",
-    "semantic-release": "15.13.31"
+    "semantic-release": "^15.13.31"
   },
   "scripts": {
     "commit": "git-cz",
     "test": "grunt travis --verbose",
-    "semantic-release": "semantic-release pre && include-version && npm publish && semantic-release post"
+    "semantic-release": "semantic-release"
   },
   "czConfig": {
     "path": "node_modules/cz-conventional-changelog"
