@@ -59,8 +59,6 @@
 				}
 			}
 		},
-
-		// karma test runner
 		karma: {
 			unit: {
 				configFile: "karma.conf.js", 
