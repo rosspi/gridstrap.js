@@ -1,7 +1,7 @@
 import Constants from './constants';
 import {Utils} from './utils';
 import {Handlers} from './handlers';
-import {Setup} from './setup'; 
+import {Setup} from './setup';
 import {Internal} from './internal';
 import {Methods} from './methods';
 
@@ -9,11 +9,11 @@ import {Methods} from './methods';
   $.Gridstrap = function (el, options) {
 
     if (
-      typeof(jQuery) == 'undefined' || 
+      typeof(jQuery) == 'undefined' ||
       !jQuery.Event ||
       !jQuery.Event.prototype.hasOwnProperty('changedTouches')){
       throw new Error(Constants.ERROR_MISSING_JQUERY);
-    }  
+    }
 
     // To avoid scope issues, use 'context' instead of 'this'
     // to reference this class from internal events and functions.
@@ -21,8 +21,8 @@ import {Methods} from './methods';
 
     // Access to jQuery and DOM versions of element
     context.$el = $(el);
-    context.el = el; 
-    context.constants = Constants;  
+    context.el = el;
+    context.constants = Constants;
     context.options = $.extend({}, $.Gridstrap.defaultOptions, options);
 
     // Do nothing if it's already been done before.
@@ -32,14 +32,14 @@ import {Methods} from './methods';
         console.log(`Gridstrap already initialised for element: ${context.el.nodeName}`);
       }
       return;
-    } 
+    }
 
     // Add a reverse reference to the DOM object
     context.$el.data(Constants.DATA_GRIDSTRAP, context);
 
     let setup = new Setup($, window, document, context.$el, context);
     let internal = new Internal(setup);
-    let eventHandlers = new Handlers(setup, internal); 
+    let eventHandlers = new Handlers(setup, internal);
     let methods = new Methods(setup, internal, eventHandlers);
 
     // copy methods from Methods to context.
@@ -47,16 +47,16 @@ import {Methods} from './methods';
       let method = methods[name];
       // skip constructor
       if (!(method instanceof Function) || method === Methods) continue;
-      
+
       context[name] = method.bind(methods);
     }
 
-    internal.InitOriginalCells(); 
-    internal.InitEventHandlers(eventHandlers);   
+    internal.InitOriginalCells();
+    internal.InitEventHandlers(eventHandlers);
 
     if (context.options.debug) {
       console.log(`Gridstrap initialised for element: ${context.el.nodeName}`);
-    } 
+    }
     // initialised :).
   };
 
@@ -67,17 +67,18 @@ import {Methods} from './methods';
     nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous',  // class applied to non-contiguous placeholder cells.
     dragCellClass: 'gridstrap-cell-drag', // class applied to dragging cell.
     resizeCellClass: 'gridstrap-cell-resize', // class applied to resizing cell.
+    mouseOverCellClass: 'gridstrap-cell-mouseover', // class applied to mouseover cell.
     mouseMoveSelector: 'body', // jQuery selector to bind mousemouse and mouseup events.
     visibleCellContainerParentSelector: null, // jQuery selector to append 'visible' cell container to. Null will use the element the plugin is initialised on.
     visibleCellContainerClass: 'gridstrap-container', // class applied to the cell container element.
     getHtmlOfSourceCell: function ($cell) { // function to return the html of a 'source' cell.
       return $cell[0].outerHTML;
-    }, 	
+    },
     dragCellHandleSelector: '*', // jQuery selector relative to and including cell for drag handling.
     draggable: true, // toggle mouse dragging.
     rearrangeOnDrag: true, // toggle the triggering of rearranging cells before mouseup.
     resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
-    resizeOnDrag: true, // toggle mouse resizing.	
+    resizeOnDrag: true, // toggle mouse resizing.
     swapMode: false, // toggle swap or insert mode when rearranging cells.
     nonContiguousCellHtml: null, // html to use for non-contiguous placeholder cells.
     autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as needed.

@@ -1,18 +1,18 @@
-# gridstrap.js 
+# gridstrap.js
 
-[![Build Status](https://travis-ci.org/rosspi/gridstrap.js.svg?branch=master)](https://travis-ci.org/rosspi/gridstrap.js) 
+[![Build Status](https://travis-ci.org/rosspi/gridstrap.js.svg?branch=master)](https://travis-ci.org/rosspi/gridstrap.js)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
-[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap) 
+[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap)
 ![donate](https://img.shields.io/badge/donate%20bitcoin-1Q32bCvaoNPS4GUNxeBbPzkniMguKFVEtf-green.svg)
- 
+
 gridstrap.js is a jQuery plugin designed to take [Bootstrap's CSS grid system](https://getbootstrap.com/css/#grid) and turn it into a managed draggable and resizeable grid while truely maintaining its responsive behaviour. It will also work with any kind of CSS-driven layout.
-I made this plugin to fill a gap that existed for easily creating Bootstrap-based drag 'n' drop grid responsive interfaces. 
+I made this plugin to fill a gap that existed for easily creating Bootstrap-based drag 'n' drop grid responsive interfaces.
 Both gridster.js and gridstack.js inspired this jQuery plugin, however both have their own grid systems that don't play nicely with Bootstrap out of the box.
 
-## Demo 
+## Demo
 [https://rosspi.github.io/gridstrap.js/](https://rosspi.github.io/gridstrap.js/)
 
- 
+
 
 ## Usage
 
@@ -25,8 +25,8 @@ Both gridster.js and gridstack.js inspired this jQuery plugin, however both have
 
 	2. Include plugin's code:
 
-		```html	
-		<link rel="stylesheet" href="dist/jquery.gridstrap.min.css"> 
+		```html
+		<link rel="stylesheet" href="dist/jquery.gridstrap.min.css">
 		<script src="dist/jquery.gridstrap.min.js"></script>
 		```
 
@@ -37,7 +37,7 @@ Both gridster.js and gridstack.js inspired this jQuery plugin, however both have
 			<div class="col-xs-4 col-sm-2 col-md-1"></div>
 			...
 		</div>
-		``` 
+		```
 
 	3. Call the plugin:
 
@@ -53,10 +53,10 @@ Both gridster.js and gridstack.js inspired this jQuery plugin, however both have
 	**Download from NPM to have version details affixed to distributables. Using semantic-release means this info won't be in the distributables on GitHub.**
 
 	[![NPM version](https://img.shields.io/npm/v/jquery.gridstrap.svg)](https://www.npmjs.com/package/jquery.gridstrap)
-	
+
 	```bash
 	$ npm install jquery.gridstrap
-	``` 
+	```
 
 
 ## API
@@ -71,17 +71,18 @@ $.Gridstrap.defaultOptions = {
 	nonContiguousPlaceholderCellClass: 'gridstack-noncontiguous',  // class applied to non-contiguous placeholder cells.
 	dragCellClass: 'gridstrap-cell-drag', // class applied to dragging cell.
 	resizeCellClass: 'gridstrap-cell-resize', // class applied to resizing cell.
+    mouseOverCellClass: 'gridstrap-cell-mouseover', // class applied on mouseover
 	mouseMoveSelector: 'body', // jQuery selector to bind mousemouse and mouseup events.
 	visibleCellContainerParentSelector: null, // jQuery selector to append 'visible' cell container to. Null will use the element the plugin is initialised on.
 	visibleCellContainerClass: 'gridstrap-container', // class applied to the cell container element.
 	getHtmlOfSourceCell: function ($cell) { // function to return the html of a 'source' cell.
 		return $cell[0].outerHTML;
-	}, 	
+	},
 	dragCellHandleSelector: '*', // jQuery selector relative to and including cell for drag handling.
 	draggable: true, // toggle mouse dragging.
 	rearrangeOnDrag: true, // toggle the triggering of rearranging cells before mouseup.
 	resizeHandleSelector: null, // jQuery selector relative to cell for resize handling. Null disables.
-	resizeOnDrag: true, // toggle mouse resizing.	
+	resizeOnDrag: true, // toggle mouse resizing.
 	swapMode: false, // toggle swap or insert mode when rearranging cells.
 	nonContiguousCellHtml: null, // html to use for non-contiguous placeholder cells.
 	autoPadNonContiguousCells: true, // toggle adding non-contiguous cells automatically on drag or as otherwise needed.
@@ -96,7 +97,7 @@ $.Gridstrap.defaultOptions = {
 ### Plugin's methods
 
 
-#### [.attachCell](src/methods.js) 
+#### [.attachCell](src/methods.js)
 
 Attach an existing html element to the grid. Will create a hidden cell and convert existing source cell to a visible cell.
 
@@ -109,7 +110,7 @@ Attach an existing html element to the grid. Will create a hidden cell and conve
 
 A jQuery object of the attached visible cell.
 
-#### [.detachCell](src/methods.js) 
+#### [.detachCell](src/methods.js)
 
 Detach an existing cell from the grid. Will delete hidden cell and convert visible cell to its original state.
 
@@ -121,7 +122,7 @@ Detach an existing cell from the grid. Will delete hidden cell and convert visib
 
 A jQuery object of the detached source cell.
 
-#### [.$getCellContainer](src/methods.js) 
+#### [.$getCellContainer](src/methods.js)
 
 Get the div that contains the visible cells. It exists within the gridstrap element by default.
 
@@ -133,7 +134,7 @@ None.
 
 jQuery object of all visible cell container.
 
-#### [.$getCellFromCoordinates](src/methods.js) 
+#### [.$getCellFromCoordinates](src/methods.js)
 
 Get the visible cell at certain coordinates.
 
@@ -148,7 +149,7 @@ jQuery object of a visible cell.
 
 
 
-#### [.getCellIndexFromCoordinates](src/methods.js) 
+#### [.getCellIndexFromCoordinates](src/methods.js)
 
 Get the index/order position of the visible cell at certain coordinates.
 
@@ -161,7 +162,7 @@ Get the index/order position of the visible cell at certain coordinates.
 
 0-based index or -1 if cannot find.
 
-#### [.getCellIndexOfElement](src/methods.js) 
+#### [.getCellIndexOfElement](src/methods.js)
 
 Get the index/order position of the visible cell.
 
@@ -173,7 +174,7 @@ Get the index/order position of the visible cell.
 
 0-based index or -1 if cannot find.
 
-#### [.$getCells](src/methods.js) 
+#### [.$getCells](src/methods.js)
 
 Get the visible cells in their current order.
 
@@ -185,19 +186,19 @@ None.
 
 jQuery object of all ordered visible cells.
 
-#### [.$getCellOfElement](src/methods.js) 
+#### [.$getCellOfElement](src/methods.js)
 
 Get jQuery object selection of the .closest() visible cell from the element.
 
 **Params**
 
-* `element` **{jQuery/String/Element}**: Html element. 
+* `element` **{jQuery/String/Element}**: Html element.
 
 **Returns**
 
 A jQuery object selection of the closest visible cell from the element.
 
-#### [.$getHiddenCells](src/methods.js) 
+#### [.$getHiddenCells](src/methods.js)
 
 Get the hidden cells in their current order.
 
@@ -209,13 +210,13 @@ None.
 
 jQuery object of all ordered hidden cells.
 
-#### [.insertCell](src/methods.js) 
+#### [.insertCell](src/methods.js)
 
 Create a new cell from a html string and attach to grid. Converts a html string to a hidden and visible cell.
 
 **Params**
 
-* `cellHtml` **{String}**: Html to create a new cell. 
+* `cellHtml` **{String}**: Html to create a new cell.
 * `index` **{Number}**: Index within the existing ordered visible cell to insert the html.
 
 **Returns**
@@ -223,7 +224,7 @@ Create a new cell from a html string and attach to grid. Converts a html string 
 A jQuery object of the new created visible cell.
 
 
-#### [.modifyCell](src/methods.js) 
+#### [.modifyCell](src/methods.js)
 
 Modify an existing visible and/or hidden cell. Provides an easy way to modify an existing cell without breaking gridstrap's management of them.
 
@@ -237,7 +238,7 @@ Modify an existing visible and/or hidden cell. Provides an easy way to modify an
 Nothing.
 
 
-#### [.moveCell](src/methods.js) 
+#### [.moveCell](src/methods.js)
 
 Move a cell within the grid.
 
@@ -252,7 +253,7 @@ Move a cell within the grid.
 Nothing.
 
 
-#### [.padWithNonContiguousCells](src/methods.js) 
+#### [.padWithNonContiguousCells](src/methods.js)
 
 Explicitly append non-contiguous cells to set of current cells. These cells are added automatically as required if the `autoPadNonContiguousCells` option is enabled, but for performance and behaviour reasons it may be better to setup a grid using this method.
 
@@ -265,9 +266,9 @@ Explicitly append non-contiguous cells to set of current cells. These cells are 
 Nothing.
 
 
-#### [.removeCell](src/methods.js) 
+#### [.removeCell](src/methods.js)
 
-Detach an existing cell from the grid and then removes it from the DOM.  
+Detach an existing cell from the grid and then removes it from the DOM.
 
 **Params**
 
@@ -278,7 +279,7 @@ Detach an existing cell from the grid and then removes it from the DOM.
 Nothing.
 
 
-#### [.setAdditionalGridstrapDragTarget](src/methods.js) 
+#### [.setAdditionalGridstrapDragTarget](src/methods.js)
 
 Enable another gridstrap instance to be targetable for drag and moveCell calls.
 
@@ -298,13 +299,13 @@ Set a visible cell's position and size. This will also trigger the 'cellredraw' 
 **Params**
 
 * `$cell` **{jQuery/String/Element}**: Visible cell Html element.
-* `positionAndSize` **{Object}**: {left:left, top:top, width:width, height:height}. 
+* `positionAndSize` **{Object}**: {left:left, top:top, width:width, height:height}.
 
 **Returns**
 
 Nothing.
 
-#### [.updateOptions](src/methods.js) 
+#### [.updateOptions](src/methods.js)
 
 Get the div that contains the visible cells. It exists within the gridstrap element by default.
 
@@ -363,7 +364,7 @@ Triggered when a visible cell is being resized. Can be prevented.
 
 * `width` **{Number}**: Width of cell.
 * `height` **{Number}**: Height of cell.
-* `target` **{Element}**: Visible cell being resized. 
+* `target` **{Element}**: Visible cell being resized.
 
 
 

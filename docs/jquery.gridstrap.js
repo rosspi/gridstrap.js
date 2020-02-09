@@ -24,6 +24,7 @@ var _default = {
   EVENT_DRAGSTART: 'dragstart',
   EVENT_MOUSEDOWN: 'mousedown',
   EVENT_MOUSEOVER: 'mouseover',
+  EVENT_MOUSEOUT: 'mouseout',
   EVENT_MOUSEMOVE: 'mousemove',
   EVENT_MOUSEUP: 'mouseup',
   EVENT_TOUCHSTART: 'touchstart',
@@ -137,6 +138,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
     // class applied to dragging cell.
     resizeCellClass: 'gridstrap-cell-resize',
     // class applied to resizing cell.
+    mouseOverCellClass: 'gridstrap-cell-mouseover',
+    // class applied to mouseover cell.
     mouseMoveSelector: 'body',
     // jQuery selector to bind mousemouse and mouseup events.
     visibleCellContainerParentSelector: null,
@@ -156,7 +159,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
     resizeHandleSelector: null,
     // jQuery selector relative to cell for resize handling. Null disables.
     resizeOnDrag: true,
-    // toggle mouse resizing.	
+    // toggle mouse resizing.
     swapMode: false,
     // toggle swap or insert mode when rearranging cells.
     nonContiguousCellHtml: null,
@@ -278,10 +281,14 @@ function () {
         return;
       }
 
-      var $draggedCell = this.internal.$GetDraggingCell();
+      var $draggedCell = this.internal.$GetDraggingCell(); // Add mouseOverCellClass (only when not currently dragging)
+
+      if (options.draggable && !$draggedCell.length && !$cell.hasClass(options.mouseOverCellClass)) {
+        $cell.addClass(options.mouseOverCellClass);
+      }
 
       if ($draggedCell.length) {
-        // Is currently dragging. 
+        // Is currently dragging.
         if ($cell.length && !$draggedCell.closest($cell).length) {
           // make sure you're not mouseover-ing the dragged cell itself.
           // css' 'pointer-events', 'none' should do this job, but this double checks.
@@ -289,7 +296,7 @@ function () {
 
           _utils.Utils.Limit(function () {
             if (gridstrapContext.options.rearrangeOnDrag) {
-              _this.internal.MoveCell($draggedCell, $cell, gridstrapContext); // reset dragged object to mouse pos, not pos of hidden cells. 
+              _this.internal.MoveCell($draggedCell, $cell, gridstrapContext); // reset dragged object to mouse pos, not pos of hidden cells.
               // do not trigger overlapping now.
 
 
@@ -297,6 +304,16 @@ function () {
             }
           }, options.dragMouseoverThrottle);
         }
+      }
+    }
+  }, {
+    key: "onMouseout",
+    value: function onMouseout(mouseEvent, $cell, gridstrapContext) {
+      var options = this.setup.Options;
+      var isDragging = this.internal.$GetDraggingCell().length; // Remove mouseOverCellClass (only when not currently dragging)
+
+      if (!isDragging) {
+        $cell.removeClass(options.mouseOverCellClass);
       }
     }
   }, {
@@ -313,7 +330,7 @@ function () {
       var $resizedCell = $(this.setup.ResizeCellSelector);
 
       if ($resizedCell.length) {
-        // is resizing 
+        // is resizing
         var originalMouseDownDiff = $resizedCell.data(_constants["default"].DATA_MOUSEDOWN_POSITION_DIFF);
         var originalMouseDownSize = $resizedCell.data(_constants["default"].DATA_MOUSEDOWN_SIZE); // will change as resizing.
 
@@ -470,7 +487,8 @@ function () {
       this.HandleCellMouseEvent(context, "".concat(appendNamespace(_constants["default"].EVENT_MOUSEDOWN)), true, eventHandlers.onMousedown.bind(eventHandlers));
       this.HandleCellMouseEvent(context, "".concat(appendNamespace(_constants["default"].EVENT_TOUCHSTART)), true, eventHandlers.onTouchStart.bind(eventHandlers)); // pass false as param because we need to do non-contiguous stuff in there.
 
-      this.HandleCellMouseEvent(context, "".concat(appendNamespace(_constants["default"].EVENT_MOUSEOVER)), false, eventHandlers.onMouseover.bind(eventHandlers)); // it is not appropriate to confine the events to the visible cell wrapper.
+      this.HandleCellMouseEvent(context, "".concat(appendNamespace(_constants["default"].EVENT_MOUSEOVER)), false, eventHandlers.onMouseover.bind(eventHandlers));
+      this.HandleCellMouseEvent(context, "".concat(appendNamespace(_constants["default"].EVENT_MOUSEOUT)), false, eventHandlers.onMouseout.bind(eventHandlers)); // it is not appropriate to confine the events to the visible cell wrapper.
 
       $(options.mouseMoveSelector).on("".concat(appendNamespace(_constants["default"].EVENT_MOUSEMOVE)), _utils.Utils.Debounce(eventHandlers.onMousemove.bind(eventHandlers), options.mousemoveDebounce)).on("".concat(appendNamespace(_constants["default"].EVENT_TOUCHMOVE)), _utils.Utils.Debounce(eventHandlers.onTouchmove.bind(eventHandlers), options.mousemoveDebounce)).on("".concat(appendNamespace(_constants["default"].EVENT_MOUSEUP)), eventHandlers.onMouseup.bind(eventHandlers)).on("".concat(appendNamespace(_constants["default"].EVENT_TOUCHEND)), eventHandlers.onTouchend.bind(eventHandlers));
 
@@ -519,7 +537,7 @@ function () {
         // If the default settings apply for drag handle mouse events,
         // or if mouseover, then we want the event to be lenient as to what triggers it.
         // Prepend selector with grid cell itself as an OR/, selector.
-        // To become the cell itself OR any dragCellHandleSelector within the cell. 
+        // To become the cell itself OR any dragCellHandleSelector within the cell.
         draggableSelector = context.options.gridCellSelector + ',' + draggableSelector;
       }
 
@@ -752,8 +770,8 @@ function () {
 
               var $reattachedMovingCell = gridstrapContext.attachCell($detachedMovingOriginalCell);
               var $reattachedTargetCell = context.attachCell($detachedTargetOriginalCell); // have to remove visibleCellClass that these two would now have
-              // as that should have the css transition animation in it, 
-              // and we want to bypass that, set position, then apply it, set position again. 
+              // as that should have the css transition animation in it,
+              // and we want to bypass that, set position, then apply it, set position again.
 
               _utils.Utils.ClearAbsoluteCSS($reattachedMovingCell);
 
@@ -784,8 +802,8 @@ function () {
               _utils.Utils.DetachAndInsertInPlaceJQueryElement(_$detachedMovingOriginalCell, $hiddenTarget);
 
               var _$reattachedMovingCell = gridstrapContext.attachCell(_$detachedMovingOriginalCell); // have to remove visibleCellClass that these two would now have
-              // as that should have the css transition animation in it, 
-              // and we want to bypass that, set position, then apply it, set position again. 
+              // as that should have the css transition animation in it,
+              // and we want to bypass that, set position, then apply it, set position again.
 
 
               _$reattachedMovingCell.removeClass(options.visibleCellClass);
@@ -804,7 +822,7 @@ function () {
           }
         }
       } else {
-        // regular internal movement 
+        // regular internal movement
         if (options.swapMode) {
           _utils.Utils.SwapJQueryElements($hiddenDragged, $hiddenTarget);
         } else {
@@ -921,7 +939,7 @@ function () {
         var $insertedHiddenCell = $insertedCell.data(_constants["default"].DATA_HIDDEN_CELL);
         $hiddenCells = $hiddenCells.add($insertedHiddenCell);
         changed = true;
-      } // remove cells at end when we have too much.          
+      } // remove cells at end when we have too much.
 
 
       var $lastHiddenCell = $hiddenCells.last();
@@ -943,7 +961,7 @@ function () {
         $hiddenCells = $hiddenCells.not($lastHiddenCell); // update new last hidden cell.
 
         $lastHiddenCell = $hiddenCells.last();
-        $bottomRowHiddenCells = null; // force refilter. 
+        $bottomRowHiddenCells = null; // force refilter.
 
         changed = true;
       }

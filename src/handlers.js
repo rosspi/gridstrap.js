@@ -1,15 +1,15 @@
 import Constants from './constants';
 import {Utils} from './utils';
 
-export class Handlers {  
+export class Handlers {
 
   constructor(setup, internal){
     this.setup = setup;
     this.internal = internal;
   }
 
-  onDragstart (mouseEvent, $cell, gridstrapContext) { 
-    let context = this.setup.Context; 
+  onDragstart (mouseEvent, $cell, gridstrapContext) {
+    let context = this.setup.Context;
 
     if (gridstrapContext === context) {
       mouseEvent.preventDefault();
@@ -20,12 +20,12 @@ export class Handlers {
     let $ = this.setup.jQuery;
     let options = this.setup.Options;
 
-    touchEvent.preventDefault(); 
+    touchEvent.preventDefault();
 
     if (touchEvent.touches.length){
       this.onMousedown(
-        Utils.ConvertTouchToMouseEvent(touchEvent), 
-        $cell, 
+        Utils.ConvertTouchToMouseEvent(touchEvent),
+        $cell,
         gridstrapContext);
     }
   }
@@ -49,21 +49,21 @@ export class Handlers {
       if (!$cell.hasClass(options.resizeCellClass)) {
         $cell.addClass(options.resizeCellClass);
 
-        this.internal.SetMouseDownData(mouseEvent, $cell); 
+        this.internal.SetMouseDownData(mouseEvent, $cell);
       }
 
       return;
-    } 
+    }
 
     if (options.draggable && !$cell.hasClass(options.dragCellClass)) {
 
-      this.internal.SetMouseDownData(mouseEvent, $cell);  
+      this.internal.SetMouseDownData(mouseEvent, $cell);
 
       $cell.addClass(options.dragCellClass);
 
       this.internal.MoveDraggedCell(mouseEvent, $cell);
     }
-  } 
+  }
 
   onMouseover(mouseEvent, $cell, gridstrapContext) {
     let $ = this.setup.jQuery;
@@ -72,32 +72,49 @@ export class Handlers {
 
     // clear initially.
     this.internal.LastMouseOverCellTarget = null;
- 
+
     if (!gridstrapContext.options.draggable) {
       return;
     }
 
+
     let $draggedCell = this.internal.$GetDraggingCell();
+
+    // Add mouseOverCellClass (only when not currently dragging)
+    if (options.draggable && !$draggedCell.length && !$cell.hasClass(options.mouseOverCellClass)) {
+	  $cell.addClass(options.mouseOverCellClass);
+    }
+
     if ($draggedCell.length) {
-      // Is currently dragging. 
+      // Is currently dragging.
       if ($cell.length && !$draggedCell.closest($cell).length) {
         // make sure you're not mouseover-ing the dragged cell itself.
         // css' 'pointer-events', 'none' should do this job, but this double checks.
 
-        this.internal.LastMouseOverCellTarget = $cell; 
+        this.internal.LastMouseOverCellTarget = $cell;
 
         Utils.Limit(() => {
-          if (gridstrapContext.options.rearrangeOnDrag) { 
+          if (gridstrapContext.options.rearrangeOnDrag) {
 
-            this.internal.MoveCell($draggedCell, $cell, gridstrapContext); 
-            
-            // reset dragged object to mouse pos, not pos of hidden cells. 
+            this.internal.MoveCell($draggedCell, $cell, gridstrapContext);
+
+            // reset dragged object to mouse pos, not pos of hidden cells.
             // do not trigger overlapping now.
             this.internal.MoveDraggedCell(mouseEvent, $draggedCell, true);
           }
-        }, options.dragMouseoverThrottle); 
+        }, options.dragMouseoverThrottle);
       }
     }
+  }
+
+  onMouseout (mouseEvent, $cell, gridstrapContext) {
+	let options = this.setup.Options;
+	let isDragging = this.internal.$GetDraggingCell().length;
+
+	// Remove mouseOverCellClass (only when not currently dragging)
+	if (!isDragging) {
+	  $cell.removeClass(options.mouseOverCellClass);
+	}
   }
 
   onTouchmove (touchEvent) {
@@ -112,15 +129,15 @@ export class Handlers {
 
     let $resizedCell = $(this.setup.ResizeCellSelector);
     if ($resizedCell.length) {
-      // is resizing 
+      // is resizing
 
-      let originalMouseDownDiff = $resizedCell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF); 
-      let originalMouseDownSize = $resizedCell.data(Constants.DATA_MOUSEDOWN_SIZE); 
+      let originalMouseDownDiff = $resizedCell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF);
+      let originalMouseDownSize = $resizedCell.data(Constants.DATA_MOUSEDOWN_SIZE);
 
       // will change as resizing.
       let cellPositionAndSize = $resizedCell.data(Constants.DATA_CELL_POSITION_AND_SIZE);
 
-      let absoluteOffset = Utils.GetAbsoluteOffsetForElementFromMouseEvent($resizedCell, mouseEvent, originalMouseDownDiff); 
+      let absoluteOffset = Utils.GetAbsoluteOffsetForElementFromMouseEvent($resizedCell, mouseEvent, originalMouseDownDiff);
 
       let newW = originalMouseDownSize.width + absoluteOffset.left - cellPositionAndSize.left;
       let newH = originalMouseDownSize.height + absoluteOffset.top - cellPositionAndSize.top;
@@ -139,11 +156,11 @@ export class Handlers {
 
         this.internal.MoveDraggedCell(mouseEvent, $draggedCell);
 
-        if (options.nonContiguousCellHtml && 
-          options.rearrangeOnDrag && 
+        if (options.nonContiguousCellHtml &&
+          options.rearrangeOnDrag &&
           options.autoPadNonContiguousCells){
           this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
-        } 
+        }
       }
     }
   }
@@ -167,7 +184,7 @@ export class Handlers {
     let $resizedCell = $(this.setup.ResizeCellSelector);
     if (options.resizeHandleSelector && $resizedCell.length) {
       if (!options.resizeOnDrag) {
-        let originalMouseDownDifference = $resizedCell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF); 
+        let originalMouseDownDifference = $resizedCell.data(Constants.DATA_MOUSEDOWN_POSITION_DIFF);
 
         let newW = originalMouseDownCellPosition.w + mouseEvent.pageX - originalMouseDownPagePosition.x;
         let newH = originalMouseDownCellPosition.h + mouseEvent.pageY - originalMouseDownPagePosition.y;
@@ -184,10 +201,10 @@ export class Handlers {
     let $draggedCell = this.internal.$GetDraggingCell();
     if ($draggedCell.length > 0) {
 
-      if (options.nonContiguousCellHtml && 
+      if (options.nonContiguousCellHtml &&
         !options.rearrangeOnDrag &&
         options.autoPadNonContiguousCells){
-          
+
         this.internal.UpdateNonContiguousCellsForDrag($draggedCell, mouseEvent);
 
         // mouse event may be over a new placeholder cell now.
@@ -207,11 +224,11 @@ export class Handlers {
       let cellOriginalPosition = $draggedCell.data(Constants.DATA_CELL_POSITION_AND_SIZE);
       context.setCellAbsolutePositionAndSize($draggedCell, cellOriginalPosition);
 
-      if (this.internal.LastMouseOverCellTarget && !options.rearrangeOnDrag) { 
+      if (this.internal.LastMouseOverCellTarget && !options.rearrangeOnDrag) {
 
         // rearrange on mouseup
         this.internal.MoveCell($draggedCell, this.internal.LastMouseOverCellTarget, context);
       }
     }
-  }  
+  }
 }

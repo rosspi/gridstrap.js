@@ -1,6 +1,6 @@
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 /** 1. Set default font family to sans-serif. 2. Prevent iOS text size adjust after orientation change, without disabling user zoom. */
-html { font-family: sans-serif; /* 1 */ -ms-text-size-adjust: 100%; /* 2 */ -webkit-text-size-adjust: 100%; /* 2 */ 
+html { font-family: sans-serif; /* 1 */ -ms-text-size-adjust: 100%; /* 2 */ -webkit-text-size-adjust: 100%; /* 2 */
 font-size: 1.1rem;
 }
 
@@ -270,8 +270,8 @@ a:hover { text-decoration: underline; }
 @media screen and (max-width: 42em) { .btn-top { display: block; width: 100%; padding: 0.75rem; font-size: 0.9rem; }
   .btn-top + .btn-top { margin-top: 1rem; margin-left: 0; } }
 
-.header-bg { 
-   
+.header-bg {
+
 
 color: #cdbfe3;
     text-align: center;
@@ -300,7 +300,7 @@ margin:0px;
 @media screen and (min-width: 42em) and (max-width: 64em) { .project-tagline { font-size: 1.15rem; } }
 @media screen and (max-width: 42em) { .project-tagline { font-size: 1rem; } }
 
-.main-content { word-wrap: break-word; } 
+.main-content { word-wrap: break-word; }
 @media screen and (min-width: 64em) { .main-content { max-width: 64rem; padding: 2rem 6rem; margin: 0 auto; font-size: 1.1rem; } }
 @media screen and (min-width: 42em) and (max-width: 64em) { .main-content { padding: 2rem 4rem; font-size: 1.1rem; } }
 @media screen and (max-width: 42em) { .main-content { padding: 2rem 1rem; font-size: 1rem; } }
@@ -346,8 +346,8 @@ margin:0px;
 }
 
 .cell{
-   
-  min-height: 100px; 
+
+  min-height: 100px;
   padding:1px;
 }
 
@@ -363,20 +363,20 @@ margin:0px;
 
   border:  solid 1px lightgray;
 
-  min-height: 100px; 
+  min-height: 100px;
   height:100%;
-  width:100%; 
+  width:100%;
   cursor: default;
 }
 
 .cell.nested{
-  min-height: 15px; 
+  min-height: 15px;
 
 }
 
 .inner.nested{
   height:15px;
-  min-height: 15px; 
+  min-height: 15px;
 }
 
 .inner .resize{
@@ -385,18 +385,18 @@ margin:0px;
     background-repeat: no-repeat;
   cursor: se-resize;
   transform: rotate(45);
-  height: 10px; 
-  width:10px; 
+  height: 10px;
+  width:10px;
   position: absolute;
   right: 5px;
-  bottom: 5px; 
+  bottom: 5px;
 }
 
 iframe{
   border: none;
   height:500px;
-} 
+}
 
-#custom-grid>div{ 
+#custom-grid>div{
   float:left;
 }
