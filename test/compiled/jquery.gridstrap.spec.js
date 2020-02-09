@@ -15,6 +15,7 @@ var _default = {
   EVENT_DRAGSTART: 'dragstart',
   EVENT_MOUSEDOWN: 'mousedown',
   EVENT_MOUSEOVER: 'mouseover',
+  EVENT_MOUSEOUT: 'mouseout',
   EVENT_MOUSEMOVE: 'mousemove',
   EVENT_MOUSEUP: 'mouseup',
   EVENT_TOUCHSTART: 'touchstart',
@@ -266,7 +267,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   });
   QUnit.test('expected defaultOptions', function (assert) {
     var defaultOptions = $[pluginOptionsName].defaultOptions;
-    assert.equal(JSON.stringify(defaultOptions), '{"gridCellSelector":">*","hiddenCellClass":"gridstrap-cell-hidden","visibleCellClass":"gridstrap-cell-visible","nonContiguousPlaceholderCellClass":"gridstack-noncontiguous","dragCellClass":"gridstrap-cell-drag","resizeCellClass":"gridstrap-cell-resize","mouseMoveSelector":"body","visibleCellContainerParentSelector":null,"visibleCellContainerClass":"gridstrap-container","dragCellHandleSelector":"*","draggable":true,"rearrangeOnDrag":true,"resizeHandleSelector":null,"resizeOnDrag":true,"swapMode":false,"nonContiguousCellHtml":null,"autoPadNonContiguousCells":true,"updateCoordinatesOnWindowResize":true,"debug":false,"dragMouseoverThrottle":150,"windowResizeDebounce":50,"mousemoveDebounce":0}', "default options has changed, breaking change");
+    assert.equal(JSON.stringify(defaultOptions), '{"gridCellSelector":">*","hiddenCellClass":"gridstrap-cell-hidden","visibleCellClass":"gridstrap-cell-visible","nonContiguousPlaceholderCellClass":"gridstack-noncontiguous","dragCellClass":"gridstrap-cell-drag","resizeCellClass":"gridstrap-cell-resize","mouseOverCellClass":"gridstrap-cell-mouseover","mouseMoveSelector":"body","visibleCellContainerParentSelector":null,"visibleCellContainerClass":"gridstrap-container","dragCellHandleSelector":"*","draggable":true,"rearrangeOnDrag":true,"resizeHandleSelector":null,"resizeOnDrag":true,"swapMode":false,"nonContiguousCellHtml":null,"autoPadNonContiguousCells":true,"updateCoordinatesOnWindowResize":true,"debug":false,"dragMouseoverThrottle":150,"windowResizeDebounce":50,"mousemoveDebounce":0}', "default options has changed, breaking change");
   }); // QUnit.test( "enable custom config", function( assert ) {
   // 	$fixture[pluginName]( {
   // 		foo: "bar"

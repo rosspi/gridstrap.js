@@ -4,7 +4,7 @@ import Utils from '../../src/utils';
 ( function( $, QUnit ) {
 
 	"use strict";
- 
+
 	let $fixture;
 	let pluginName = 'gridstrap';
 	let pluginDataName = 'gridstrap';
@@ -14,7 +14,7 @@ import Utils from '../../src/utils';
 		beforeEach: function() {
 
 			// fixture is the element where your jQuery plugin will act
-			$fixture = $( "#testGrid" ); 
+			$fixture = $( "#testGrid" );
 		},
 		afterEach: function() {
 
@@ -39,7 +39,7 @@ import Utils from '../../src/utils';
 
 	QUnit.test( "caches plugin instance", function( assert ) {
 		$fixture[pluginName]();
-		
+
 		assert.ok(
 			$fixture.data( pluginDataName ),
 			"has cached it into a jQuery data"
@@ -50,8 +50,8 @@ import Utils from '../../src/utils';
 		var defaultOptions = $[pluginOptionsName].defaultOptions;
 		assert.equal(
 			JSON.stringify(defaultOptions),
-			'{"gridCellSelector":">*","hiddenCellClass":"gridstrap-cell-hidden","visibleCellClass":"gridstrap-cell-visible","nonContiguousPlaceholderCellClass":"gridstack-noncontiguous","dragCellClass":"gridstrap-cell-drag","resizeCellClass":"gridstrap-cell-resize","mouseMoveSelector":"body","visibleCellContainerParentSelector":null,"visibleCellContainerClass":"gridstrap-container","dragCellHandleSelector":"*","draggable":true,"rearrangeOnDrag":true,"resizeHandleSelector":null,"resizeOnDrag":true,"swapMode":false,"nonContiguousCellHtml":null,"autoPadNonContiguousCells":true,"updateCoordinatesOnWindowResize":true,"debug":false,"dragMouseoverThrottle":150,"windowResizeDebounce":50,"mousemoveDebounce":0}',
-			
+			'{"gridCellSelector":">*","hiddenCellClass":"gridstrap-cell-hidden","visibleCellClass":"gridstrap-cell-visible","nonContiguousPlaceholderCellClass":"gridstack-noncontiguous","dragCellClass":"gridstrap-cell-drag","resizeCellClass":"gridstrap-cell-resize","mouseOverCellClass":"gridstrap-cell-mouseover","mouseMoveSelector":"body","visibleCellContainerParentSelector":null,"visibleCellContainerClass":"gridstrap-container","dragCellHandleSelector":"*","draggable":true,"rearrangeOnDrag":true,"resizeHandleSelector":null,"resizeOnDrag":true,"swapMode":false,"nonContiguousCellHtml":null,"autoPadNonContiguousCells":true,"updateCoordinatesOnWindowResize":true,"debug":false,"dragMouseoverThrottle":150,"windowResizeDebounce":50,"mousemoveDebounce":0}',
+
 			"default options has changed, breaking change"
 		);
 	});
