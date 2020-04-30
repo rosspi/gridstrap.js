@@ -38,7 +38,7 @@
   "license": "MIT",
   "dependencies": {
     "install-peers": "1.0.3",
-    "jquery": "3.4.1"
+    "jquery": "3.5.0"
   },
   "peerDependencies": {},
   "devDependencies": {
