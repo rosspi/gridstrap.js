@@ -60,7 +60,7 @@
     "karma-chrome-launcher": "2.2.0",
     "karma-qunit": "^1.2.1",
     "qunitjs": "^1.19.0",
-    "semantic-release": "^15.13.31"
+    "semantic-release": "^17.2.3"
   },
   "scripts": {
     "commit": "git-cz",
